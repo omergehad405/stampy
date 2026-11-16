@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LuArrowDown, LuBell, LuCalendar, LuCircleCheck, LuClock, LuCoffee, LuQrCode, LuScanQrCode, LuX } from "react-icons/lu";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
+import NotificationBox from "@/app/components/layout/NotificationBox";
 
 // Barista coffee tamper icon for earned stamps
 function TamperIcon({ className = "w-5 h-5" }) {
@@ -94,6 +95,7 @@ function QRCodeGraphic({ className = "w-36 h-36" }) {
 export default function HomePage() {
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isBadgeHighlighted, setIsBadgeHighlighted] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const qrSectionRef = useRef(null);
 
     const currentStamps = 6;
@@ -151,10 +153,16 @@ export default function HomePage() {
                     <ThemeToggle />
                     <button
                         type="button"
-                        aria-label="Notifications"
-                        className="p-2 rounded-full hover:bg-[var(--mainColor)]/10 transition-colors cursor-pointer"
+                        aria-label="Open notifications"
+                        onClick={() => setIsNotificationOpen(true)}
+                        className="relative p-2 rounded-full hover:bg-[var(--mainColor)]/10 text-[var(--mainColor)] transition-colors cursor-pointer"
                     >
                         <LuBell className="w-5 h-5 lg:w-6 lg:h-6" />
+                        {/* Unread indicator beacon */}
+                        <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--secondColor)] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--secondColor)]"></span>
+                        </span>
                     </button>
                 </div>
             </header>
@@ -325,10 +333,10 @@ export default function HomePage() {
                 type="button"
                 onClick={scrollToQr}
                 aria-label="Scroll down to QR Code"
-                className={`fixed right-0 top-1/2 -translate-y-1/2 z-30 md:hidden flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 rounded-l-2xl shadow-xl border-y border-l border-[var(--mainColor)]/20 cursor-pointer transition-all duration-300 select-none ${
+                className={`fixed right-0 top-1/2 text-[#3b2418] -translate-y-1/2 z-30 md:hidden flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 rounded-l-2xl shadow-xl border-y border-l border-[var(--mainColor)]/20 cursor-pointer transition-all duration-300 select-none ${
                     isBadgeHighlighted
-                        ? "bg-[var(--secondColor)] text-[var(--mainColor)] ring-4 ring-[var(--secondColor)]/80 scale-105 shadow-[0_0_20px_rgba(142,197,255,0.7)]"
-                        : "bg-[var(--secondColor)] text-[var(--mainColor)] hover:scale-105 active:scale-95 shadow-md"
+                        ? "bg-[var(--secondColor)] ring-4 ring-[var(--secondColor)]/80 scale-105 shadow-[0_0_20px_rgba(142,197,255,0.7)]"
+                        : "bg-[var(--secondColor)] hover:scale-105 active:scale-95 shadow-md"
                 }`}
             >
                 <div className="relative flex items-center justify-center">
@@ -407,6 +415,12 @@ export default function HomePage() {
                     </div>
                 </div>
             )}
+
+            {/* Notification Box (Slide-in from outside the screen) */}
+            <NotificationBox
+                isOpen={isNotificationOpen}
+                onClose={() => setIsNotificationOpen(false)}
+            />
         </div>
     );
 }
