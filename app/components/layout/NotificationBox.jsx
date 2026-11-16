@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   LuBell,
   LuCoffee,
@@ -9,60 +9,12 @@ import {
   LuX,
   LuCheckCheck,
 } from "react-icons/lu";
-
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: "1",
-    title: "Stamp Collected!",
-    message:
-      "You earned 1 stamp at Downtown Branch. Only 4 more to unlock your free specialty coffee!",
-    time: "2 hours ago",
-    unread: true,
-    type: "stamp",
-  },
-  {
-    id: "2",
-    title: "Reward Getting Closer 🎉",
-    message:
-      "You've collected 6 out of 10 stamps! Keep visiting to earn your reward soon.",
-    time: "Yesterday",
-    unread: true,
-    type: "reward",
-  },
-  {
-    id: "3",
-    title: "Double Stamp Tuesday!",
-    message:
-      "Visit any participating branch between 2 PM and 5 PM tomorrow to earn 2 stamps per drink.",
-    time: "2 days ago",
-    unread: true,
-    type: "promo",
-  },
-  {
-    id: "4",
-    title: "Welcome to Stampy",
-    message:
-      "Your digital loyalty card is all set up. Present your personal QR code at checkout every visit.",
-    time: "5 days ago",
-    unread: false,
-    type: "system",
-  },
-];
+import { useNotificationStore } from "@/app/stores/useNotificationStore";
 
 export default function NotificationBox({ isOpen, onClose }) {
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const { notifications, markAllAsRead, markAsRead } = useNotificationStore();
 
   const unreadCount = notifications.filter((n) => n.unread).length;
-
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-  };
-
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
-    );
-  };
 
   // Close with Escape key and lock body scroll when open
   useEffect(() => {
