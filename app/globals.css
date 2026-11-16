@@ -1,26 +1,62 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --mainColor: #3b2418;
+    --secondColor: #8ec5ff;
+    --bgColor: #f2ebda;
+  }
+
+  .dark {
+    --mainColor: #f2ebda;
+    --secondColor: #8ec5ff;
+    --bgColor: #3b2418;
+  }
+
+  * {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: var(--bgColor);
+    color: var(--mainColor);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  /* Standard scrollbar for Firefox & modern browsers */
+  html,
+  body,
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--mainColor) var(--bgColor);
+  }
+
+  /* Custom scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bgColor);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--mainColor), var(--secondColor));
+    border-radius: 9999px;
+    border: 2px solid var(--bgColor);
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--mainColor), var(--secondColor));
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--bgColor);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@custom-variant hover (&:hover);
