@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { LuBell, LuCoffee, LuScanQrCode, LuX } from "react-icons/lu";
+import React, { useState, useEffect, useRef } from "react";
+import { LuArrowDown, LuBell, LuCalendar, LuCircleCheck, LuClock, LuCoffee, LuQrCode, LuScanQrCode, LuX } from "react-icons/lu";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
 
 // Barista coffee tamper icon for earned stamps
@@ -93,10 +93,22 @@ function QRCodeGraphic({ className = "w-36 h-36" }) {
 
 export default function HomePage() {
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [isBadgeHighlighted, setIsBadgeHighlighted] = useState(false);
+    const qrSectionRef = useRef(null);
 
     const currentStamps = 6;
     const totalStamps = 10;
     const stamps = Array.from({ length: totalStamps }, (_, i) => i + 1);
+
+    const scrollToQr = () => {
+        setIsBadgeHighlighted(true);
+        if (qrSectionRef.current) {
+            qrSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        setTimeout(() => {
+            setIsBadgeHighlighted(false);
+        }, 2500);
+    };
 
     // Close modal on Escape key and lock body scroll
     useEffect(() => {
@@ -219,11 +231,69 @@ export default function HomePage() {
                             })}
                         </div>
                     </section>
+
+                    {/* Last Visit Reminder Section */}
+                    <section>
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-base lg:text-lg font-bold">Last Visit</h3>
+                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--secondColor)]/20 text-[var(--mainColor)]">
+                                Yesterday
+                            </span>
+                        </div>
+
+                        <div className="rounded-2xl lg:rounded-3xl p-4 sm:p-5 border border-[var(--mainColor)]/15 bg-white/60 dark:bg-black/20 shadow-sm backdrop-blur-xs transition-colors duration-300">
+                            <div className="flex items-start gap-3.5">
+                                <div className="w-10 h-10 rounded-xl bg-[var(--mainColor)] text-[var(--bgColor)] flex items-center justify-center shrink-0 shadow-xs">
+                                    <LuCoffee className="w-5 h-5" />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex flex-wrap items-center justify-between gap-1">
+                                        <h4 className="text-sm sm:text-base font-bold truncate">
+                                            Coffee House • Main Branch
+                                        </h4>
+                                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--mainColor)] bg-[var(--mainColor)]/10 px-2 py-0.5 rounded-md">
+                                            <LuCircleCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                            +1 Stamp (#6)
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-y-1 gap-x-3 text-xs opacity-75 mt-1.5">
+                                        <span className="inline-flex items-center gap-1">
+                                            <LuCalendar className="w-3.5 h-3.5" />
+                                            Sunday, Nov 15, 2026
+                                        </span>
+                                        <span className="inline-flex items-center gap-1">
+                                            <LuClock className="w-3.5 h-3.5" />
+                                            4:15 PM
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-3 pt-3 border-t border-[var(--mainColor)]/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+                                        <span className="opacity-80">
+                                            Daily stamp limit: 1 visit per day.
+                                        </span>
+                                        <span className="font-semibold text-[var(--mainColor)]">
+                                            Ready for today&apos;s visit! ☕
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
                 {/* Right Column: QR Code Card */}
                 <div className="md:col-span-5 mt-6 md:mt-0 md:sticky md:top-6 lg:top-8">
-                    <section className="bg-white rounded-3xl p-5 sm:p-6 lg:p-7 shadow-sm border border-[#3b2418] transition-colors duration-300">
+                    <section
+                        ref={qrSectionRef}
+                        id="qr-section"
+                        className={`bg-white rounded-3xl p-5 sm:p-6 lg:p-7 shadow-sm border transition-all duration-500 ${
+                            isBadgeHighlighted
+                                ? "border-[var(--secondColor)] ring-4 ring-[var(--secondColor)]/70 shadow-xl scale-[1.01]"
+                                : "border-[#3b2418]"
+                        }`}
+                    >
                         <div className="flex items-center gap-2 mb-3">
                             <LuScanQrCode className="w-4 h-4 lg:w-5 lg:h-5 opacity-70" />
                             <h4 className="text-sm lg:text-base font-bold text-[#3b2418]">
@@ -249,6 +319,33 @@ export default function HomePage() {
                     </section>
                 </div>
             </div>
+
+            {/* Floating Right-Edge QR Badge (Small screens only) */}
+            <button
+                type="button"
+                onClick={scrollToQr}
+                aria-label="Scroll down to QR Code"
+                className={`fixed right-0 top-1/2 -translate-y-1/2 z-30 md:hidden flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 rounded-l-2xl shadow-xl border-y border-l border-[var(--mainColor)]/20 cursor-pointer transition-all duration-300 select-none ${
+                    isBadgeHighlighted
+                        ? "bg-[var(--secondColor)] text-[var(--mainColor)] ring-4 ring-[var(--secondColor)]/80 scale-105 shadow-[0_0_20px_rgba(142,197,255,0.7)]"
+                        : "bg-[var(--secondColor)] text-[var(--mainColor)] hover:scale-105 active:scale-95 shadow-md"
+                }`}
+            >
+                <div className="relative flex items-center justify-center">
+                    <LuQrCode className="w-5 h-5 shrink-0" />
+                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--mainColor)] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--mainColor)]"></span>
+                    </span>
+                </div>
+
+                <div className="flex flex-col items-start text-left leading-tight">
+                    <span className="text-xs font-bold tracking-tight">QR Code</span>
+                    <span className="text-[10px] font-semibold opacity-90 flex items-center gap-0.5">
+                        Scroll <LuArrowDown className="w-2.5 h-2.5 animate-bounce" />
+                    </span>
+                </div>
+            </button>
 
             {/* QR Code Modal */}
             {isQrModalOpen && (
