@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body
-        className="min-h-full flex flex-col bg-[var(--bgColor)] text-[var(--mainColor)] transition-colors duration-300"
+        className="min-h-full flex flex-col bg-[var(--bgColor)] text-[var(--mainColor)]"
         suppressHydrationWarning
       >
         <ThemeProvider>

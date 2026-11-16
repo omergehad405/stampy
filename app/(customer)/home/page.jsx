@@ -320,7 +320,7 @@ export default function HomePage() {
                         <button
                             type="button"
                             onClick={() => setIsQrModalOpen(true)}
-                            className="w-full mt-4 lg:mt-6 bg-[var(--secondColor)] hover:opacity-90 active:scale-[0.99] text-[var(--mainColor)] font-semibold text-sm lg:text-base py-3.5 px-4 rounded-xl text-center transition-all cursor-pointer shadow-sm"
+                            className="w-full mt-4 lg:mt-6 bg-[var(--secondColor)] hover:opacity-90 active:scale-[0.99] text-[#3b2418] font-semibold text-sm lg:text-base py-3.5 px-4 rounded-xl text-center transition-all cursor-pointer shadow-sm"
                         >
                             Show QR Code
                         </button>
@@ -333,7 +333,7 @@ export default function HomePage() {
                 type="button"
                 onClick={scrollToQr}
                 aria-label="Scroll down to QR Code"
-                className={`fixed right-0 top-1/2 text-[#3b2418] -translate-y-1/2 z-30 md:hidden flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 rounded-l-2xl shadow-xl border-y border-l border-[var(--mainColor)]/20 cursor-pointer transition-all duration-300 select-none ${
+                className={`fixed right-0 top-[120px] text-[#3b2418] -translate-y-1/2 z-30 md:hidden flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 rounded-l-2xl shadow-xl border-y border-l border-[var(--mainColor)]/20 cursor-pointer transition-all duration-300 select-none ${
                     isBadgeHighlighted
                         ? "bg-[var(--secondColor)] ring-4 ring-[var(--secondColor)]/80 scale-105 shadow-[0_0_20px_rgba(142,197,255,0.7)]"
                         : "bg-[var(--secondColor)] hover:scale-105 active:scale-95 shadow-md"
@@ -408,7 +408,7 @@ export default function HomePage() {
                         <button
                             type="button"
                             onClick={() => setIsQrModalOpen(false)}
-                            className="w-full mt-5 bg-[var(--mainColor)] hover:opacity-90 active:scale-[0.99] text-[var(--bgColor)] font-semibold text-sm sm:text-base py-3.5 px-4 rounded-xl text-center transition-all cursor-pointer shadow-sm"
+                            className="w-full mt-5 bg-[var(--secondColor)] hover:opacity-90 active:scale-[0.99] text-[#3b2418] font-semibold text-sm sm:text-base py-3.5 px-4 rounded-xl text-center transition-all cursor-pointer shadow-sm"
                         >
                             Done
                         </button>
