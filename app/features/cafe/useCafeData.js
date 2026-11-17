@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useSyncExternalStore } from "react";
+import { getCafeBySlug } from "./cafesCatalog";
 import { MOCK_CAFE_DATA } from "./cafeData";
 
 // Stable external store for client-side time
@@ -127,16 +128,25 @@ function computeOpenStatus(schedule, timestamp) {
 
 /**
  * Custom hook to retrieve cafe data and computed helpers.
- * Prepared for TanStack Query / API integration when the backend is ready.
+ * Can be called with a cafe slug or cafe object, or with no params for default.
  */
-export function useCafeData() {
-  const [data, setData] = useState(MOCK_CAFE_DATA);
+export function useCafeData(slugOrCafe = null) {
+  const cafe = useMemo(() => {
+    if (!slugOrCafe) {
+      return getCafeBySlug("coffee-house") || MOCK_CAFE_DATA;
+    }
+    if (typeof slugOrCafe === "string") {
+      return getCafeBySlug(slugOrCafe) || getCafeBySlug("coffee-house") || MOCK_CAFE_DATA;
+    }
+    return slugOrCafe;
+  }, [slugOrCafe]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
   // Safely subscribe to client time with a stable snapshot
   const clientTime = useSyncExternalStore(subscribeTime, getClientTime, getServerTime);
-  const schedule = data?.openingHours?.schedule;
+  const schedule = cafe?.openingHours?.schedule;
 
   const operatingStatus = useMemo(() => {
     if (!clientTime || !schedule) return null;
@@ -144,10 +154,9 @@ export function useCafeData() {
   }, [clientTime, schedule]);
 
   return {
-    cafe: data,
+    cafe,
     isLoading,
     isError,
     operatingStatus,
-    reload: () => setData(MOCK_CAFE_DATA),
   };
 }

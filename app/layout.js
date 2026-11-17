@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/layout/Navbar";
@@ -32,7 +33,9 @@ export default function RootLayout({ children }) {
       >
         <ThemeProvider>
           <main className="flex-1 pb-32 md:pb-28">{children}</main>
-          <Navbar />
+          <Suspense fallback={null}>
+            <Navbar />
+          </Suspense>
           <ToastProvider />
         </ThemeProvider>
       </body>

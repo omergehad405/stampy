@@ -1,10 +1,5 @@
-import CafeProfilePage from "../profile/page";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Cafe - Stampy Loyalty",
-  description: "View cafe details, location, hours, contact and social links",
-};
-
-export default function CafePage() {
-  return <CafeProfilePage />;
+export default function CafeLegacyPage() {
+  redirect("/my-cafes");
 }
