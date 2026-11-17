@@ -9,7 +9,7 @@ export default function Navbar() {
   const navItems = [
     { label: "Home", href: "/" },
     { label: "Rewards", href: "/rewards" },
-    { label: "Profile", href: "/profile" },
+    { label: "Cafe", href: "/profile" },
   ];
 
   return (
@@ -19,7 +19,8 @@ export default function Navbar() {
           const isActive =
             item.href === "/"
               ? pathname === "/" || pathname === "/home"
-              : pathname.startsWith(item.href);
+              : pathname.startsWith(item.href) ||
+                (item.href === "/profile" && pathname.startsWith("/cafe"));
 
           return (
             <Link
