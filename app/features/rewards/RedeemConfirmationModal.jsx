@@ -54,51 +54,53 @@ export default function RedeemConfirmationModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="relative z-10 bg-[var(--bgColor)] text-[var(--mainColor)] rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl border border-[var(--mainColor)]/15 flex flex-col"
+          className="relative z-10 bg-[var(--mainColor)] text-[var(--bgColor)] rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl border border-[var(--bgColor)]/15 flex flex-col"
         >
           {/* Close button */}
           <button
             type="button"
             aria-label="Close dialog"
             onClick={onCancel}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--mainColor)]/10 text-[var(--mainColor)] transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--bgColor)]/10 text-[var(--bgColor)]/80 hover:text-[var(--bgColor)] transition-colors cursor-pointer"
           >
             <LuX className="w-5 h-5" />
           </button>
 
           {/* Icon & Title */}
           <div className="flex flex-col items-center text-center">
-            <RewardVisual iconType={reward.iconType} className="w-16 h-16 sm:w-20 sm:h-20 mb-3" />
+            <div className="rounded-2xl bg-[var(--bgColor)]/15 p-2 border border-[var(--bgColor)]/20 mb-3">
+              <RewardVisual iconType={reward.iconType} className="w-16 h-16 sm:w-20 sm:h-20" />
+            </div>
 
-            <span className="text-xs font-bold uppercase tracking-wider opacity-70">
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--secondColor)]">
               Confirm Redemption
             </span>
 
-            <h3 id="redeem-modal-title" className="text-xl sm:text-2xl font-bold mt-1">
+            <h3 id="redeem-modal-title" className="text-xl sm:text-2xl font-bold mt-1 text-[var(--bgColor)]">
               {reward.name}
             </h3>
 
-            <p className="text-xs sm:text-sm opacity-70 mt-1 max-w-xs">
+            <p className="text-xs sm:text-sm text-[var(--bgColor)]/75 mt-1 max-w-xs">
               {reward.description}
             </p>
           </div>
 
           {/* Stamp Calculation Box */}
-          <div className="bg-white/80 dark:bg-black/20 rounded-2xl p-4 my-5 border border-[var(--mainColor)]/10">
-            <div className="flex items-center justify-between text-xs sm:text-sm font-semibold pb-2 border-b border-[var(--mainColor)]/10">
+          <div className="bg-[var(--bgColor)]/10 rounded-2xl p-4 my-5 border border-[var(--bgColor)]/15">
+            <div className="flex items-center justify-between text-xs sm:text-sm font-semibold pb-2 border-b border-[var(--bgColor)]/15">
               <span className="opacity-75">Current Balance:</span>
               <span>{currentBalance} stamps</span>
             </div>
 
-            <div className="flex items-center justify-between text-xs sm:text-sm font-semibold py-2 border-b border-[var(--mainColor)]/10 text-amber-700 dark:text-amber-300">
+            <div className="flex items-center justify-between text-xs sm:text-sm font-semibold py-2 border-b border-[var(--bgColor)]/15 text-[var(--secondColor)]">
               <span>Required for Reward:</span>
               <span>-{reward.stampsRequired} stamps</span>
             </div>
 
-            <div className="flex items-center justify-between text-sm sm:text-base font-bold pt-2 text-[var(--mainColor)]">
+            <div className="flex items-center justify-between text-sm sm:text-base font-bold pt-2 text-[var(--bgColor)]">
               <span>Balance After:</span>
               <span className="flex items-center gap-1.5">
-                <span className="opacity-40">{currentBalance}</span>
+                <span className="opacity-50">{currentBalance}</span>
                 <LuArrowRight className="w-3.5 h-3.5 text-[var(--secondColor)]" />
                 <span className="text-[var(--secondColor)] font-extrabold">{newBalance} stamps</span>
               </span>
@@ -106,9 +108,9 @@ export default function RedeemConfirmationModal({
           </div>
 
           {/* Security Notice */}
-          <div className="flex items-start gap-2.5 bg-[var(--secondColor)]/15 text-[var(--mainColor)] rounded-xl p-3 text-xs leading-relaxed">
+          <div className="flex items-start gap-2.5 bg-[var(--bgColor)]/10 text-[var(--bgColor)] rounded-xl p-3 text-xs leading-relaxed border border-[var(--bgColor)]/10">
             <LuCircleAlert className="w-4 h-4 shrink-0 mt-0.5 text-[var(--secondColor)]" />
-            <p>
+            <p className="text-[var(--bgColor)]/85">
               Stamps are deducted upon confirmation. A unique single-use QR code will be generated for the barista to scan.
             </p>
           </div>
@@ -118,7 +120,7 @@ export default function RedeemConfirmationModal({
             <button
               type="button"
               onClick={onCancel}
-              className="w-full sm:w-1/2 py-3 px-4 rounded-xl border border-[var(--mainColor)]/20 hover:bg-[var(--mainColor)]/5 font-semibold text-sm text-center transition-all cursor-pointer"
+              className="w-full sm:w-1/2 py-3 px-4 rounded-xl border border-[var(--bgColor)]/20 hover:bg-[var(--bgColor)]/10 font-semibold text-sm text-[var(--bgColor)] text-center transition-all cursor-pointer"
             >
               Cancel
             </button>
@@ -126,7 +128,7 @@ export default function RedeemConfirmationModal({
             <button
               type="button"
               onClick={() => onConfirm(reward)}
-              className="w-full sm:w-1/2 flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-[var(--secondColor)] hover:opacity-90 active:scale-[0.99] text-[#3B2418] font-bold text-sm text-center transition-all cursor-pointer shadow-sm"
+              className="w-full sm:w-1/2 flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-[var(--secondColor)] hover:opacity-95 active:scale-[0.99] text-[#3B2418] font-bold text-sm text-center transition-all cursor-pointer shadow-sm"
             >
               <LuSparkles className="w-4 h-4" />
               Confirm & Get QR

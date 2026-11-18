@@ -9,7 +9,6 @@ import {
   LuCircleCheck,
   LuClock,
   LuShieldCheck,
-  LuQrCode,
   LuSparkles,
 } from "react-icons/lu";
 
@@ -58,22 +57,35 @@ function RedemptionQRCodeGraphic({ code, className = "w-44 h-44" }) {
       {/* Unique dynamic data pattern modules */}
       <rect x="11" y="11" width="3" height="3" fill="currentColor" />
       <rect x="15" y="11" width="2" height="1" fill="currentColor" />
-      <rect x="11" y="15" width="1" height="3" fill="currentColor" />
-      <rect x="14" y="14" width="3" height="3" fill={modA ? "currentColor" : "#FFFFFF"} />
-      <rect x="18" y="13" width="2" height="2" fill="currentColor" />
-      <rect x="10" y="18" width="3" height="2" fill={modB ? "currentColor" : "#FFFFFF"} />
-      <rect x="19" y="18" width="4" height="2" fill="currentColor" />
-      <rect x="10" y="2" width="2" height="2" fill="currentColor" />
-      <rect x="14" y="2" width="2" height="2" fill="currentColor" />
-      <rect x="17" y="2" width="2" height="2" fill="currentColor" />
-      <rect x="2" y="11" width="2" height="2" fill="currentColor" />
-      <rect x="2" y="15" width="2" height="2" fill="currentColor" />
-      <rect x="24" y="11" width="2" height="2" fill="currentColor" />
-      <rect x="24" y="15" width="2" height="2" fill="currentColor" />
-      <rect x="10" y="24" width="2" height="2" fill="currentColor" />
-      <rect x="14" y="24" width="2" height="2" fill="currentColor" />
-      <rect x="18" y="24" width="2" height="2" fill="currentColor" />
-      <rect x="22" y="24" width="2" height="2" fill="currentColor" />
+      <rect x="10" y="15" width="2" height="3" fill="currentColor" />
+      <rect x="13" y="14" width="3" height="2" fill="currentColor" />
+      <rect x="17" y="15" width="2" height="2" fill="currentColor" />
+
+      {/* Custom modules varied by code hash */}
+      {modA ? (
+        <>
+          <rect x="10" y="2" width="2" height="1" fill="currentColor" />
+          <rect x="14" y="2" width="1" height="2" fill="currentColor" />
+          <rect x="2" y="11" width="2" height="1" fill="currentColor" />
+          <rect x="10" y="21" width="2" height="2" fill="currentColor" />
+          <rect x="21" y="11" width="3" height="1" fill="currentColor" />
+        </>
+      ) : (
+        <>
+          <rect x="11" y="3" width="1" height="2" fill="currentColor" />
+          <rect x="15" y="1" width="2" height="1" fill="currentColor" />
+          <rect x="3" y="12" width="1" height="2" fill="currentColor" />
+          <rect x="11" y="22" width="2" height="1" fill="currentColor" />
+          <rect x="22" y="12" width="2" height="2" fill="currentColor" />
+        </>
+      )}
+
+      {modB && (
+        <>
+          <rect x="14" y="21" width="2" height="3" fill="currentColor" />
+          <rect x="18" y="23" width="3" height="1" fill="currentColor" />
+        </>
+      )}
     </svg>
   );
 }
@@ -137,55 +149,55 @@ export default function RedemptionQrModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="relative z-10 bg-[var(--bgColor)] text-[var(--mainColor)] rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl border border-[var(--mainColor)]/15 flex flex-col items-center text-center max-h-[90vh] overflow-y-auto"
+          className="relative z-10 bg-[var(--mainColor)] text-[var(--bgColor)] rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl border border-[var(--bgColor)]/15 flex flex-col items-center text-center max-h-[90vh] overflow-y-auto"
         >
           {/* Close button */}
           <button
             type="button"
             aria-label="Close dialog"
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--mainColor)]/10 text-[var(--mainColor)] transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--bgColor)]/10 text-[var(--bgColor)]/80 hover:text-[var(--bgColor)] transition-colors cursor-pointer"
           >
             <LuX className="w-5 h-5" />
           </button>
 
           {/* Success / Status Header */}
           {isPending && (
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center mb-3">
               <LuSparkles className="w-6 h-6 animate-pulse" />
             </div>
           )}
 
           {isUsed && (
-            <div className="w-12 h-12 rounded-2xl bg-[var(--mainColor)]/10 text-[var(--mainColor)] flex items-center justify-center mb-3">
-              <LuCircleCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            <div className="w-12 h-12 rounded-2xl bg-[var(--bgColor)]/15 text-[var(--bgColor)] flex items-center justify-center mb-3">
+              <LuCircleCheck className="w-6 h-6 text-emerald-400" />
             </div>
           )}
 
-          <span className="text-xs font-bold uppercase tracking-wider opacity-70">
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--secondColor)]">
             {isUsed ? "Reward Claimed" : "Ready to Redeem"}
           </span>
 
-          <h3 id="qr-modal-title" className="text-xl sm:text-2xl font-bold mt-1">
+          <h3 id="qr-modal-title" className="text-xl sm:text-2xl font-bold mt-1 text-[var(--bgColor)]">
             {redemption.rewardName}
           </h3>
 
           {/* Status Badge */}
           <div className="mt-2 flex items-center gap-1.5">
             {isPending && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/25 text-emerald-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 Active • Single-Use Only
               </span>
             )}
             {isUsed && (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-[var(--mainColor)]/10 text-[var(--mainColor)]">
-                <LuCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-[var(--bgColor)]/15 text-[var(--bgColor)]">
+                <LuCheck className="w-3.5 h-3.5 text-emerald-400" />
                 Scanned by Barista • Used
               </span>
             )}
             {isExpired && (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-red-500/15 text-red-700 dark:text-red-300">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-red-500/20 text-red-300">
                 <LuClock className="w-3.5 h-3.5" />
                 Expired
               </span>
@@ -207,17 +219,17 @@ export default function RedemptionQrModal({
           </div>
 
           {/* Unique Redemption Code with Copy Action */}
-          <div className="flex items-center gap-2 bg-white/70 dark:bg-black/20 border border-[var(--mainColor)]/10 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-mono font-bold">
+          <div className="flex items-center gap-2 bg-[var(--bgColor)]/15 border border-[var(--bgColor)]/20 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-mono font-bold text-[var(--bgColor)]">
             <span>{redemption.code}</span>
             <button
               type="button"
               onClick={handleCopy}
-              className="p-1 rounded-md hover:bg-[var(--mainColor)]/10 text-[var(--mainColor)] transition-colors cursor-pointer"
+              className="p-1 rounded-md hover:bg-[var(--bgColor)]/15 text-[var(--bgColor)] transition-colors cursor-pointer"
               title="Copy redemption code"
               aria-label="Copy redemption code"
             >
               {copied ? (
-                <LuCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <LuCheck className="w-3.5 h-3.5 text-emerald-400" />
               ) : (
                 <LuCopy className="w-3.5 h-3.5" />
               )}
@@ -225,8 +237,8 @@ export default function RedemptionQrModal({
           </div>
 
           {/* Security & Instructions */}
-          <div className="flex items-center justify-center gap-1.5 text-xs opacity-75 mt-3">
-            <LuShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--bgColor)]/75 mt-3">
+            <LuShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>
               {isUsed
                 ? "This QR code has been used and is no longer valid."
@@ -238,14 +250,10 @@ export default function RedemptionQrModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-full mt-5 bg-[var(--mainColor)] hover:opacity-90 active:scale-[0.99] text-[var(--bgColor)] font-semibold text-sm sm:text-base py-3.5 px-4 rounded-xl text-center transition-all cursor-pointer shadow-sm"
+            className="w-full mt-6 bg-[var(--secondColor)] hover:opacity-95 active:scale-[0.99] text-[#3B2418] font-bold text-sm sm:text-base py-3 px-4 rounded-xl transition-all cursor-pointer shadow-sm"
           >
             Done
           </button>
-
-          <p className="text-[11px] opacity-60 mt-2">
-            You can access this QR code anytime from your &ldquo;My Rewards&rdquo; history.
-          </p>
         </motion.div>
       </div>
     </AnimatePresence>

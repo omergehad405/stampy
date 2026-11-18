@@ -2,28 +2,26 @@
 
 import React from "react";
 import {
+  LuSparkles,
   LuQrCode,
-  LuCircleCheck,
   LuClock,
+  LuCircleCheck,
   LuCalendar,
-  LuCoffee,
   LuChevronRight,
-  LuCircleAlert,
 } from "react-icons/lu";
 
-export default function MyRewardsSection({
-  redemptions = [],
-  onOpenQr,
-}) {
+export default function MyRewardsSection({ redemptions = [], onOpenQr }) {
   if (!redemptions || redemptions.length === 0) {
     return (
-      <div className="rounded-3xl p-8 sm:p-12 border border-[var(--mainColor)]/15 bg-white/40 dark:bg-black/15 text-center flex flex-col items-center justify-center my-6">
-        <div className="w-14 h-14 rounded-2xl bg-[var(--mainColor)]/10 text-[var(--mainColor)] flex items-center justify-center mb-3">
-          <LuCoffee className="w-7 h-7 opacity-75" />
+      <div className="p-8 sm:p-10 rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 text-center flex flex-col items-center justify-center my-4 shadow-sm">
+        <div className="w-12 h-12 rounded-2xl bg-[var(--bgColor)]/15 text-[var(--bgColor)] flex items-center justify-center mb-3">
+          <LuSparkles className="w-6 h-6 opacity-80" />
         </div>
-        <h4 className="text-base sm:text-lg font-bold">No Rewards Redeemed Yet</h4>
-        <p className="text-xs sm:text-sm opacity-70 mt-1 max-w-sm">
-          Collect stamps on every visit and turn them into free coffees, bakery desserts, and exclusive discounts.
+        <h4 className="text-base sm:text-lg font-bold text-[var(--bgColor)]">
+          No Rewards Redeemed Yet
+        </h4>
+        <p className="text-xs sm:text-sm text-[var(--bgColor)]/75 mt-1.5 max-w-sm">
+          Collect stamps at your favorite cafés to unlock and redeem free drinks, pastries, and member perks.
         </p>
       </div>
     );
@@ -39,10 +37,10 @@ export default function MyRewardsSection({
         return (
           <div
             key={item.id}
-            className={`rounded-2xl lg:rounded-3xl p-4 sm:p-5 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+            className={`rounded-2xl lg:rounded-3xl p-4 sm:p-5 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--mainColor)] text-[var(--bgColor)] ${
               isPending
-                ? "bg-white/90 dark:bg-black/35 border-[var(--secondColor)]/80 shadow-md ring-1 ring-[var(--secondColor)]/30"
-                : "bg-white/50 dark:bg-black/15 border-[var(--mainColor)]/10 shadow-xs opacity-85"
+                ? "border-[var(--secondColor)]/80 shadow-md ring-1 ring-[var(--secondColor)]/30"
+                : "border-[var(--bgColor)]/15 shadow-xs opacity-90"
             }`}
           >
             {/* Left: Icon & Info */}
@@ -51,44 +49,44 @@ export default function MyRewardsSection({
                 className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
                   isPending
                     ? "bg-[var(--secondColor)] text-[#3B2418]"
-                    : "bg-[var(--mainColor)]/10 text-[var(--mainColor)]"
+                    : "bg-[var(--bgColor)]/15 text-[var(--bgColor)]"
                 }`}
               >
                 {isPending ? (
                   <LuQrCode className="w-6 h-6 animate-pulse" />
                 ) : isUsed ? (
-                  <LuCircleCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                  <LuCircleCheck className="w-6 h-6 text-emerald-400" />
                 ) : (
-                  <LuClock className="w-6 h-6 text-red-500" />
+                  <LuClock className="w-6 h-6 text-red-400" />
                 )}
               </div>
 
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="text-sm sm:text-base font-bold text-[var(--mainColor)]">
+                  <h4 className="text-sm sm:text-base font-bold text-[var(--bgColor)]">
                     {item.rewardName}
                   </h4>
 
                   {/* Status Badge */}
                   {isPending && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                       Ready to Scan
                     </span>
                   )}
                   {isUsed && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--mainColor)]/10 text-[var(--mainColor)]/80">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--bgColor)]/15 text-[var(--bgColor)]/85">
                       Used
                     </span>
                   )}
                   {isExpired && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-700 dark:text-red-300">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/20 text-red-300">
                       Expired
                     </span>
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs opacity-70 mt-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs opacity-75 mt-1 text-[var(--bgColor)]">
                   <span className="font-mono font-semibold">{item.code}</span>
                   <span>•</span>
                   <span className="inline-flex items-center gap-1">
@@ -116,7 +114,7 @@ export default function MyRewardsSection({
                 <button
                   type="button"
                   onClick={() => onOpenQr(item)}
-                  className="flex items-center gap-1 border border-[var(--mainColor)]/15 hover:bg-[var(--mainColor)]/5 text-[var(--mainColor)] font-medium text-xs py-1.5 px-3 rounded-lg cursor-pointer transition-all opacity-75 hover:opacity-100"
+                  className="flex items-center gap-1 border border-[var(--bgColor)]/20 hover:bg-[var(--bgColor)]/10 text-[var(--bgColor)] font-medium text-xs py-1.5 px-3 rounded-lg cursor-pointer transition-all opacity-85 hover:opacity-100"
                 >
                   <span>Details</span>
                   <LuChevronRight className="w-3.5 h-3.5" />

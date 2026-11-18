@@ -158,38 +158,38 @@ export default function CustomerProfilePage() {
       </section>
 
       {/* Personal Information Section */}
-      <section className="mt-6 p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-black/20 border border-[var(--mainColor)]/15 shadow-sm">
-        <h3 className="text-base sm:text-lg font-bold text-[var(--mainColor)] mb-4">
+      <section className="mt-6 p-5 sm:p-6 rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-sm">
+        <h3 className="text-base sm:text-lg font-bold text-[var(--bgColor)] mb-4">
           Personal Information
         </h3>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between py-2 border-b border-[var(--mainColor)]/10 text-xs sm:text-sm">
-            <span className="opacity-70 flex items-center gap-2">
+          <div className="flex items-center justify-between py-2 border-b border-[var(--bgColor)]/15 text-xs sm:text-sm">
+            <span className="opacity-75 flex items-center gap-2">
               <LuUser className="w-4 h-4" />
               Full Name
             </span>
-            <span className="font-semibold text-[var(--mainColor)]">
+            <span className="font-semibold text-[var(--bgColor)]">
               {user?.name || "Omar Hassan"}
             </span>
           </div>
 
-          <div className="flex items-center justify-between py-2 border-b border-[var(--mainColor)]/10 text-xs sm:text-sm">
-            <span className="opacity-70 flex items-center gap-2">
+          <div className="flex items-center justify-between py-2 border-b border-[var(--bgColor)]/15 text-xs sm:text-sm">
+            <span className="opacity-75 flex items-center gap-2">
               <LuMail className="w-4 h-4" />
               Email Address
             </span>
-            <span className="font-semibold text-[var(--mainColor)]">
+            <span className="font-semibold text-[var(--bgColor)]">
               {user?.email || "omar.hassan@example.com"}
             </span>
           </div>
 
-          <div className="flex items-center justify-between py-2 border-b border-[var(--mainColor)]/10 text-xs sm:text-sm">
-            <span className="opacity-70 flex items-center gap-2">
+          <div className="flex items-center justify-between py-2 border-b border-[var(--bgColor)]/15 text-xs sm:text-sm">
+            <span className="opacity-75 flex items-center gap-2">
               <LuPhone className="w-4 h-4" />
               Phone Number
             </span>
-            <span className="font-semibold text-[var(--mainColor)]">
+            <span className="font-semibold text-[var(--bgColor)]">
               {user?.phone || "+44 7700 900456"}
             </span>
           </div>
@@ -197,8 +197,8 @@ export default function CustomerProfilePage() {
       </section>
 
       {/* Account Settings & Preferences */}
-      <section className="mt-6 p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-black/20 border border-[var(--mainColor)]/15 shadow-sm">
-        <h3 className="text-base sm:text-lg font-bold text-[var(--mainColor)] mb-4">
+      <section className="mt-6 p-5 sm:p-6 rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-sm">
+        <h3 className="text-base sm:text-lg font-bold text-[var(--bgColor)] mb-4">
           Account Settings
         </h3>
 
@@ -206,12 +206,12 @@ export default function CustomerProfilePage() {
           {/* Notification Toggle */}
           <div className="flex items-center justify-between py-1 text-xs sm:text-sm">
             <div className="flex items-center gap-2.5">
-              <LuBell className="w-4 h-4 opacity-70" />
+              <LuBell className="w-4 h-4 opacity-75" />
               <div>
-                <p className="font-semibold text-[var(--mainColor)]">
+                <p className="font-semibold text-[var(--bgColor)]">
                   Visit Notifications
                 </p>
-                <p className="text-[11px] opacity-60">
+                <p className="text-[11px] text-[var(--bgColor)]/70">
                   Receive alerts when stamps are recorded or rewards unlock
                 </p>
               </div>
@@ -229,7 +229,7 @@ export default function CustomerProfilePage() {
                 );
               }}
               className={`w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 ${
-                notificationsEnabled ? "bg-[var(--secondColor)]" : "bg-gray-300 dark:bg-gray-700"
+                notificationsEnabled ? "bg-[var(--secondColor)]" : "bg-[var(--bgColor)]/20"
               }`}
             >
               <div
@@ -241,14 +241,14 @@ export default function CustomerProfilePage() {
           </div>
 
           {/* Biometrics Toggle */}
-          <div className="flex items-center justify-between py-1 border-t border-[var(--mainColor)]/10 pt-3 text-xs sm:text-sm">
+          <div className="flex items-center justify-between py-1 border-t border-[var(--bgColor)]/15 pt-3 text-xs sm:text-sm">
             <div className="flex items-center gap-2.5">
-              <LuFingerprint className="w-4 h-4 opacity-70" />
+              <LuFingerprint className="w-4 h-4 opacity-75" />
               <div>
-                <p className="font-semibold text-[var(--mainColor)]">
+                <p className="font-semibold text-[var(--bgColor)]">
                   Fast QR Authorization
                 </p>
-                <p className="text-[11px] opacity-60">
+                <p className="text-[11px] text-[var(--bgColor)]/70">
                   Quick verification for in-store redemption
                 </p>
               </div>
@@ -266,7 +266,7 @@ export default function CustomerProfilePage() {
                 );
               }}
               className={`w-11 h-6 rounded-full transition-colors cursor-pointer relative p-0.5 ${
-                biometricsEnabled ? "bg-[var(--secondColor)]" : "bg-gray-300 dark:bg-gray-700"
+                biometricsEnabled ? "bg-[var(--secondColor)]" : "bg-[var(--bgColor)]/20"
               }`}
             >
               <div
@@ -306,13 +306,13 @@ export default function CustomerProfilePage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="relative z-10 bg-white text-[#3b2418] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl"
+            className="relative z-10 bg-[var(--mainColor)] text-[var(--bgColor)] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-[var(--bgColor)]/15"
           >
             <button
               type="button"
               aria-label="Close modal"
               onClick={() => setIsEditModalOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full text-[#3b2418] hover:bg-[#f2ebda] transition cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-full text-[var(--bgColor)] hover:bg-[var(--bgColor)]/10 transition cursor-pointer"
             >
               <LuX className="w-5 h-5" />
             </button>
@@ -334,7 +334,7 @@ export default function CustomerProfilePage() {
                     setEditForm({ ...editForm, name: e.target.value })
                   }
                   required
-                  className="w-full h-11 px-3.5 rounded-xl border border-[#e8dfca] bg-[#faf6ec] text-sm text-[#3b2418] outline-none focus:border-[#8ec5ff] focus:ring-2 focus:ring-[#8ec5ff]/40"
+                  className="w-full h-11 px-3.5 rounded-xl border border-[var(--bgColor)]/20 bg-[var(--bgColor)]/10 text-sm text-[var(--bgColor)] placeholder:text-[var(--bgColor)]/50 outline-none focus:border-[var(--secondColor)] focus:ring-2 focus:ring-[var(--secondColor)]/30"
                 />
               </div>
 
@@ -349,7 +349,7 @@ export default function CustomerProfilePage() {
                     setEditForm({ ...editForm, email: e.target.value })
                   }
                   required
-                  className="w-full h-11 px-3.5 rounded-xl border border-[#e8dfca] bg-[#faf6ec] text-sm text-[#3b2418] outline-none focus:border-[#8ec5ff] focus:ring-2 focus:ring-[#8ec5ff]/40"
+                  className="w-full h-11 px-3.5 rounded-xl border border-[var(--bgColor)]/20 bg-[var(--bgColor)]/10 text-sm text-[var(--bgColor)] placeholder:text-[var(--bgColor)]/50 outline-none focus:border-[var(--secondColor)] focus:ring-2 focus:ring-[var(--secondColor)]/30"
                 />
               </div>
 
@@ -364,7 +364,7 @@ export default function CustomerProfilePage() {
                     setEditForm({ ...editForm, phone: e.target.value })
                   }
                   required
-                  className="w-full h-11 px-3.5 rounded-xl border border-[#e8dfca] bg-[#faf6ec] text-sm text-[#3b2418] outline-none focus:border-[#8ec5ff] focus:ring-2 focus:ring-[#8ec5ff]/40"
+                  className="w-full h-11 px-3.5 rounded-xl border border-[var(--bgColor)]/20 bg-[var(--bgColor)]/10 text-sm text-[var(--bgColor)] placeholder:text-[var(--bgColor)]/50 outline-none focus:border-[var(--secondColor)] focus:ring-2 focus:ring-[var(--secondColor)]/30"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function CustomerProfilePage() {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold hover:bg-gray-100 transition cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[var(--bgColor)]/10 transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -399,7 +399,7 @@ export default function CustomerProfilePage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="relative z-10 bg-white text-[#3b2418] rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center"
+            className="relative z-10 bg-[var(--mainColor)] text-[var(--bgColor)] rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center border border-[var(--bgColor)]/15"
           >
             <h3 className="text-xl font-bold">Log Out?</h3>
             <p className="text-xs opacity-75 mt-2">
@@ -410,7 +410,7 @@ export default function CustomerProfilePage() {
               <button
                 type="button"
                 onClick={() => setIsLogoutModalOpen(false)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-300 text-xs sm:text-sm font-semibold hover:bg-gray-100 transition cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-[var(--bgColor)]/20 text-xs sm:text-sm font-semibold hover:bg-[var(--bgColor)]/10 transition cursor-pointer"
               >
                 Cancel
               </button>

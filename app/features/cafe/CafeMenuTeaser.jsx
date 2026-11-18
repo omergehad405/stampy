@@ -27,24 +27,24 @@ export default function CafeMenuTeaser({ menuPreview }) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.3, ease: "easeOut" }}
-      className="w-full rounded-3xl bg-[var(--mainColor)]/[0.03] border border-dashed border-[var(--mainColor)]/20 p-5 sm:p-6"
+      className="w-full rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 p-5 sm:p-6 shadow-sm"
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-[var(--secondColor)]/30 text-[var(--mainColor)]">
+          <span className="p-1.5 rounded-lg bg-[var(--secondColor)] text-[#3b2418]">
             <LuLayers className="w-4 h-4" />
           </span>
-          <h2 className="text-base sm:text-lg font-bold text-[var(--mainColor)]">
+          <h2 className="text-base sm:text-lg font-bold text-[var(--bgColor)]">
             Digital Menu
           </h2>
         </div>
 
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--secondColor)]/30 text-[var(--mainColor)] border border-[var(--secondColor)]/50">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--secondColor)] text-[#3b2418]">
           Coming Soon
         </span>
       </div>
 
-      <p className="text-xs sm:text-sm text-[var(--mainColor)]/75 max-w-xl">
+      <p className="text-xs sm:text-sm text-[var(--bgColor)]/80 max-w-xl">
         {note || "Digital interactive menu ordering will be available directly inside Stampy soon. Here is a glance at our signature craft categories."}
       </p>
 
@@ -54,21 +54,22 @@ export default function CafeMenuTeaser({ menuPreview }) {
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--bgColor)] border border-[var(--mainColor)]/10 shadow-xs"
+              className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--bgColor)]/10 border border-[var(--bgColor)]/15 shadow-xs"
             >
-              <div className="p-2.5 rounded-xl bg-[var(--mainColor)]/5 text-[var(--mainColor)] shrink-0">
+              <div className="p-2.5 rounded-xl bg-[var(--secondColor)] text-[#3b2418] shrink-0">
                 {getCategoryIcon(cat.id)}
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="text-xs sm:text-sm font-bold text-[var(--mainColor)] truncate">
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-[var(--bgColor)] truncate">
                     {cat.title}
-                  </h4>
-                  <span className="text-[10px] font-medium text-[var(--mainColor)]/50 shrink-0">
+                  </h3>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[var(--bgColor)]/15 text-[var(--bgColor)]/80">
                     {cat.count}
                   </span>
                 </div>
-                <p className="text-[11px] text-[var(--mainColor)]/70 truncate mt-0.5">
+                <p className="text-[11px] text-[var(--bgColor)]/70 truncate mt-0.5">
                   {cat.description}
                 </p>
               </div>

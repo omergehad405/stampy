@@ -92,7 +92,7 @@ export default function CafeHeader({ cafe, operatingStatus }) {
         {/* Floating Active Badge on top-right of cover */}
         <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-10 flex items-center gap-2">
           {isActive && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md bg-white/90 dark:bg-black/80 text-[var(--mainColor)] shadow-sm border border-white/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md bg-[var(--bgColor)]/90 text-[var(--mainColor)] shadow-sm border border-[var(--bgColor)]/20">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>

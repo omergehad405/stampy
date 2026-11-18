@@ -256,13 +256,13 @@ function DedicatedCafePageContent() {
         </section>
 
         {/* Value Proposition Card */}
-        <section className="mt-6 p-5 sm:p-6 rounded-3xl bg-white/70 dark:bg-black/20 border border-[var(--mainColor)]/15 shadow-sm">
+        <section className="mt-6 p-5 sm:p-6 rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-[var(--mainColor)]">
+              <h3 className="text-base sm:text-lg font-bold text-[var(--bgColor)]">
                 Start earning stamps with {cafe.name}
               </h3>
-              <p className="text-xs sm:text-sm text-[var(--mainColor)]/75 mt-1 max-w-lg">
+              <p className="text-xs sm:text-sm text-[var(--bgColor)]/75 mt-1 max-w-lg">
                 Join with your existing Stampy account in one tap. Every visit earns you a stamp towards free specialty coffee, pastries, and exclusive discounts.
               </p>
             </div>
@@ -271,7 +271,7 @@ function DedicatedCafePageContent() {
               type="button"
               onClick={handleJoinCafe}
               disabled={isJoining}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--mainColor)] text-[var(--bgColor)] font-bold text-xs sm:text-sm shadow-xs hover:opacity-90 active:scale-95 transition cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--secondColor)] text-[#3b2418] font-bold text-xs sm:text-sm shadow-xs hover:opacity-95 active:scale-95 transition cursor-pointer"
             >
               <LuPlus className="w-4 h-4" />
               <span>Join Now (Free)</span>
@@ -302,25 +302,27 @@ function DedicatedCafePageContent() {
             {(cafe.rewards || []).map((reward) => (
               <div
                 key={reward.id}
-                className="rounded-2xl p-4 bg-white/60 dark:bg-black/20 border border-[var(--mainColor)]/10 shadow-xs flex flex-col justify-between"
+                className="rounded-2xl p-4 bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-xs flex flex-col justify-between"
               >
                 <div className="flex items-start gap-3">
-                  <RewardVisual iconType={reward.iconType} className="w-10 h-10 shrink-0" />
+                  <div className="rounded-xl bg-[var(--bgColor)]/15 p-1 border border-[var(--bgColor)]/20 shrink-0">
+                    <RewardVisual iconType={reward.iconType} className="w-10 h-10" />
+                  </div>
                   <div className="min-w-0">
-                    <h4 className="text-sm font-bold text-[var(--mainColor)] truncate">
+                    <h4 className="text-sm font-bold text-[var(--bgColor)] truncate">
                       {reward.name}
                     </h4>
-                    <p className="text-xs opacity-70 line-clamp-2 mt-0.5">
+                    <p className="text-xs text-[var(--bgColor)]/70 line-clamp-2 mt-0.5">
                       {reward.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-3 pt-2.5 border-t border-[var(--mainColor)]/10 flex items-center justify-between text-xs">
-                  <span className="font-bold text-[var(--mainColor)]">
+                <div className="mt-3 pt-2.5 border-t border-[var(--bgColor)]/15 flex items-center justify-between text-xs">
+                  <span className="font-bold text-[var(--secondColor)]">
                     {reward.stampsRequired} Stamps
                   </span>
-                  <span className="text-[11px] opacity-60">
+                  <span className="text-[11px] text-[var(--bgColor)]/60">
                     {reward.tag}
                   </span>
                 </div>
@@ -330,18 +332,18 @@ function DedicatedCafePageContent() {
         </section>
 
         {/* Cafe Information Teaser */}
-        <section className="mt-8 p-5 sm:p-6 rounded-3xl bg-white/50 dark:bg-black/10 border border-[var(--mainColor)]/10">
-          <h3 className="text-base font-bold text-[var(--mainColor)]">
+        <section className="mt-8 p-5 sm:p-6 rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15">
+          <h3 className="text-base font-bold text-[var(--bgColor)]">
             About {cafe.name}
           </h3>
-          <p className="text-xs sm:text-sm text-[var(--mainColor)]/75 mt-1.5 leading-relaxed">
+          <p className="text-xs sm:text-sm text-[var(--bgColor)]/75 mt-1.5 leading-relaxed">
             {cafe.about?.shortDescription || cafe.tagline}
           </p>
 
           <div className="mt-4 flex items-center gap-3">
             <Link
               href={`/cafe/${slug}/info`}
-              className="text-xs font-bold text-[var(--mainColor)] underline underline-offset-4"
+              className="text-xs font-bold text-[var(--secondColor)] hover:underline underline-offset-4"
             >
               Read full hours, location & story →
             </Link>
@@ -461,10 +463,10 @@ function DedicatedCafePageContent() {
                 {recentActivities.map((act) => (
                   <div
                     key={act.id}
-                    className="rounded-2xl p-3.5 sm:p-4 border border-[var(--mainColor)]/15 bg-white/60 dark:bg-black/20 shadow-xs flex items-center justify-between gap-3 text-xs sm:text-sm"
+                    className="rounded-2xl p-3.5 sm:p-4 border border-[var(--bgColor)]/15 bg-[var(--mainColor)] text-[var(--bgColor)] shadow-xs flex items-center justify-between gap-3 text-xs sm:text-sm"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-[var(--mainColor)] text-[var(--bgColor)] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-[var(--bgColor)]/15 text-[var(--bgColor)] flex items-center justify-center shrink-0">
                         {act.type === "redemption" ? (
                           <LuGift className="w-4 h-4" />
                         ) : (
@@ -472,10 +474,10 @@ function DedicatedCafePageContent() {
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-[var(--mainColor)]">
+                        <p className="font-bold text-[var(--bgColor)]">
                           {act.title}
                         </p>
-                        <p className="text-[11px] opacity-70">
+                        <p className="text-[11px] text-[var(--bgColor)]/70">
                           {act.date} • {act.description}
                         </p>
                       </div>
@@ -484,8 +486,8 @@ function DedicatedCafePageContent() {
                     <span
                       className={`text-xs font-bold px-2 py-0.5 rounded-md ${
                         act.stampsDelta > 0
-                          ? "text-emerald-700 bg-emerald-100"
-                          : "text-amber-700 bg-amber-100"
+                          ? "text-emerald-300 bg-emerald-500/20"
+                          : "text-[#3B2418] bg-[var(--secondColor)]"
                       }`}
                     >
                       {act.stampsDelta > 0 ? `+${act.stampsDelta}` : act.stampsDelta}
@@ -502,31 +504,31 @@ function DedicatedCafePageContent() {
           <section
             ref={qrSectionRef}
             id="qr-section"
-            className={`bg-white rounded-3xl p-5 sm:p-6 lg:p-7 shadow-sm border transition-all duration-500 ${
+            className={`bg-[var(--mainColor)] text-[var(--bgColor)] rounded-3xl p-5 sm:p-6 lg:p-7 shadow-sm border transition-all duration-500 ${
               isBadgeHighlighted
                 ? "border-[var(--secondColor)] ring-4 ring-[var(--secondColor)]/70 shadow-xl scale-[1.01]"
-                : "border-[#3b2418]"
+                : "border-[var(--bgColor)]/15"
             }`}
           >
             <div className="flex items-center gap-2 mb-3">
-              <LuScanQrCode className="w-4 h-4 lg:w-5 lg:h-5 opacity-70 text-[#3b2418]" />
-              <h4 className="text-sm lg:text-base font-bold text-[#3b2418]">
+              <LuScanQrCode className="w-4 h-4 lg:w-5 lg:h-5 text-[var(--secondColor)]" />
+              <h4 className="text-sm lg:text-base font-bold text-[var(--bgColor)]">
                 {cafe.name} QR Code
               </h4>
             </div>
 
-            <div className="border border-[#3b2418] rounded-2xl lg:rounded-3xl p-4 sm:p-6 bg-white flex items-center justify-center my-3 max-w-[210px] sm:max-w-[230px] lg:max-w-[250px] mx-auto w-full aspect-square transition-colors duration-300">
+            <div className="border-2 border-[var(--bgColor)]/20 rounded-2xl lg:rounded-3xl p-4 sm:p-6 bg-white flex items-center justify-center my-3 max-w-[210px] sm:max-w-[230px] lg:max-w-[250px] mx-auto w-full aspect-square transition-colors duration-300">
               <QRCodeGraphic className="w-32 h-32 sm:w-36 sm:h-36 lg:w-44 lg:h-44 text-[#3b2418]" />
             </div>
 
-            <p className="text-xs sm:text-sm text-center opacity-70 mt-3 text-[#3b2418]">
+            <p className="text-xs sm:text-sm text-center text-[var(--bgColor)]/75 mt-3">
               Show this code to the barista at {cafe.name} to collect stamps.
             </p>
 
             <button
               type="button"
               onClick={() => setIsQrModalOpen(true)}
-              className="w-full mt-4 lg:mt-6 bg-[var(--secondColor)] hover:opacity-90 active:scale-[0.99] text-[#3b2418] font-semibold text-sm lg:text-base py-3.5 px-4 rounded-xl text-center transition-all cursor-pointer shadow-sm"
+              className="w-full mt-4 lg:mt-6 bg-[var(--secondColor)] hover:opacity-95 active:scale-[0.99] text-[#3b2418] font-bold text-sm lg:text-base py-3.5 px-4 rounded-xl text-center transition-all cursor-pointer shadow-sm"
             >
               Show QR Code
             </button>
@@ -573,13 +575,13 @@ function DedicatedCafePageContent() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="qr-modal-title"
-            className="relative z-10 bg-white text-[#3b2418] rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col items-center text-center"
+            className="relative z-10 bg-[var(--mainColor)] text-[var(--bgColor)] rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col items-center text-center border border-[var(--bgColor)]/15"
           >
             <button
               type="button"
               aria-label="Close modal"
               onClick={() => setIsQrModalOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full text-[#3b2418] hover:bg-[#f2ebda] transition cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-full text-[var(--bgColor)] hover:bg-[var(--bgColor)]/10 transition cursor-pointer"
             >
               <LuX className="w-5 h-5" />
             </button>
@@ -591,11 +593,11 @@ function DedicatedCafePageContent() {
               Show this code to the barista at {cafe.name}
             </p>
 
-            <div className="w-52 h-52 sm:w-64 sm:h-64 p-4 border-2 border-[#3b2418] rounded-2xl bg-white shadow-md my-4 flex items-center justify-center">
+            <div className="w-52 h-52 sm:w-64 sm:h-64 p-4 border-2 border-[var(--bgColor)]/30 rounded-2xl bg-white shadow-md my-4 flex items-center justify-center">
               <QRCodeGraphic className="w-full h-full text-[#3b2418]" />
             </div>
 
-            <div className="text-xs sm:text-sm font-semibold bg-[var(--bgColor)] px-4 py-1.5 rounded-full">
+            <div className="text-xs sm:text-sm font-semibold bg-[var(--bgColor)]/10 border border-[var(--bgColor)]/15 px-4 py-1.5 rounded-full">
               {user?.name || "Omar"} • {user?.memberCode || "STAMPY-7842"} • {cafe.name}
             </div>
 

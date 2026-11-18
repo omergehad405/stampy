@@ -67,7 +67,7 @@ export default function MyCafesPage() {
           </p>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mt-0.5 tracking-tight flex items-center gap-2 text-[var(--mainColor)]">
             <span>My Cafes</span>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--secondColor)]/30 text-[var(--mainColor)]">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--secondColor)] text-[#3b2418]">
               {joinedCafes.length} {joinedCafes.length === 1 ? "Cafe" : "Cafes"}
             </span>
           </h1>
@@ -84,16 +84,16 @@ export default function MyCafesPage() {
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl border-2 border-dashed border-[var(--mainColor)]/20 bg-white/40 dark:bg-black/10"
+            className="flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-sm"
           >
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--mainColor)]/10 text-[var(--mainColor)] flex items-center justify-center mb-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--bgColor)]/15 text-[var(--bgColor)] flex items-center justify-center mb-4">
               <LuCoffee className="w-8 h-8 sm:w-10 sm:h-10 opacity-80" />
             </div>
 
-            <h3 className="text-lg sm:text-xl font-bold text-[var(--mainColor)]">
+            <h3 className="text-lg sm:text-xl font-bold text-[var(--bgColor)]">
               No Cafes Joined Yet
             </h3>
-            <p className="text-xs sm:text-sm text-[var(--mainColor)]/75 mt-1.5 max-w-sm">
+            <p className="text-xs sm:text-sm text-[var(--bgColor)]/75 mt-1.5 max-w-sm">
               You haven&apos;t joined any cafe loyalty programs yet. Visit a participating cafe and scan their QR code to start collecting stamps!
             </p>
           </motion.div>
@@ -114,12 +114,12 @@ export default function MyCafesPage() {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 bg-white/80 dark:bg-black/30 border border-[var(--mainColor)]/15 shadow-sm hover:shadow-md hover:border-[var(--secondColor)] transition-all duration-300"
+                    className="group relative flex flex-col justify-between rounded-3xl p-5 sm:p-6 bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-sm hover:shadow-md hover:border-[var(--secondColor)] transition-all duration-300"
                   >
                     <div>
                       {/* Top Row: Cafe Logo, Name, Badge */}
                       <div className="flex items-start gap-4">
-                        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-[var(--mainColor)]/10 shrink-0 border border-[var(--mainColor)]/10">
+                        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-[var(--bgColor)]/10 shrink-0 border border-[var(--bgColor)]/20">
                           {cafe.logoImage ? (
                             <Image
                               src={cafe.logoImage}
@@ -129,7 +129,7 @@ export default function MyCafesPage() {
                               className="object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[var(--mainColor)]">
+                            <div className="w-full h-full flex items-center justify-center text-[var(--bgColor)]">
                               <LuStore className="w-7 h-7" />
                             </div>
                           )}
@@ -137,19 +137,19 @@ export default function MyCafesPage() {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <h3 className="text-base sm:text-lg font-bold text-[var(--mainColor)] truncate group-hover:text-[#3b2418]">
+                            <h3 className="text-base sm:text-lg font-bold text-[var(--bgColor)] truncate">
                               {cafe.name}
                             </h3>
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--mainColor)]/10 text-[var(--mainColor)] shrink-0">
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--secondColor)] text-[#3b2418] shrink-0">
                               Joined
                             </span>
                           </div>
 
-                          <p className="text-xs text-[var(--mainColor)]/70 truncate mt-0.5">
+                          <p className="text-xs text-[var(--bgColor)]/75 truncate mt-0.5">
                             {cafe.category || cafe.tagline}
                           </p>
 
-                          <p className="text-[11px] opacity-60 mt-1 flex items-center gap-1">
+                          <p className="text-[11px] text-[var(--bgColor)]/60 mt-1 flex items-center gap-1">
                             <span>{cafe.location?.district || cafe.location?.city}</span>
                             <span>•</span>
                             <span>{cafe.totalStamps} Stamp Card</span>
@@ -158,36 +158,36 @@ export default function MyCafesPage() {
                       </div>
 
                       {/* Stamp Progress Bar & Count */}
-                      <div className="mt-5 p-3.5 sm:p-4 rounded-2xl bg-[var(--mainColor)]/5 border border-[var(--mainColor)]/10">
-                        <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--mainColor)]">
+                      <div className="mt-5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bgColor)]/10 border border-[var(--bgColor)]/15">
+                        <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--bgColor)]">
                           <span className="flex items-center gap-1.5">
                             <LuCoffee className="w-3.5 h-3.5 opacity-80" />
                             <span>Stamp Progress</span>
                           </span>
-                          <span className="text-xs font-extrabold bg-[var(--mainColor)] text-[var(--bgColor)] px-2.5 py-0.5 rounded-full">
+                          <span className="text-xs font-extrabold bg-[var(--secondColor)] text-[#3b2418] px-2.5 py-0.5 rounded-full">
                             {cafe.currentStamps} / {cafe.totalStamps}
                           </span>
                         </div>
 
                         {/* Progress Bar Track */}
-                        <div className="w-full h-2 rounded-full bg-[var(--mainColor)]/15 mt-2.5 overflow-hidden">
+                        <div className="w-full h-2 rounded-full bg-[var(--bgColor)]/20 mt-2.5 overflow-hidden">
                           <div
-                            className="h-full bg-[var(--mainColor)] rounded-full transition-all duration-500"
+                            className="h-full bg-[var(--secondColor)] rounded-full transition-all duration-500"
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>
 
                         {/* Next Available Reward */}
-                        <div className="mt-3 flex items-center justify-between text-xs text-[var(--mainColor)]/80 pt-2.5 border-t border-[var(--mainColor)]/10">
+                        <div className="mt-3 flex items-center justify-between text-xs text-[var(--bgColor)]/85 pt-2.5 border-t border-[var(--bgColor)]/15">
                           <span className="flex items-center gap-1 truncate font-medium">
-                            <LuSparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <LuSparkles className="w-3.5 h-3.5 text-[var(--secondColor)] shrink-0" />
                             <span className="truncate">
                               {cafe.nextReward
                                 ? `Next: ${cafe.nextReward.name} (${cafe.nextReward.stampsRequired} stamps)`
                                 : "Reward unlocked!"}
                             </span>
                           </span>
-                          <span className="text-[11px] font-semibold opacity-70 shrink-0 ml-2">
+                          <span className="text-[11px] font-semibold text-[var(--bgColor)]/70 shrink-0 ml-2">
                             {Math.max(0, (cafe.nextReward?.stampsRequired || cafe.totalStamps) - cafe.currentStamps)} to go
                           </span>
                         </div>
@@ -195,11 +195,11 @@ export default function MyCafesPage() {
                     </div>
 
                     {/* Action Footer */}
-                    <div className="mt-5 pt-3 border-t border-[var(--mainColor)]/10 flex items-center justify-between gap-3">
+                    <div className="mt-5 pt-3 border-t border-[var(--bgColor)]/15 flex items-center justify-between gap-3">
                       <button
                         type="button"
                         onClick={() => leaveCafe(cafe.slug)}
-                        className="text-xs text-[var(--mainColor)]/60 hover:text-rose-600 transition-colors cursor-pointer py-1 px-2"
+                        className="text-xs text-[var(--bgColor)]/60 hover:text-rose-400 transition-colors cursor-pointer py-1 px-2"
                         title="Leave this cafe's loyalty program"
                       >
                         Leave
@@ -207,7 +207,7 @@ export default function MyCafesPage() {
 
                       <Link
                         href={`/cafe/${cafe.slug}`}
-                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--secondColor)] hover:opacity-90 active:scale-95 text-[#3b2418] font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--secondColor)] hover:opacity-95 active:scale-95 text-[#3b2418] font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
                       >
                         <span>Open Cafe</span>
                         <LuArrowRight className="w-4 h-4" />

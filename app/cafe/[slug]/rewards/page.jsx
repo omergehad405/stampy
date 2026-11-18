@@ -208,11 +208,11 @@ function DedicatedCafeRewardsContent() {
                 ))}
               </div>
 
-              <div className="mt-8 p-4 rounded-2xl bg-white/50 dark:bg-black/20 border border-[var(--mainColor)]/10 text-xs text-[var(--mainColor)]/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="mt-8 p-4 rounded-2xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 text-xs text-[var(--bgColor)]/85 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
                 <p>
                   💡 <strong>Tip:</strong> Redeem any unlocked reward whenever you visit {cafe.name}. Stamps are deducted only upon confirmed cashier scan.
                 </p>
-                <span className="opacity-60 text-[11px]">
+                <span className="opacity-70 text-[11px]">
                   {cafe.name} Loyalty
                 </span>
               </div>

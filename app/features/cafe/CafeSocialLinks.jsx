@@ -16,7 +16,7 @@ export default function CafeSocialLinks({ socialMedia }) {
       icon: FaInstagram,
       data: socialMedia.instagram,
       accentColor: "hover:border-[#E1306C] hover:text-[#E1306C]",
-      badgeBg: "bg-[#E1306C]/10 text-[#E1306C]",
+      badgeBg: "bg-[#E1306C] text-white",
     },
     {
       key: "facebook",
@@ -24,15 +24,15 @@ export default function CafeSocialLinks({ socialMedia }) {
       icon: FaFacebook,
       data: socialMedia.facebook,
       accentColor: "hover:border-[#1877F2] hover:text-[#1877F2]",
-      badgeBg: "bg-[#1877F2]/10 text-[#1877F2]",
+      badgeBg: "bg-[#1877F2] text-white",
     },
     {
       key: "tiktok",
       label: "TikTok",
       icon: FaTiktok,
       data: socialMedia.tiktok,
-      accentColor: "hover:border-[#000000] dark:hover:border-[#ffffff]",
-      badgeBg: "bg-[var(--mainColor)]/10 text-[var(--mainColor)]",
+      accentColor: "hover:border-[var(--secondColor)]",
+      badgeBg: "bg-[var(--secondColor)] text-[#3b2418]",
     },
     {
       key: "whatsapp",
@@ -40,7 +40,7 @@ export default function CafeSocialLinks({ socialMedia }) {
       icon: FaWhatsapp,
       data: socialMedia.whatsapp,
       accentColor: "hover:border-[#25D366] hover:text-[#25D366]",
-      badgeBg: "bg-[#25D366]/10 text-[#25D366]",
+      badgeBg: "bg-[#25D366] text-white",
     },
   ];
 
@@ -59,7 +59,7 @@ export default function CafeSocialLinks({ socialMedia }) {
       className="w-full space-y-3"
     >
       <div className="flex items-center gap-2">
-        <span className="p-1.5 rounded-lg bg-[var(--secondColor)]/30 text-[var(--mainColor)]">
+        <span className="p-1.5 rounded-lg bg-[var(--secondColor)] text-[#3b2418]">
           <LuShare2 className="w-4 h-4" />
         </span>
         <h2 className="text-base sm:text-lg font-bold text-[var(--mainColor)]">
@@ -74,21 +74,21 @@ export default function CafeSocialLinks({ socialMedia }) {
             href={data.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`group flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-[var(--bgColor)] border border-[var(--mainColor)]/12 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${accentColor}`}
+            className={`group flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${accentColor}`}
           >
             <div className="flex items-center justify-between">
-              <span className="p-2 rounded-xl bg-[var(--mainColor)]/5 group-hover:scale-110 transition-transform">
+              <span className="p-2 rounded-xl bg-[var(--bgColor)]/15 group-hover:scale-110 transition-transform text-[var(--bgColor)]">
                 <Icon className="w-5 h-5 transition-colors" />
               </span>
-              <LuExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
+              <LuExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
             </div>
 
             <div className="mt-3">
-              <p className="text-xs font-bold text-[var(--mainColor)] leading-tight">
+              <p className="text-xs font-bold text-[var(--bgColor)] leading-tight">
                 {label}
               </p>
               {data.handle && (
-                <p className="text-[11px] font-medium text-[var(--mainColor)]/65 truncate mt-0.5">
+                <p className="text-[11px] font-medium text-[var(--bgColor)]/75 truncate mt-0.5">
                   {data.handle}
                 </p>
               )}

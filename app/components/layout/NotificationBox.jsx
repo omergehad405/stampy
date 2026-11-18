@@ -130,28 +130,28 @@ export default function NotificationBox({ isOpen, onClose }) {
               <div
                 key={item.id}
                 onClick={() => markAsRead(item.id)}
-                className={`rounded-2xl p-3.5 border transition-all cursor-pointer relative ${
+                className={`rounded-2xl p-3.5 border transition-all cursor-pointer relative bg-[var(--mainColor)] text-[var(--bgColor)] ${
                   item.unread
-                    ? "bg-white dark:bg-black/30 border-[var(--secondColor)]/80 shadow-xs ring-1 ring-[var(--secondColor)]/30"
-                    : "bg-white/60 dark:bg-black/15 border-[var(--mainColor)]/10 opacity-75 hover:opacity-100"
+                    ? "border-[var(--secondColor)] shadow-xs ring-1 ring-[var(--secondColor)]/30"
+                    : "border-[var(--bgColor)]/15 opacity-85 hover:opacity-100"
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-[var(--secondColor)]/25 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--secondColor)] text-[#3B2418] flex items-center justify-center shrink-0 mt-0.5">
                     {renderIcon(item.type)}
                   </div>
 
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-xs sm:text-sm font-bold truncate">
+                      <h4 className="text-xs sm:text-sm font-bold text-[var(--bgColor)] truncate">
                         {item.title}
                       </h4>
-                      <span className="text-[10px] opacity-60 shrink-0">
+                      <span className="text-[10px] text-[var(--bgColor)]/65 shrink-0">
                         {item.time}
                       </span>
                     </div>
 
-                    <p className="text-xs opacity-80 mt-1 leading-relaxed">
+                    <p className="text-xs text-[var(--bgColor)]/80 mt-1 leading-relaxed">
                       {item.message}
                     </p>
                   </div>
@@ -169,7 +169,7 @@ export default function NotificationBox({ isOpen, onClose }) {
         </div>
 
         {/* Panel Footer */}
-        <div className="p-4 border-t border-[var(--mainColor)]/10 bg-white/40 dark:bg-black/20 flex items-center justify-between gap-3 text-xs">
+        <div className="p-4 border-t border-[var(--mainColor)]/10 bg-[var(--mainColor)]/5 flex items-center justify-between gap-3 text-xs">
           <span className="opacity-70">
             {unreadCount === 0
               ? "All notifications caught up"

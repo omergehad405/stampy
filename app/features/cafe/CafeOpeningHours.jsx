@@ -34,31 +34,31 @@ export default function CafeOpeningHours({ openingHours, operatingStatus }) {
   );
 
   return (
-    <div className="w-full rounded-2xl bg-[var(--bgColor)] border border-[var(--mainColor)]/12 p-4 sm:p-5 shadow-sm">
+    <div className="w-full rounded-2xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 p-4 sm:p-5 shadow-sm">
       {/* Header Row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="p-2.5 rounded-xl bg-[var(--mainColor)]/5 text-[var(--mainColor)] shrink-0 mt-0.5">
+          <div className="p-2.5 rounded-xl bg-[var(--bgColor)]/15 text-[var(--bgColor)] shrink-0 mt-0.5">
             <LuClock className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm sm:text-base font-bold text-[var(--mainColor)]">
+              <h3 className="text-sm sm:text-base font-bold text-[var(--bgColor)]">
                 Opening Hours
               </h3>
               {operatingStatus?.statusLabel && (
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                     operatingStatus.isOpenNow
-                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
-                      : "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20"
+                      ? "bg-emerald-500/25 text-emerald-300 border border-emerald-500/30"
+                      : "bg-amber-500/25 text-amber-300 border border-amber-500/30"
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
                       operatingStatus.isOpenNow
-                        ? "bg-emerald-500"
-                        : "bg-amber-500"
+                        ? "bg-emerald-400"
+                        : "bg-amber-400"
                     }`}
                   />
                   <span>
@@ -69,14 +69,14 @@ export default function CafeOpeningHours({ openingHours, operatingStatus }) {
             </div>
 
             {/* Today's schedule summary */}
-            <p className="text-xs sm:text-sm text-[var(--mainColor)]/80 mt-1 font-medium">
+            <p className="text-xs sm:text-sm text-[var(--bgColor)]/80 mt-1 font-medium">
               {todayItem ? (
                 todayItem.isClosed ? (
                   <span>Closed today ({todayItem.day})</span>
                 ) : (
                   <span>
                     Today ({todayItem.day}):{" "}
-                    <strong className="text-[var(--mainColor)]">
+                    <strong className="text-[var(--bgColor)] font-bold">
                       {formatTime12h(todayItem.open)} – {formatTime12h(todayItem.close)}
                     </strong>
                   </span>
@@ -92,7 +92,7 @@ export default function CafeOpeningHours({ openingHours, operatingStatus }) {
         <button
           type="button"
           onClick={() => setIsScheduleOpen((prev) => !prev)}
-          className="p-2 rounded-xl text-[var(--mainColor)]/70 hover:text-[var(--mainColor)] hover:bg-[var(--mainColor)]/8 transition-colors shrink-0"
+          className="p-2 rounded-xl text-[var(--bgColor)]/75 hover:text-[var(--bgColor)] hover:bg-[var(--bgColor)]/10 transition-colors shrink-0 cursor-pointer"
           aria-label={isScheduleOpen ? "Hide weekly hours" : "Show weekly hours"}
           title={isScheduleOpen ? "Hide weekly hours" : "Show weekly hours"}
         >
@@ -114,7 +114,7 @@ export default function CafeOpeningHours({ openingHours, operatingStatus }) {
             transition={{ duration: 0.28, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="mt-4 pt-3 border-t border-[var(--mainColor)]/10 space-y-1.5">
+            <div className="mt-4 pt-3 border-t border-[var(--bgColor)]/15 space-y-1.5">
               {schedule.map((item) => {
                 const isToday =
                   item.day.toLowerCase() === todayName.toLowerCase();
@@ -124,17 +124,17 @@ export default function CafeOpeningHours({ openingHours, operatingStatus }) {
                     key={item.day}
                     className={`flex items-center justify-between py-1.5 px-2.5 rounded-lg text-xs sm:text-sm transition-colors ${
                       isToday
-                        ? "bg-[var(--secondColor)]/20 font-bold text-[var(--mainColor)] border border-[var(--secondColor)]/40"
-                        : "text-[var(--mainColor)]/75 hover:bg-[var(--mainColor)]/[0.03]"
+                        ? "bg-[var(--secondColor)] font-bold text-[#3B2418]"
+                        : "text-[var(--bgColor)]/85 hover:bg-[var(--bgColor)]/10"
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       {isToday && (
-                        <LuCalendarCheck className="w-3.5 h-3.5 text-[var(--mainColor)] shrink-0" />
+                        <LuCalendarCheck className="w-3.5 h-3.5 text-[#3B2418] shrink-0" />
                       )}
                       <span>{item.day}</span>
                       {isToday && (
-                        <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-[var(--secondColor)] text-[var(--mainColor)]">
+                        <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-[#3B2418] text-[var(--bgColor)]">
                           Today
                         </span>
                       )}
@@ -154,7 +154,7 @@ export default function CafeOpeningHours({ openingHours, operatingStatus }) {
               })}
 
               {holidayNotice && (
-                <div className="mt-3 pt-2 text-[11px] sm:text-xs text-[var(--mainColor)]/65 flex items-center gap-1.5 italic">
+                <div className="mt-3 pt-2 text-[11px] sm:text-xs text-[var(--bgColor)]/70 flex items-center gap-1.5 italic">
                   <LuInfo className="w-3.5 h-3.5 shrink-0" />
                   <span>{holidayNotice}</span>
                 </div>
