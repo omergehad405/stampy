@@ -124,35 +124,35 @@ export default function CustomerQrModal({ isOpen, onClose, user }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="relative z-10 bg-[var(--mainColor)] text-[var(--bgColor)] rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-[var(--bgColor)]/15 flex flex-col items-center text-center"
+          className="relative z-10 bg-(--mainColor) text-(--bgColor) rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-(--bgColor)/15 flex flex-col items-center text-center"
         >
           {/* Close button */}
           <button
             type="button"
             aria-label="Close QR Modal"
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--bgColor)]/10 text-[var(--bgColor)]/80 hover:text-[var(--bgColor)] transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-(--bgColor)/10 text-(--bgColor)/80 hover:text-(--bgColor) transition-colors cursor-pointer"
           >
             <LuX className="w-5 h-5" />
           </button>
 
           {/* Header */}
-          <div className="w-12 h-12 rounded-2xl bg-[var(--secondColor)] text-[#3b2418] flex items-center justify-center mb-3 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-(--secondColor) text-[#3b2418] flex items-center justify-center mb-3 shadow-sm">
             <LuQrCode className="w-6 h-6" />
           </div>
 
           <h3
             id="customer-qr-modal-title"
-            className="text-lg sm:text-xl font-bold tracking-tight text-[var(--bgColor)]"
+            className="text-lg sm:text-xl font-bold tracking-tight text-(--bgColor)"
           >
             Your Loyalty QR Code
           </h3>
-          <p className="text-xs sm:text-sm text-[var(--bgColor)]/75 mt-1 max-w-xs">
+          <p className="text-xs sm:text-sm text-(--bgColor)/75 mt-1 max-w-xs">
             Present this code to the barista at any participating café to collect stamps.
           </p>
 
           {/* QR Code Container with High-Contrast White Background */}
-          <div className="mt-5 p-4 rounded-3xl bg-white border-2 border-[var(--bgColor)]/20 shadow-md text-[#3B2418] flex flex-col items-center">
+          <div className="mt-5 p-4 rounded-3xl bg-white border-2 border-(--bgColor)/20 shadow-md text-[#3B2418] flex flex-col items-center">
             <CustomerQRCodeGraphic className="w-44 h-44 text-[#3B2418]" />
             <div className="mt-2 text-center">
               <span className="text-[11px] font-bold tracking-wider uppercase text-[#3B2418]/60">
@@ -166,15 +166,15 @@ export default function CustomerQrModal({ isOpen, onClose, user }) {
 
           {/* Member info & copy */}
           <div className="mt-4 flex items-center gap-2">
-            <span className="text-xs font-semibold text-[var(--bgColor)]/85 flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-(--bgColor)/85 flex items-center gap-1.5">
               <LuUser className="w-3.5 h-3.5 opacity-70" />
               <span>{customerName}</span>
             </span>
-            <span className="text-[var(--bgColor)]/30">•</span>
+            <span className="text-(--bgColor)/30">•</span>
             <button
               type="button"
               onClick={handleCopy}
-              className="inline-flex items-center gap-1 text-xs font-bold text-[var(--secondColor)] hover:underline px-2 py-1 rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-bold text-(--secondColor) hover:underline px-2 py-1 rounded-lg transition-colors cursor-pointer"
             >
               {copied ? (
                 <>
@@ -191,7 +191,7 @@ export default function CustomerQrModal({ isOpen, onClose, user }) {
           </div>
 
           {/* Brightness hint */}
-          <p className="text-[11px] text-[var(--bgColor)]/65 mt-4 flex items-center justify-center gap-1.5">
+          <p className="text-[11px] text-(--bgColor)/65 mt-4 flex items-center justify-center gap-1.5">
             <LuSun className="w-3.5 h-3.5 opacity-80" />
             <span>Turn up screen brightness for faster scanning</span>
           </p>

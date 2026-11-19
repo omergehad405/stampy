@@ -34,7 +34,7 @@ function RewardItemVisual({ iconType, className = "w-12 h-12" }) {
 
   return (
     <div
-      className={`rounded-2xl bg-[var(--bgColor)]/15 text-[var(--bgColor)] flex items-center justify-center p-3 border border-[var(--bgColor)]/20 ${className}`}
+      className={`rounded-2xl bg-(--bgColor)/15 text-(--bgColor) flex items-center justify-center p-3 border border-(--bgColor)/20 ${className}`}
     >
       {getIcon()}
     </div>
@@ -55,17 +55,17 @@ export default function AvailableRewardsSection({
           <div className="flex items-center gap-2">
             <h2
               id="available-rewards-heading"
-              className="text-lg sm:text-xl font-bold tracking-tight text-[var(--mainColor)] flex items-center gap-2"
+              className="text-lg sm:text-xl font-bold tracking-tight text-(--mainColor) flex items-center gap-2"
             >
               <span>Available Rewards</span>
               {redeemableRewards.length > 0 && (
-                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--secondColor)] text-[#3B2418]">
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-(--secondColor) text-[#3B2418]">
                   {redeemableRewards.length} Ready to Redeem
                 </span>
               )}
             </h2>
           </div>
-          <p className="text-xs sm:text-sm text-[var(--mainColor)]/70 mt-0.5">
+          <p className="text-xs sm:text-sm text-(--mainColor)/70 mt-0.5">
             Perks and treats you have unlocked and can redeem right now.
           </p>
         </div>
@@ -76,15 +76,15 @@ export default function AvailableRewardsSection({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-8 sm:p-10 rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 text-center flex flex-col items-center justify-center shadow-sm"
+          className="p-8 sm:p-10 rounded-3xl bg-(--mainColor) text-(--bgColor) border border-(--bgColor)/15 text-center flex flex-col items-center justify-center shadow-sm"
         >
-          <div className="w-13 h-13 rounded-2xl bg-[var(--bgColor)]/15 text-[var(--bgColor)] flex items-center justify-center mb-3">
+          <div className="w-13 h-13 rounded-2xl bg-(--bgColor)/15 text-(--bgColor) flex items-center justify-center mb-3">
             <LuGift className="w-6 h-6" />
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-[var(--bgColor)]">
+          <h3 className="text-base sm:text-lg font-bold text-(--bgColor)">
             No Rewards Ready to Redeem Yet
           </h3>
-          <p className="text-xs sm:text-sm text-[var(--bgColor)]/75 mt-1.5 max-w-sm leading-relaxed">
+          <p className="text-xs sm:text-sm text-(--bgColor)/75 mt-1.5 max-w-sm leading-relaxed">
             Keep visiting your joined cafés and collecting stamps. Once you reach a reward target, it will appear here ready to claim!
           </p>
         </motion.div>
@@ -97,13 +97,13 @@ export default function AvailableRewardsSection({
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: index * 0.04 }}
-                className="relative flex flex-col justify-between rounded-3xl p-5 bg-[var(--mainColor)] text-[var(--bgColor)] border border-[var(--bgColor)]/15 shadow-sm hover:shadow-md hover:border-[var(--secondColor)] transition-all duration-300"
+                className="relative flex flex-col justify-between rounded-3xl p-5 bg-(--mainColor) text-(--bgColor) border border-(--bgColor)/15 shadow-sm hover:shadow-md hover:border-(--secondColor) transition-all duration-300"
               >
                 <div>
                   {/* Top Bar: Cafe Identity & Stamps Pill */}
-                  <div className="flex items-center justify-between gap-2 pb-3 border-b border-[var(--bgColor)]/15">
+                  <div className="flex items-center justify-between gap-2 pb-3 border-b border-(--bgColor)/15">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="relative w-6 h-6 rounded-lg overflow-hidden bg-[var(--bgColor)]/15 shrink-0 border border-[var(--bgColor)]/20">
+                      <div className="relative w-6 h-6 rounded-lg overflow-hidden bg-(--bgColor)/15 shrink-0 border border-(--bgColor)/20">
                         {item.cafeLogo ? (
                           <Image
                             src={item.cafeLogo}
@@ -113,17 +113,17 @@ export default function AvailableRewardsSection({
                             className="object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[var(--bgColor)]">
+                          <div className="w-full h-full flex items-center justify-center text-(--bgColor)">
                             <LuStore className="w-3.5 h-3.5" />
                           </div>
                         )}
                       </div>
-                      <span className="text-xs font-bold text-[var(--bgColor)] truncate">
+                      <span className="text-xs font-bold text-(--bgColor) truncate">
                         {item.cafeName}
                       </span>
                     </div>
 
-                    <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full shrink-0 bg-[var(--secondColor)] text-[#3B2418] shadow-xs">
+                    <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full shrink-0 bg-(--secondColor) text-[#3B2418] shadow-xs">
                       {item.stampsRequired} Stamps
                     </span>
                   </div>
@@ -137,17 +137,17 @@ export default function AvailableRewardsSection({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="text-base font-bold text-[var(--bgColor)] leading-snug">
+                        <h3 className="text-base font-bold text-(--bgColor) leading-snug">
                           {item.name}
                         </h3>
                         {item.tag && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[var(--secondColor)]/30 text-[var(--bgColor)]">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-(--secondColor)/30 text-(--bgColor)">
                             {item.tag}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-[var(--bgColor)]/75 line-clamp-2 mt-1 leading-relaxed">
+                      <p className="text-xs text-(--bgColor)/75 line-clamp-2 mt-1 leading-relaxed">
                         {item.description}
                       </p>
                     </div>
@@ -160,18 +160,18 @@ export default function AvailableRewardsSection({
                       <span>Ready to Redeem</span>
                     </span>
 
-                    <span className="text-[11px] text-[var(--bgColor)]/70 font-semibold">
+                    <span className="text-[11px] text-(--bgColor)/70 font-semibold">
                       Balance: {item.stampsBalance} stamps
                     </span>
                   </div>
                 </div>
 
                 {/* Bottom CTA Button */}
-                <div className="mt-4 pt-3 border-t border-[var(--bgColor)]/15">
+                <div className="mt-4 pt-3 border-t border-(--bgColor)/15">
                   <button
                     type="button"
                     onClick={() => onRedeemReward(item)}
-                    className="w-full flex items-center justify-center gap-1.5 bg-[var(--secondColor)] hover:opacity-95 active:scale-95 text-[#3B2418] font-bold text-xs sm:text-sm py-2.5 px-3 rounded-xl transition-all cursor-pointer shadow-xs"
+                    className="w-full flex items-center justify-center gap-1.5 bg-(--secondColor) hover:opacity-95 active:scale-95 text-[#3B2418] font-bold text-xs sm:text-sm py-2.5 px-3 rounded-xl transition-all cursor-pointer shadow-xs"
                   >
                     <LuSparkles className="w-4 h-4" />
                     <span>Redeem Reward</span>

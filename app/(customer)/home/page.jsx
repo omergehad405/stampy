@@ -4,7 +4,7 @@ import React, { useState, useMemo, useSyncExternalStore } from "react";
 import { toast } from "react-toastify";
 
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
-import { getAllRegisteredCafes, getCafeBySlug } from "@/app/features/cafe/cafesCatalog";
+import { getAllRegisteredCafes, getCafeBySlug } from "../cafe/data/cafesCatalog";
 
 import HomeSkeleton from "./components/HomeSkeleton";
 import WelcomeHeader from "./components/WelcomeHeader";
@@ -15,8 +15,8 @@ import RecentActivityTimeline from "./components/RecentActivityTimeline";
 import AvailableRewardsSection from "./components/AvailableRewardsSection";
 import HowStampyWorks from "./components/HowStampyWorks";
 
-import RedeemConfirmationModal from "@/app/features/rewards/RedeemConfirmationModal";
-import RedemptionQrModal from "@/app/features/rewards/RedemptionQrModal";
+import RedeemConfirmationModal from "../cafe/[slug]/rewards/components/RedeemConfirmationModal";
+import RedemptionQrModal from "../cafe/[slug]/rewards/components/RedemptionQrModal";
 
 const emptySubscribe = () => () => {};
 

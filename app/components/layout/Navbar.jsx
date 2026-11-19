@@ -7,8 +7,8 @@ import { LuCoffee, LuGift, LuStore, LuHouse, LuCompass, LuUser } from "react-ico
 export default function Navbar() {
   const pathname = usePathname();
 
-  // If on login or auth screens, hide navbars
-  if (pathname === "/login" || pathname === "/signup") {
+  // If on login, auth screens, or cafe dashboard, hide customer navbar
+  if (pathname === "/login" || pathname === "/signup" || pathname.startsWith("/dashboard")) {
     return null;
   }
 
@@ -48,7 +48,7 @@ export default function Navbar() {
     return (
       <nav
         aria-label="Cafe Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--mainColor)] border-t border-[var(--mainColor)] py-3 shadow-[0_-2px_12px_rgba(59,36,24,0.06)] md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:w-auto md:min-w-[360px] md:rounded-full md:border md:border-[var(--mainColor)]/15 md:shadow-xl md:py-2.5 md:px-6 md:backdrop-blur-md"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-(--mainColor) border-t border-(--mainColor) py-3 shadow-[0_-2px_12px_rgba(59,36,24,0.06)] md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:w-auto md:min-w-[360px] md:rounded-full md:border md:border-(--mainColor)/15 md:shadow-xl md:py-2.5 md:px-6 md:backdrop-blur-md"
       >
         <div className="max-w-md md:max-w-none mx-auto flex items-center justify-around md:justify-center md:gap-8 px-6 md:px-0">
           {cafeNavItems.map((item) => {
@@ -57,11 +57,10 @@ export default function Navbar() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-2 text-sm md:text-base px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-                  item.isActive
-                    ? "font-bold text-[var(--bgColor)] bg-[var(--bgColor)]/15 shadow-xs"
-                    : "font-medium text-[var(--bgColor)]/75 hover:text-[var(--bgColor)] hover:bg-[var(--bgColor)]/5"
-                }`}
+                className={`flex items-center gap-2 text-sm md:text-base px-4 py-1.5 rounded-full transition-all cursor-pointer ${item.isActive
+                  ? "font-bold text-(--bgColor) bg-(--bgColor)/15 shadow-xs"
+                  : "font-medium text-(--bgColor)/75 hover:text-(--bgColor) hover:bg-(--bgColor)/5"
+                  }`}
               >
                 <Icon className="w-4 h-4 md:w-4.5 md:h-4.5" />
                 <span>{item.label}</span>
@@ -98,7 +97,7 @@ export default function Navbar() {
   return (
     <nav
       aria-label="Global Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--mainColor)] border-t border-[var(--mainColor)] py-3 shadow-[0_-2px_12px_rgba(59,36,24,0.06)] md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:w-auto md:min-w-[380px] md:rounded-full md:border md:border-[var(--mainColor)]/15 md:shadow-xl md:py-2.5 md:px-6 md:backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-(--mainColor) border-t border-(--mainColor) py-3 shadow-[0_-2px_12px_rgba(59,36,24,0.06)] md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:w-auto md:min-w-[380px] md:rounded-full md:border md:border-(--mainColor)/15 md:shadow-xl md:py-2.5 md:px-6 md:backdrop-blur-md"
     >
       <div className="max-w-md md:max-w-none mx-auto flex items-center justify-around md:justify-center md:gap-8 px-6 md:px-0">
         {globalNavItems.map((item) => {
@@ -107,11 +106,10 @@ export default function Navbar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-2 text-sm md:text-base px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-                item.isActive
-                  ? "font-bold text-[var(--bgColor)] bg-[var(--bgColor)]/15 shadow-xs"
-                  : "font-medium text-[var(--bgColor)]/75 hover:text-[var(--bgColor)] hover:bg-[var(--bgColor)]/5"
-              }`}
+              className={`flex items-center gap-2 text-sm md:text-base px-4 py-1.5 rounded-full transition-all cursor-pointer ${item.isActive
+                ? "font-bold text-(--bgColor) bg-(--bgColor)/15 shadow-xs"
+                : "font-medium text-(--bgColor)/75 hover:text-(--bgColor) hover:bg-(--bgColor)/5"
+                }`}
             >
               <Icon className="w-4 h-4 md:w-4.5 md:h-4.5" />
               <span>{item.label}</span>

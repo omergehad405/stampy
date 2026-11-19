@@ -17,7 +17,7 @@ export default function LoyaltyOverviewStats({
       sublabel: "Earned across all cafés",
       value: totalStamps,
       icon: LuCoffee,
-      iconBg: "bg-[var(--bgColor)]/15 text-[var(--bgColor)]",
+      iconBg: "bg-(--bgColor)/15 text-(--bgColor)",
     },
     {
       id: "available-rewards",
@@ -25,7 +25,7 @@ export default function LoyaltyOverviewStats({
       sublabel: "Ready to redeem now",
       value: availableRewards,
       icon: LuGift,
-      iconBg: "bg-[var(--secondColor)] text-[#3B2418]",
+      iconBg: "bg-(--secondColor) text-[#3B2418]",
       highlight: availableRewards > 0,
     },
     {
@@ -34,7 +34,7 @@ export default function LoyaltyOverviewStats({
       sublabel: "Active programs",
       value: joinedCafesCount,
       icon: LuStore,
-      iconBg: "bg-[var(--bgColor)]/15 text-[var(--bgColor)]",
+      iconBg: "bg-(--bgColor)/15 text-(--bgColor)",
     },
     {
       id: "redeemed-rewards",
@@ -57,11 +57,10 @@ export default function LoyaltyOverviewStats({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className={`relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-[var(--mainColor)] text-[var(--bgColor)] border transition-all duration-200 ${
-                stat.highlight
-                  ? "border-[var(--secondColor)] shadow-md"
-                  : "border-[var(--bgColor)]/15 shadow-xs hover:border-[var(--bgColor)]/30"
-              }`}
+              className={`relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-(--mainColor) text-(--bgColor) border transition-all duration-200 ${stat.highlight
+                ? "border-(--secondColor) shadow-md"
+                : "border-(--bgColor)/15 shadow-xs hover:border-(--bgColor)/30"
+                }`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div
@@ -71,20 +70,20 @@ export default function LoyaltyOverviewStats({
                 </div>
 
                 {stat.highlight && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--secondColor)] text-[#3B2418]">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-(--secondColor) text-[#3B2418]">
                     Ready
                   </span>
                 )}
               </div>
 
               <div className="mt-4">
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--bgColor)] tracking-tight">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-(--bgColor) tracking-tight">
                   {stat.value}
                 </div>
-                <div className="text-xs sm:text-sm font-bold text-[var(--bgColor)] mt-0.5 leading-tight">
+                <div className="text-xs sm:text-sm font-bold text-(--bgColor) mt-0.5 leading-tight">
                   {stat.label}
                 </div>
-                <div className="text-[11px] text-[var(--bgColor)]/70 mt-0.5 truncate">
+                <div className="text-[11px] text-(--bgColor)/70 mt-0.5 truncate">
                   {stat.sublabel}
                 </div>
               </div>

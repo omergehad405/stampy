@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { CAFES_CATALOG, getCafeBySlug } from "../features/cafe/cafesCatalog";
+import { CAFES_CATALOG, getCafeBySlug } from "../(customer)/cafe/data/cafesCatalog";
 
 export const INITIAL_USER = {
   id: "cust-7842",

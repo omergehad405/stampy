@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body
-        className="min-h-full flex flex-col bg-[var(--bgColor)] text-[var(--mainColor)]"
+        className="min-h-full flex flex-col bg-(--bgColor) text-(--mainColor)"
         suppressHydrationWarning
       >
         <ThemeProvider>

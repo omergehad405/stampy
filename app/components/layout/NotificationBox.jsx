@@ -36,13 +36,13 @@ export default function NotificationBox({ isOpen, onClose }) {
   const renderIcon = (type) => {
     switch (type) {
       case "stamp":
-        return <LuCoffee className="w-4 h-4 text-[var(--mainColor)]" />;
+        return <LuCoffee className="w-4 h-4 text-(--mainColor)" />;
       case "reward":
-        return <LuGift className="w-4 h-4 text-[var(--mainColor)]" />;
+        return <LuGift className="w-4 h-4 text-(--mainColor)" />;
       case "promo":
-        return <LuSparkles className="w-4 h-4 text-[var(--mainColor)]" />;
+        return <LuSparkles className="w-4 h-4 text-(--mainColor)" />;
       default:
-        return <LuBell className="w-4 h-4 text-[var(--mainColor)]" />;
+        return <LuBell className="w-4 h-4 text-(--mainColor)" />;
     }
   };
 
@@ -50,11 +50,10 @@ export default function NotificationBox({ isOpen, onClose }) {
     <>
       {/* Overlay Backdrop */}
       <div
-        className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ${
-          isOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ${isOpen
+          ? "opacity-100 pointer-events-auto"
+          : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -64,14 +63,13 @@ export default function NotificationBox({ isOpen, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="notifications-heading"
-        className={`fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm sm:max-w-md bg-[var(--bgColor)] text-[var(--mainColor)] shadow-2xl border-l border-[var(--mainColor)]/15 flex flex-col transition-transform duration-300 ease-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm sm:max-w-md bg-(--bgColor) text-(--mainColor) shadow-2xl border-l border-(--mainColor)/15 flex flex-col transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Panel Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--mainColor)]/10">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-(--mainColor)/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[var(--mainColor)] flex items-center justify-center text-[var(--bgColor)] shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-(--mainColor) flex items-center justify-center text-(--bgColor) shadow-xs">
               <LuBell className="w-4 h-4" />
             </div>
             <div>
@@ -83,7 +81,7 @@ export default function NotificationBox({ isOpen, onClose }) {
                   Notifications
                 </h3>
                 {unreadCount > 0 && (
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[var(--secondColor)] text-[var(--mainColor)]">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-(--secondColor) text-(--mainColor)">
                     {unreadCount} new
                   </span>
                 )}
@@ -98,7 +96,7 @@ export default function NotificationBox({ isOpen, onClose }) {
                 type="button"
                 onClick={markAllAsRead}
                 title="Mark all as read"
-                className="p-2 rounded-full hover:bg-[var(--mainColor)]/10 text-[var(--mainColor)] transition-colors cursor-pointer text-xs flex items-center gap-1 font-medium"
+                className="p-2 rounded-full hover:bg-(--mainColor)/10 text-(--mainColor) transition-colors cursor-pointer text-xs flex items-center gap-1 font-medium"
               >
                 <LuCheckCheck className="w-4 h-4" />
                 <span className="hidden sm:inline text-xs">Read all</span>
@@ -110,7 +108,7 @@ export default function NotificationBox({ isOpen, onClose }) {
               type="button"
               aria-label="Close notifications"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-[var(--mainColor)]/10 text-[var(--mainColor)] transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-(--mainColor)/10 text-(--mainColor) transition-colors cursor-pointer"
             >
               <LuX className="w-5 h-5" />
             </button>
@@ -130,28 +128,27 @@ export default function NotificationBox({ isOpen, onClose }) {
               <div
                 key={item.id}
                 onClick={() => markAsRead(item.id)}
-                className={`rounded-2xl p-3.5 border transition-all cursor-pointer relative bg-[var(--mainColor)] text-[var(--bgColor)] ${
-                  item.unread
-                    ? "border-[var(--secondColor)] shadow-xs ring-1 ring-[var(--secondColor)]/30"
-                    : "border-[var(--bgColor)]/15 opacity-85 hover:opacity-100"
-                }`}
+                className={`rounded-2xl p-3.5 border transition-all cursor-pointer relative bg-(--mainColor) text-(--bgColor) ${item.unread
+                  ? "border-(--secondColor) shadow-xs ring-1 ring-(--secondColor)/30"
+                  : "border-(--bgColor)/15 opacity-85 hover:opacity-100"
+                  }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-[var(--secondColor)] text-[#3B2418] flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-(--secondColor) text-[#3B2418] flex items-center justify-center shrink-0 mt-0.5">
                     {renderIcon(item.type)}
                   </div>
 
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-xs sm:text-sm font-bold text-[var(--bgColor)] truncate">
+                      <h4 className="text-xs sm:text-sm font-bold text-(--bgColor) truncate">
                         {item.title}
                       </h4>
-                      <span className="text-[10px] text-[var(--bgColor)]/65 shrink-0">
+                      <span className="text-[10px] text-(--bgColor)/65 shrink-0">
                         {item.time}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[var(--bgColor)]/80 mt-1 leading-relaxed">
+                    <p className="text-xs text-(--bgColor)/80 mt-1 leading-relaxed">
                       {item.message}
                     </p>
                   </div>
@@ -159,7 +156,7 @@ export default function NotificationBox({ isOpen, onClose }) {
                   {item.unread && (
                     <span
                       aria-label="Unread"
-                      className="w-2 h-2 rounded-full bg-[var(--secondColor)] ring-2 ring-[var(--secondColor)]/30 shrink-0 mt-1.5"
+                      className="w-2 h-2 rounded-full bg-(--secondColor) ring-2 ring-(--secondColor)/30 shrink-0 mt-1.5"
                     />
                   )}
                 </div>
@@ -169,7 +166,7 @@ export default function NotificationBox({ isOpen, onClose }) {
         </div>
 
         {/* Panel Footer */}
-        <div className="p-4 border-t border-[var(--mainColor)]/10 bg-[var(--mainColor)]/5 flex items-center justify-between gap-3 text-xs">
+        <div className="p-4 border-t border-(--mainColor)/10 bg-(--mainColor)/5 flex items-center justify-between gap-3 text-xs">
           <span className="opacity-70">
             {unreadCount === 0
               ? "All notifications caught up"
@@ -178,7 +175,7 @@ export default function NotificationBox({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-[var(--mainColor)] text-[var(--bgColor)] font-semibold text-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
+            className="px-4 py-2 rounded-xl bg-(--mainColor) text-(--bgColor) font-semibold text-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
           >
             Done
           </button>
