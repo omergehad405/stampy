@@ -6,7 +6,6 @@ import {
   LuSearch,
   LuFilter,
   LuArrowUpDown,
-  LuPlus,
   LuMail,
   LuPhone,
   LuCalendar,
@@ -23,7 +22,7 @@ import DashboardPageHeader from "../components/DashboardPageHeader";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 
 export default function DashboardCustomersPage() {
-  const { customers, settings, createCustomer, updateCustomer, activities } =
+  const { customers, settings, updateCustomer, activities } =
     useDashboardStore();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,13 +31,6 @@ export default function DashboardCustomersPage() {
 
   // Modal states
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    notes: "",
-  });
 
   // Stamp adjustment state within customer details
   const [adjustAmount, setAdjustAmount] = useState(1);
@@ -67,26 +59,6 @@ export default function DashboardCustomersPage() {
         return 0;
       });
   }, [customers, searchQuery, statusFilter, sortBy]);
-
-  // Handle Add Customer
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    if (!newCustomer.name || !newCustomer.email) {
-      toast.error("Name and email are required.");
-      return;
-    }
-
-    createCustomer({
-      name: newCustomer.name,
-      email: newCustomer.email,
-      phone: newCustomer.phone || "+44 7700 900123",
-      notes: newCustomer.notes,
-    });
-
-    toast.success(`Customer ${newCustomer.name} created!`);
-    setNewCustomer({ name: "", email: "", phone: "", notes: "" });
-    setShowAddModal(false);
-  };
 
   // Handle Manual Stamp Adjustment
   const handleAdjustStamps = (type) => {
@@ -122,15 +94,6 @@ export default function DashboardCustomersPage() {
         title="Customer Directory"
         description="Search, view, and manage registered cafe loyalty members and their visit records."
         breadcrumbs={[{ label: "Customers" }]}
-        actions={
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) shadow-sm hover:opacity-95"
-          >
-            <LuPlus className="h-4 w-4" />
-            <span>Add Customer</span>
-          </button>
-        }
       />
 
       {/* Search & Filter Toolbar */}
@@ -451,100 +414,6 @@ export default function DashboardCustomersPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Customer Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-[#ebdcc8] bg-[#faf6ed] p-6 shadow-xl">
-            <h3 className="font-bold text-base text-(--mainColor)">
-              Register New Customer
-            </h3>
-            <p className="mt-1 text-xs text-(--mainColor)/70">
-              Create an account for a customer visiting the cafe.
-            </p>
-
-            <form onSubmit={handleAddSubmit} className="mt-4 space-y-3.5">
-              <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newCustomer.name}
-                  onChange={(e) =>
-                    setNewCustomer({ ...newCustomer, name: e.target.value })
-                  }
-                  placeholder="e.g. Maya Lin"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={newCustomer.email}
-                  onChange={(e) =>
-                    setNewCustomer({ ...newCustomer, email: e.target.value })
-                  }
-                  placeholder="maya.lin@example.com"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={newCustomer.phone}
-                  onChange={(e) =>
-                    setNewCustomer({ ...newCustomer, phone: e.target.value })
-                  }
-                  placeholder="+44 7700 900789"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
-                  Preferences / Notes
-                </label>
-                <textarea
-                  rows={2}
-                  value={newCustomer.notes}
-                  onChange={(e) =>
-                    setNewCustomer({ ...newCustomer, notes: e.target.value })
-                  }
-                  placeholder="e.g. Single-origin pour-over fan"
-                  className="w-full rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-2.5 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
-                />
-              </div>
-
-              <div className="mt-5 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="rounded-xl border border-[#dacdb9] bg-white/70 px-4 py-2 text-xs font-semibold text-(--mainColor) hover:bg-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor)"
-                >
-                  Register
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

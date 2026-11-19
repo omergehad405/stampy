@@ -60,14 +60,16 @@ export default function CafeMenuTeaser({ menuPreview }) {
                 {getCategoryIcon(cat.id)}
               </div>
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
                   <h3 className="text-xs sm:text-sm font-bold text-(--bgColor) truncate">
                     {cat.title}
                   </h3>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-(--bgColor)/15 text-(--bgColor)/80">
-                    {cat.count}
-                  </span>
+                  {cat.price && (
+                    <span className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full bg-(--secondColor) text-[#3b2418]">
+                      {cat.price}
+                    </span>
+                  )}
                 </div>
                 <p className="text-[11px] text-(--bgColor)/70 truncate mt-0.5">
                   {cat.description}

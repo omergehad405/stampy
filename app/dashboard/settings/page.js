@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   LuSettings,
   LuUser,
@@ -9,6 +9,8 @@ import {
   LuSave,
   LuLock,
   LuCircleCheck,
+  LuUpload,
+  LuLink,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
@@ -20,6 +22,10 @@ export default function DashboardSettingsPage() {
   const { currentUser, updateProfile } = useDashboardAuthStore();
 
   const [activeTab, setActiveTab] = useState("account"); // 'account' | 'security' | 'notifications'
+
+  // Avatar upload mode
+  const avatarFileRef = useRef(null);
+  const [avatarMode, setAvatarMode] = useState("url"); // 'url' | 'file'
 
   // Account form
   const [accountForm, setAccountForm] = useState({
@@ -34,7 +40,6 @@ export default function DashboardSettingsPage() {
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    twoFactorEnabled: false,
   });
 
   // Notifications form
@@ -60,7 +65,6 @@ export default function DashboardSettingsPage() {
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
-      twoFactorEnabled: securityForm.twoFactorEnabled,
     });
     toast.success("Security credentials updated!");
   };
@@ -72,7 +76,7 @@ export default function DashboardSettingsPage() {
   };
 
   const tabs = [
-    { key: "account", label: "Staff Profile", icon: LuUser },
+    { key: "account", label: "Your Profile", icon: LuUser },
     { key: "security", label: "Password & Security", icon: LuShield },
     { key: "notifications", label: "Notifications", icon: LuBell },
   ];
@@ -166,18 +170,108 @@ export default function DashboardSettingsPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
-                Avatar Image URL
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-(--mainColor) mb-2">
+                Avatar Image
               </label>
+
+              {/* Toggle buttons */}
+              <div className="flex gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAvatarMode("url");
+                  }}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                    avatarMode === "url"
+                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                      : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                  }`}
+                >
+                  <LuLink className="h-3.5 w-3.5" />
+                  Paste URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAvatarMode("file");
+                    setTimeout(() => avatarFileRef.current?.click(), 50);
+                  }}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                    avatarMode === "file"
+                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                      : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                  }`}
+                >
+                  <LuUpload className="h-3.5 w-3.5" />
+                  Upload from Device
+                </button>
+              </div>
+
+              {/* URL input */}
+              {avatarMode === "url" && (
+                <input
+                  type="url"
+                  value={accountForm.avatar}
+                  onChange={(e) =>
+                    setAccountForm({ ...accountForm, avatar: e.target.value })
+                  }
+                  placeholder="https://..."
+                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                />
+              )}
+
+              {/* File input (hidden, triggered by button) */}
               <input
-                type="url"
-                value={accountForm.avatar}
-                onChange={(e) =>
-                  setAccountForm({ ...accountForm, avatar: e.target.value })
-                }
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                ref={avatarFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    setAccountForm({ ...accountForm, avatar: ev.target.result });
+                    setAvatarMode("file");
+                  };
+                  reader.readAsDataURL(file);
+                }}
               />
+
+              {/* Upload prompt shown when file mode active but no file yet */}
+              {avatarMode === "file" && !accountForm.avatar && (
+                <button
+                  type="button"
+                  onClick={() => avatarFileRef.current?.click()}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#dacdb9] bg-[#f5ecdd] py-6 text-xs font-semibold text-(--mainColor)/70 hover:border-(--mainColor)/40"
+                >
+                  <LuUpload className="h-5 w-5" />
+                  Click to choose an image from your device
+                </button>
+              )}
+
+              {/* Preview */}
+              {accountForm.avatar && (
+                <div className="mt-3 flex items-center gap-3">
+                  <img
+                    src={accountForm.avatar}
+                    alt="Avatar preview"
+                    className="h-14 w-14 rounded-full object-cover border-2 border-[#dacdb9]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountForm({ ...accountForm, avatar: "" });
+                      setAvatarMode("url");
+                      if (avatarFileRef.current) avatarFileRef.current.value = "";
+                    }}
+                    className="text-xs font-semibold text-rose-700 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -255,29 +349,6 @@ export default function DashboardSettingsPage() {
             </div>
           </div>
 
-          <div className="border-t border-[#ebdcc8] pt-4">
-            <label className="flex items-start gap-3 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-3.5 cursor-pointer max-w-md">
-              <input
-                type="checkbox"
-                checked={securityForm.twoFactorEnabled}
-                onChange={(e) =>
-                  setSecurityForm({
-                    ...securityForm,
-                    twoFactorEnabled: e.target.checked,
-                  })
-                }
-                className="mt-0.5 rounded text-(--mainColor)"
-              />
-              <div className="text-xs">
-                <span className="font-bold text-(--mainColor)">
-                  Two-Factor Authentication (2FA)
-                </span>
-                <p className="mt-0.5 text-[11px] text-(--mainColor)/70">
-                  Require a verification code when signing in from an unrecognized device.
-                </p>
-              </div>
-            </label>
-          </div>
 
           <div className="flex justify-end pt-2">
             <button

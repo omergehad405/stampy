@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   LuStore,
   LuExternalLink,
@@ -19,6 +19,8 @@ import {
   LuPlus,
   LuTrash2,
   LuImage,
+  LuUpload,
+  LuLink,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
@@ -29,6 +31,12 @@ export default function DashboardCafeProfilePage() {
 
   const [activeTab, setActiveTab] = useState("basic"); // 'basic' | 'about' | 'location' | 'hours' | 'contact' | 'social' | 'menu'
   const [isSaving, setIsSaving] = useState(false);
+
+  // Image upload refs & mode
+  const logoFileRef = useRef(null);
+  const coverFileRef = useRef(null);
+  const [logoMode, setLogoMode] = useState("url"); // 'url' | 'file'
+  const [coverMode, setCoverMode] = useState("url"); // 'url' | 'file'
 
   // Form State initialized from live cafe store
   const [profileForm, setProfileForm] = useState(() => ({
@@ -193,9 +201,9 @@ export default function DashboardCafeProfilePage() {
   const addMenuCategory = () => {
     const newCat = {
       id: `cat-${Date.now()}`,
-      title: "New Category",
-      count: "5 items",
-      description: "Description of signature category items",
+      title: "",
+      description: "",
+      price: "",
     };
     setProfileForm((prev) => ({
       ...prev,
@@ -376,49 +384,217 @@ export default function DashboardCafeProfilePage() {
               {/* Logo Image */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-(--mainColor)">
-                  Logo Image URL
+                  Logo Image
                 </label>
-                <input
-                  type="url"
-                  value={profileForm.logoImage}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, logoImage: e.target.value })
-                  }
-                  placeholder="https://..."
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
-                />
-                <div className="flex items-center gap-3 pt-2">
-                  <img
-                    src={profileForm.logoImage}
-                    alt="Logo preview"
-                    className="h-16 w-16 rounded-xl object-cover border-2 border-[#dacdb9]"
+
+                {/* Mode toggle */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setLogoMode("url")}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                      logoMode === "url"
+                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                    }`}
+                  >
+                    <LuLink className="h-3.5 w-3.5" />
+                    Paste URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLogoMode("file");
+                      setTimeout(() => logoFileRef.current?.click(), 50);
+                    }}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                      logoMode === "file"
+                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                    }`}
+                  >
+                    <LuUpload className="h-3.5 w-3.5" />
+                    Upload from Device
+                  </button>
+                </div>
+
+                {/* URL input */}
+                {logoMode === "url" && (
+                  <input
+                    type="url"
+                    value={profileForm.logoImage}
+                    onChange={(e) =>
+                      setProfileForm({ ...profileForm, logoImage: e.target.value })
+                    }
+                    placeholder="https://..."
+                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
                   />
-                  <span className="text-[11px] text-(--mainColor)/60">
-                    Recommended: Square 1:1 format (400x400px)
-                  </span>
+                )}
+
+                {/* Hidden file input */}
+                <input
+                  ref={logoFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      setProfileForm({ ...profileForm, logoImage: ev.target.result });
+                      setLogoMode("file");
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+
+                {/* Upload prompt */}
+                {logoMode === "file" && !profileForm.logoImage && (
+                  <button
+                    type="button"
+                    onClick={() => logoFileRef.current?.click()}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#dacdb9] bg-[#f5ecdd] py-5 text-xs font-semibold text-(--mainColor)/70 hover:border-(--mainColor)/40"
+                  >
+                    <LuUpload className="h-5 w-5" />
+                    Choose logo from device
+                  </button>
+                )}
+
+                {/* Preview */}
+                <div className="flex items-center gap-3 pt-1">
+                  {profileForm.logoImage ? (
+                    <>
+                      <img
+                        src={profileForm.logoImage}
+                        alt="Logo preview"
+                        className="h-16 w-16 rounded-xl object-cover border-2 border-[#dacdb9]"
+                      />
+                      <div className="text-[11px] text-(--mainColor)/60 space-y-1">
+                        <p>Recommended: Square 1:1 (400×400px)</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProfileForm({ ...profileForm, logoImage: "" });
+                            setLogoMode("url");
+                            if (logoFileRef.current) logoFileRef.current.value = "";
+                          }}
+                          className="text-rose-700 font-semibold hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <span className="text-[11px] text-(--mainColor)/50">No logo set yet.</span>
+                  )}
                 </div>
               </div>
 
               {/* Cover Image */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-(--mainColor)">
-                  Hero Cover Image URL
+                  Hero Cover Image
                 </label>
-                <input
-                  type="url"
-                  value={profileForm.coverImage}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, coverImage: e.target.value })
-                  }
-                  placeholder="https://..."
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
-                />
-                <div className="pt-2">
-                  <img
-                    src={profileForm.coverImage}
-                    alt="Cover preview"
-                    className="h-24 w-full rounded-xl object-cover border border-[#dacdb9]"
+
+                {/* Mode toggle */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCoverMode("url")}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                      coverMode === "url"
+                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                    }`}
+                  >
+                    <LuLink className="h-3.5 w-3.5" />
+                    Paste URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCoverMode("file");
+                      setTimeout(() => coverFileRef.current?.click(), 50);
+                    }}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                      coverMode === "file"
+                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                    }`}
+                  >
+                    <LuUpload className="h-3.5 w-3.5" />
+                    Upload from Device
+                  </button>
+                </div>
+
+                {/* URL input */}
+                {coverMode === "url" && (
+                  <input
+                    type="url"
+                    value={profileForm.coverImage}
+                    onChange={(e) =>
+                      setProfileForm({ ...profileForm, coverImage: e.target.value })
+                    }
+                    placeholder="https://..."
+                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
                   />
+                )}
+
+                {/* Hidden file input */}
+                <input
+                  ref={coverFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      setProfileForm({ ...profileForm, coverImage: ev.target.result });
+                      setCoverMode("file");
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+
+                {/* Upload prompt */}
+                {coverMode === "file" && !profileForm.coverImage && (
+                  <button
+                    type="button"
+                    onClick={() => coverFileRef.current?.click()}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#dacdb9] bg-[#f5ecdd] py-5 text-xs font-semibold text-(--mainColor)/70 hover:border-(--mainColor)/40"
+                  >
+                    <LuUpload className="h-5 w-5" />
+                    Choose cover photo from device
+                  </button>
+                )}
+
+                {/* Preview */}
+                <div className="pt-1">
+                  {profileForm.coverImage ? (
+                    <>
+                      <img
+                        src={profileForm.coverImage}
+                        alt="Cover preview"
+                        className="h-24 w-full rounded-xl object-cover border border-[#dacdb9]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileForm({ ...profileForm, coverImage: "" });
+                          setCoverMode("url");
+                          if (coverFileRef.current) coverFileRef.current.value = "";
+                        }}
+                        className="mt-1.5 text-xs font-semibold text-rose-700 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </>
+                  ) : (
+                    <span className="text-[11px] text-(--mainColor)/50">No cover image set yet.</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -1033,10 +1209,10 @@ export default function DashboardCafeProfilePage() {
             <div className="flex items-center justify-between border-b border-[#ebdcc8] pb-3">
               <div>
                 <h3 className="font-bold text-sm text-(--mainColor)">
-                  Digital Menu Categories
+                  Digital Menu Items
                 </h3>
                 <p className="text-xs text-(--mainColor)/60">
-                  Manage signature menu sections displayed in the customer menu preview.
+                  Manage menu items displayed in the customer menu preview.
                 </p>
               </div>
 
@@ -1046,7 +1222,7 @@ export default function DashboardCafeProfilePage() {
                 className="flex items-center gap-1.5 rounded-xl bg-(--mainColor) px-3 py-1.5 text-xs font-bold text-(--secondColor)"
               >
                 <LuPlus className="h-4 w-4" />
-                <span>Add Category</span>
+                <span>Add Item</span>
               </button>
             </div>
 
@@ -1058,7 +1234,7 @@ export default function DashboardCafeProfilePage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-(--mainColor)">
-                      Category #{idx + 1}
+                      Item #{idx + 1}
                     </span>
                     <button
                       type="button"
@@ -1072,7 +1248,7 @@ export default function DashboardCafeProfilePage() {
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <label className="block font-bold text-(--mainColor) mb-1">
-                        Category Title
+                        Item Title
                       </label>
                       <input
                         type="text"
@@ -1080,28 +1256,29 @@ export default function DashboardCafeProfilePage() {
                         onChange={(e) =>
                           updateMenuCategory(cat.id, "title", e.target.value)
                         }
+                        placeholder="e.g. Flat White"
                         className="w-full h-9 rounded-lg border border-[#dacdb9] bg-white px-2.5 text-xs text-(--mainColor) outline-none"
                       />
                     </div>
 
                     <div>
                       <label className="block font-bold text-(--mainColor) mb-1">
-                        Item Count Badge
+                        Item Price
                       </label>
                       <input
                         type="text"
-                        value={cat.count}
+                        value={cat.price}
                         onChange={(e) =>
-                          updateMenuCategory(cat.id, "count", e.target.value)
+                          updateMenuCategory(cat.id, "price", e.target.value)
                         }
-                        placeholder="e.g. 12 specialties"
+                        placeholder="e.g. £3.50"
                         className="w-full h-9 rounded-lg border border-[#dacdb9] bg-white px-2.5 text-xs text-(--mainColor) outline-none"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
                       <label className="block font-bold text-(--mainColor) mb-1">
-                        Category Description
+                        Item Description
                       </label>
                       <input
                         type="text"
@@ -1109,7 +1286,7 @@ export default function DashboardCafeProfilePage() {
                         onChange={(e) =>
                           updateMenuCategory(cat.id, "description", e.target.value)
                         }
-                        placeholder="e.g. Single-origins, flat whites, pour-overs..."
+                        placeholder="e.g. Smooth double shot with steamed milk"
                         className="w-full h-9 rounded-lg border border-[#dacdb9] bg-white px-2.5 text-xs text-(--mainColor) outline-none"
                       />
                     </div>

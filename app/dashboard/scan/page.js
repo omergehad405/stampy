@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   LuQrCode,
   LuCamera,
@@ -34,8 +34,13 @@ export default function DashboardScanPage() {
   } = useDashboardStore();
   const { currentUser } = useDashboardAuthStore();
 
-  // Scanner UI states
+  // Scanner UI & Camera states
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+  const [facingMode, setFacingMode] = useState("environment"); // 'environment' (back) | 'user' (front)
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
   const [codeInput, setCodeInput] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [stampsToAdd, setStampsToAdd] = useState(1);
@@ -45,6 +50,88 @@ export default function DashboardScanPage() {
   // Modals & Feedback
   const [rewardToRedeem, setRewardToRedeem] = useState(null);
   const [actionSuccessData, setActionSuccessData] = useState(null);
+
+  // Stop camera tracks cleanly
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+  }, []);
+
+  // Start real device camera
+  const startCamera = useCallback(async (desiredFacingMode = facingMode) => {
+    setCameraError(null);
+    try {
+      if (typeof window === "undefined" || !navigator?.mediaDevices?.getUserMedia) {
+        setCameraError("Camera API is not supported in this browser environment.");
+        return;
+      }
+
+      // Stop any existing stream before starting a new one
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: desiredFacingMode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setIsCameraActive(true);
+      toast.success("Camera opened. Align customer QR code.");
+    } catch (err) {
+      console.error("Camera access failed:", err);
+      setIsCameraActive(false);
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setCameraError(
+          "Camera permission was denied. Please allow camera permissions in your browser address bar or settings."
+        );
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        setCameraError("No camera device was detected on this computer or phone.");
+      } else {
+        setCameraError(`Camera error: ${err.message || "Unable to access camera"}`);
+      }
+    }
+  }, [facingMode]);
+
+  const toggleCamera = () => {
+    if (isCameraActive) {
+      stopCamera();
+    } else {
+      startCamera();
+    }
+  };
+
+  const switchCameraFacing = () => {
+    const nextMode = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(nextMode);
+    if (isCameraActive) {
+      startCamera(nextMode);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
 
   // Active customer object
   const activeCustomer = customers.find((c) => c.id === selectedCustomerId);
@@ -61,27 +148,63 @@ export default function DashboardScanPage() {
     : [];
 
   // Handle identification by code or ID
-  const handleIdentifyCustomer = (codeOrId) => {
-    const query = (codeOrId || codeInput).trim().toUpperCase();
-    if (!query) return;
+  const handleIdentifyCustomer = useCallback(
+    (codeOrId) => {
+      const query = (codeOrId || codeInput).trim().toUpperCase();
+      if (!query) return;
 
-    const found = customers.find(
-      (c) =>
-        c.code.toUpperCase() === query ||
-        c.id.toUpperCase() === query ||
-        c.email.toUpperCase() === query ||
-        c.phone.replace(/\s+/g, "") === query.replace(/\s+/g, "")
-    );
+      const found = customers.find(
+        (c) =>
+          c.code.toUpperCase() === query ||
+          c.id.toUpperCase() === query ||
+          c.email.toUpperCase() === query ||
+          c.phone.replace(/\s+/g, "") === query.replace(/\s+/g, "")
+      );
 
-    if (found) {
-      setSelectedCustomerId(found.id);
-      setCodeInput("");
-      setActionSuccessData(null);
-      toast.success(`Customer identified: ${found.name}`);
-    } else {
-      toast.error(`No customer found matching "${query}". Try code like STAMPY-7842.`);
+      if (found) {
+        setSelectedCustomerId(found.id);
+        setCodeInput("");
+        setActionSuccessData(null);
+        toast.success(`Customer identified: ${found.name}`);
+      } else {
+        toast.error(`No customer found matching "${query}". Try code like STAMPY-7842.`);
+      }
+    },
+    [customers, codeInput]
+  );
+
+  // Automatic QR code detection if native BarcodeDetector is available
+  useEffect(() => {
+    if (!isCameraActive || typeof window === "undefined" || !("BarcodeDetector" in window)) {
+      return;
     }
-  };
+
+    let isScanning = true;
+    let detector;
+    try {
+      detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    } catch {
+      return;
+    }
+
+    const intervalId = setInterval(async () => {
+      if (!isScanning || !videoRef.current || videoRef.current.readyState < 2) return;
+      try {
+        const barcodes = await detector.detect(videoRef.current);
+        if (barcodes.length > 0 && barcodes[0].rawValue) {
+          const raw = barcodes[0].rawValue;
+          handleIdentifyCustomer(raw);
+        }
+      } catch {
+        // frame busy or no barcode detected in frame
+      }
+    }, 400);
+
+    return () => {
+      isScanning = false;
+      clearInterval(intervalId);
+    };
+  }, [isCameraActive, handleIdentifyCustomer]);
 
   // Record visit & add stamp
   const handleRecordVisit = () => {
@@ -156,48 +279,89 @@ export default function DashboardScanPage() {
                   QR Viewfinder
                 </h2>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsCameraActive(!isCameraActive)}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                  isCameraActive
-                    ? "bg-rose-100 text-rose-800 hover:bg-rose-200"
-                    : "bg-(--secondColor)/30 text-(--mainColor) hover:bg-(--secondColor)/50"
-                }`}
-              >
-                {isCameraActive ? (
-                  <>
-                    <LuCameraOff className="h-3.5 w-3.5" />
-                    <span>Pause Camera</span>
-                  </>
-                ) : (
-                  <>
-                    <LuCamera className="h-3.5 w-3.5" />
-                    <span>Start Camera</span>
-                  </>
+              <div className="flex items-center gap-2">
+                {isCameraActive && (
+                  <button
+                    type="button"
+                    onClick={switchCameraFacing}
+                    className="flex items-center gap-1 rounded-lg border border-[#dacdb9] bg-white px-2 py-1 text-xs font-semibold text-(--mainColor) hover:bg-[#f5ecdd]"
+                    title="Switch camera (front/back)"
+                  >
+                    <LuRefreshCw className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Flip</span>
+                  </button>
                 )}
-              </button>
+                <button
+                  type="button"
+                  onClick={toggleCamera}
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                    isCameraActive
+                      ? "bg-rose-100 text-rose-800 hover:bg-rose-200"
+                      : "bg-(--secondColor)/30 text-(--mainColor) hover:bg-(--secondColor)/50"
+                  }`}
+                >
+                  {isCameraActive ? (
+                    <>
+                      <LuCameraOff className="h-3.5 w-3.5" />
+                      <span>Stop Camera</span>
+                    </>
+                  ) : (
+                    <>
+                      <LuCamera className="h-3.5 w-3.5" />
+                      <span>Start Camera</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Viewfinder Viewport */}
-            <div className="relative flex aspect-square w-full flex-col items-center justify-center bg-[#2a1a12] p-6 text-center text-(--bgColor)">
+            <div className="relative flex aspect-square w-full flex-col items-center justify-center bg-[#2a1a12] p-6 text-center text-(--bgColor) overflow-hidden">
+              {/* Actual HTML5 Video element streaming the camera */}
+              <video
+                ref={videoRef}
+                playsInline
+                autoPlay
+                muted
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+                  isCameraActive ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+              />
+
               {isCameraActive ? (
                 <>
-                  {/* Camera simulated viewfinder with animated laser line */}
-                  <div className="relative flex h-52 w-52 items-center justify-center rounded-2xl border-2 border-dashed border-(--secondColor)/70 bg-black/40">
+                  {/* Darkened overlay with centered scanning reticle */}
+                  <div className="relative z-10 flex h-52 w-52 items-center justify-center rounded-2xl border-2 border-(--secondColor) bg-black/25 shadow-2xl backdrop-blur-[1px]">
                     {/* Animated scanning laser */}
                     <div className="absolute inset-x-2 top-0 h-0.5 bg-gradient-to-r from-transparent via-(--secondColor) to-transparent animate-pulse shadow-[0_0_12px_#8EC5FF]" />
-                    <LuQrCode className="h-20 w-20 text-(--secondColor)/40 animate-pulse" />
-                    <span className="absolute bottom-3 text-[11px] font-semibold text-(--secondColor)">
-                      Align Customer QR Code
+                    <span className="absolute bottom-3 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-(--secondColor)">
+                      Align Customer QR
                     </span>
                   </div>
-                  <p className="mt-4 text-xs text-(--bgColor)/70">
-                    Camera streaming active. Point at customer&apos;s device.
-                  </p>
+                  <div className="relative z-10 mt-4 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-(--bgColor)/90 backdrop-blur-xs">
+                    Live camera stream active
+                  </div>
                 </>
+              ) : cameraError ? (
+                <div className="relative z-10 flex flex-col items-center px-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-900/60 text-rose-300">
+                    <LuTriangleAlert className="h-7 w-7" />
+                  </div>
+                  <h3 className="mt-3 text-sm font-bold text-(--bgColor)">
+                    Camera Unavailable
+                  </h3>
+                  <p className="mt-1 text-xs text-rose-200/90 leading-relaxed max-w-xs">
+                    {cameraError}
+                  </p>
+                  <button
+                    onClick={() => startCamera()}
+                    className="mt-4 rounded-xl bg-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/30"
+                  >
+                    Try Again
+                  </button>
+                </div>
               ) : (
-                <div className="flex flex-col items-center">
+                <div className="relative z-10 flex flex-col items-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-(--secondColor)">
                     <LuCamera className="h-8 w-8" />
                   </div>
@@ -205,13 +369,13 @@ export default function DashboardScanPage() {
                     Camera Standby
                   </h3>
                   <p className="mt-1 max-w-xs text-xs text-(--bgColor)/60">
-                    Click &ldquo;Start Camera&rdquo; above to activate device camera, or use the code lookup below.
+                    Click &ldquo;Start Camera&rdquo; above to stream live video, or use the code lookup below.
                   </p>
                   <button
-                    onClick={() => setIsCameraActive(true)}
-                    className="mt-4 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-(--mainColor) shadow-sm transition hover:opacity-90"
+                    onClick={() => startCamera()}
+                    className="mt-4 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-(--mainColor) shadow-sm transition hover:opacity-90 cursor-pointer"
                   >
-                    Activate Optical Scanner
+                    Activate Phone / Web Camera
                   </button>
                 </div>
               )}
