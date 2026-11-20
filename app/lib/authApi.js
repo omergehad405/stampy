@@ -3,8 +3,10 @@
  * Integrates with Stampy Phase 1 Backend Authentication
  */
 
+import { API_BASE } from "./apiClient";
+
 export async function apiRegister({ name, email, password, registrationType = "customer" }) {
-  const response = await fetch("/api/auth/register", {
+  const response = await fetch(`${API_BASE}/api/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -26,7 +28,7 @@ export async function apiRegister({ name, email, password, registrationType = "c
 }
 
 export async function apiLogin({ email, password }) {
-  const response = await fetch("/api/auth/login", {
+  const response = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -46,7 +48,7 @@ export async function apiLogin({ email, password }) {
 }
 
 export async function apiGetMe() {
-  const response = await fetch("/api/auth/me", {
+  const response = await fetch(`${API_BASE}/api/auth/me`, {
     method: "GET",
     credentials: "include",
   });
@@ -59,7 +61,7 @@ export async function apiGetMe() {
 }
 
 export async function apiUpdateProfile(updates) {
-  const response = await fetch("/api/auth/profile", {
+  const response = await fetch(`${API_BASE}/api/auth/profile`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -77,7 +79,7 @@ export async function apiUpdateProfile(updates) {
 
 export async function apiLogout() {
   try {
-    const response = await fetch("/api/auth/logout", {
+    const response = await fetch(`${API_BASE}/api/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
@@ -89,7 +91,7 @@ export async function apiLogout() {
 }
 
 export async function apiGetQrCode() {
-  const response = await fetch("/api/auth/qr-code", {
+  const response = await fetch(`${API_BASE}/api/auth/qr-code`, {
     method: "GET",
     credentials: "include",
   });

@@ -3,7 +3,9 @@
  * Talks to /api/dashboard/rewards
  */
 
-const BASE = "/api/dashboard/rewards";
+import { API_BASE } from "./apiClient";
+
+const BASE = `${API_BASE}/api/dashboard/rewards`;
 
 export async function apiGetRewards({ status } = {}) {
   const url = status ? `${BASE}?status=${status}` : BASE;
@@ -61,7 +63,7 @@ export async function apiDeleteReward(id) {
  * Cafe Profile API endpoints
  * Talks to /api/dashboard/cafe
  */
-const CAFE_BASE = "/api/dashboard/cafe";
+const CAFE_BASE = `${API_BASE}/api/dashboard/cafe`;
 
 export async function apiGetCafeProfile() {
   const res = await fetch(CAFE_BASE, { credentials: "include" });

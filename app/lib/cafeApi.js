@@ -3,7 +3,9 @@
  * Talks to /api/cafes
  */
 
-const BASE = "/api/cafes";
+import { API_BASE } from "./apiClient";
+
+const BASE = `${API_BASE}/api/cafes`;
 
 /**
  * Fetch all public active partner cafes

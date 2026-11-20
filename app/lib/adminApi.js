@@ -3,8 +3,10 @@
  * Integrates with Stampy Admin Backend Endpoints
  */
 
+import { API_BASE } from "./apiClient";
+
 export async function apiAdminGetCafes() {
-  const response = await fetch("/api/admin/cafes", {
+  const response = await fetch(`${API_BASE}/api/admin/cafes`, {
     method: "GET",
     credentials: "include",
   });
@@ -24,7 +26,7 @@ export async function apiAdminCreateCafe({
   phone,
   subscriptionPlanId,
 }) {
-  const response = await fetch("/api/admin/cafes", {
+  const response = await fetch(`${API_BASE}/api/admin/cafes`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -48,7 +50,7 @@ export async function apiAdminCreateCafe({
 }
 
 export async function apiAdminUpdateCafeStatus(cafeId, status) {
-  const response = await fetch(`/api/admin/cafes/${cafeId}/status`, {
+  const response = await fetch(`${API_BASE}/api/admin/cafes/${cafeId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -65,7 +67,7 @@ export async function apiAdminUpdateCafeStatus(cafeId, status) {
 }
 
 export async function apiAdminUpdateCafe(cafeId, updates) {
-  const response = await fetch(`/api/admin/cafes/${cafeId}`, {
+  const response = await fetch(`${API_BASE}/api/admin/cafes/${cafeId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -82,7 +84,7 @@ export async function apiAdminUpdateCafe(cafeId, updates) {
 }
 
 export async function apiAdminGetCustomers() {
-  const response = await fetch("/api/admin/customers", {
+  const response = await fetch(`${API_BASE}/api/admin/customers`, {
     method: "GET",
     credentials: "include",
   });
@@ -95,7 +97,7 @@ export async function apiAdminGetCustomers() {
 }
 
 export async function apiAdminUpdateCustomerStatus(customerId, status) {
-  const response = await fetch(`/api/admin/customers/${customerId}/status`, {
+  const response = await fetch(`${API_BASE}/api/admin/customers/${customerId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -112,7 +114,7 @@ export async function apiAdminUpdateCustomerStatus(customerId, status) {
 }
 
 export async function apiAdminGetPlans() {
-  const response = await fetch("/api/admin/plans", {
+  const response = await fetch(`${API_BASE}/api/admin/plans`, {
     method: "GET",
     credentials: "include",
   });
@@ -125,7 +127,7 @@ export async function apiAdminGetPlans() {
 }
 
 export async function apiAdminGetPlanFeatures() {
-  const response = await fetch("/api/admin/plans/features", {
+  const response = await fetch(`${API_BASE}/api/admin/plans/features`, {
     method: "GET",
     credentials: "include",
   });
@@ -138,7 +140,7 @@ export async function apiAdminGetPlanFeatures() {
 }
 
 export async function apiAdminCreatePlan(planData) {
-  const response = await fetch("/api/admin/plans", {
+  const response = await fetch(`${API_BASE}/api/admin/plans`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -155,7 +157,7 @@ export async function apiAdminCreatePlan(planData) {
 }
 
 export async function apiAdminUpdatePlan(planId, updates) {
-  const response = await fetch(`/api/admin/plans/${planId}`, {
+  const response = await fetch(`${API_BASE}/api/admin/plans/${planId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -172,7 +174,7 @@ export async function apiAdminUpdatePlan(planId, updates) {
 }
 
 export async function apiAdminTogglePlanStatus(planId, isActive) {
-  const response = await fetch(`/api/admin/plans/${planId}/status`, {
+  const response = await fetch(`${API_BASE}/api/admin/plans/${planId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -189,7 +191,7 @@ export async function apiAdminTogglePlanStatus(planId, isActive) {
 }
 
 export async function apiAdminAssignPlanToCafe({ cafeId, planId }) {
-  const response = await fetch("/api/admin/plans/assign", {
+  const response = await fetch(`${API_BASE}/api/admin/plans/assign`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -206,7 +208,7 @@ export async function apiAdminAssignPlanToCafe({ cafeId, planId }) {
 }
 
 export async function apiAdminDeletePlan(planId) {
-  const response = await fetch(`/api/admin/plans/${planId}`, {
+  const response = await fetch(`${API_BASE}/api/admin/plans/${planId}`, {
     method: "DELETE",
     credentials: "include",
   });
@@ -221,7 +223,7 @@ export async function apiAdminDeletePlan(planId) {
 // ─── Announcement APIs ──────────────────────────────────────────────────────
 
 export async function apiAdminGetAnnouncements() {
-  const response = await fetch("/api/admin/announcements", {
+  const response = await fetch(`${API_BASE}/api/admin/announcements`, {
     method: "GET",
     credentials: "include",
   });
@@ -234,7 +236,7 @@ export async function apiAdminGetAnnouncements() {
 }
 
 export async function apiAdminCreateAnnouncement(payload) {
-  const response = await fetch("/api/admin/announcements", {
+  const response = await fetch(`${API_BASE}/api/admin/announcements`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -251,7 +253,7 @@ export async function apiAdminCreateAnnouncement(payload) {
 }
 
 export async function apiAdminUpdateAnnouncement(id, payload) {
-  const response = await fetch(`/api/admin/announcements/${id}`, {
+  const response = await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -268,7 +270,7 @@ export async function apiAdminUpdateAnnouncement(id, payload) {
 }
 
 export async function apiAdminToggleAnnouncementPublish(id, isPublished) {
-  const response = await fetch(`/api/admin/announcements/${id}/publish`, {
+  const response = await fetch(`${API_BASE}/api/admin/announcements/${id}/publish`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -285,7 +287,7 @@ export async function apiAdminToggleAnnouncementPublish(id, isPublished) {
 }
 
 export async function apiAdminDeleteAnnouncement(id) {
-  const response = await fetch(`/api/admin/announcements/${id}`, {
+  const response = await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
     method: "DELETE",
     credentials: "include",
   });
@@ -298,7 +300,7 @@ export async function apiAdminDeleteAnnouncement(id) {
 }
 
 export async function apiGetActiveAnnouncements() {
-  const response = await fetch("/api/announcements/active", {
+  const response = await fetch(`${API_BASE}/api/announcements/active`, {
     method: "GET",
   });
 
