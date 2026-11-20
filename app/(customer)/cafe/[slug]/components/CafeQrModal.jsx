@@ -49,7 +49,7 @@ export default function CafeQrModal({ cafe, user, totalStamps, onClose }) {
 
         <div className="w-52 h-52 sm:w-64 sm:h-64 p-4 border-2 border-(--bgColor)/30 rounded-2xl bg-white shadow-md my-4 flex items-center justify-center">
           <QRCodeGraphic
-            value={user?.qrCode || user?.memberCode || "STAMPY-MEMBER"}
+            value={user?.qrCode || user?.memberCode || ""}
             className="w-full h-full"
             size={240}
           />

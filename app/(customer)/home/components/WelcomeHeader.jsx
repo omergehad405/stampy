@@ -104,7 +104,7 @@ export default function WelcomeHeader({ user }) {
                 <span>Customer Dashboard</span>
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-(--mainColor)/10 text-(--mainColor) font-medium">
-                {user?.memberCode || user?.qrCode || "STAMPY-MEMBER"}
+                {user?.memberCode || user?.qrCode || "..."}
               </span>
             </div>
 

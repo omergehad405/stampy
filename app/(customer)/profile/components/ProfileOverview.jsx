@@ -4,7 +4,7 @@ import React from "react";
 import { LuPencil, LuShieldCheck } from "react-icons/lu";
 
 export default function ProfileOverview({ user, initials, onEdit }) {
-  const memberCode = user?.memberCode || user?.qrCode || "STAMPY-MEMBER";
+  const memberCode = user?.memberCode || user?.qrCode || "...";
   const displayName = user?.name || "Customer";
   const joinedDate = user?.joinedDate || "Recently";
 

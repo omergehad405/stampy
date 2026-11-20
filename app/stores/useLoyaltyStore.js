@@ -56,6 +56,15 @@ export const useLoyaltyStore = create(
           const res = await apiGetMe();
           if (res.success && res.data?.user) {
             const u = res.data.user;
+
+            // Guard: a valid customer account must always have a qrCode from the server.
+            // If it is missing after a successful fetch, the session data is corrupt —
+            // log the user out so they sign in fresh and receive a clean session.
+            if (u.role === "user" && !u.qrCode) {
+              get().logout();
+              return { success: false, unauthenticated: true };
+            }
+
             const formattedDate = u.createdAt
               ? new Date(u.createdAt).toLocaleDateString("en-US", {
                   month: "long",
@@ -69,7 +78,7 @@ export const useLoyaltyStore = create(
               email: u.email || "",
               phone: u.phone || "",
               role: u.role,
-              memberCode: u.qrCode || "STAMPY-MEMBER",
+              memberCode: u.qrCode,
               qrCode: u.qrCode || "",
               totalStamps: Number(u.totalStamps) || 0,
               availableRewards: Number(u.availableRewards) || 0,
@@ -166,7 +175,7 @@ export const useLoyaltyStore = create(
           email: u.email || "",
           phone: u.phone || "",
           role: u.role || "user",
-          memberCode: u.qrCode || u.memberCode || "STAMPY-MEMBER",
+          memberCode: u.qrCode || u.memberCode || "",
           qrCode: u.qrCode || "",
           totalStamps: Number(u.totalStamps) || 0,
           availableRewards: Number(u.availableRewards) || 0,
@@ -640,6 +649,7 @@ export const useLoyaltyStore = create(
           const res = await apiUpdateProfile(updates);
           if (res.success && res.data?.user) {
             const u = res.data.user;
+
             const formattedDate = u.createdAt
               ? new Date(u.createdAt).toLocaleDateString("en-US", {
                   month: "long",
@@ -663,7 +673,7 @@ export const useLoyaltyStore = create(
                 joinedDate: formattedDate,
                 notificationsEnabled: u.notificationsEnabled ?? true,
                 biometricsEnabled: u.biometricsEnabled ?? true,
-                memberCode: u.qrCode || state.user?.memberCode || "STAMPY-MEMBER",
+                memberCode: u.qrCode || state.user?.memberCode || "",
                 qrCode: u.qrCode || state.user?.qrCode || "",
               },
             }));

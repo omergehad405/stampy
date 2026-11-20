@@ -48,7 +48,7 @@ export default function CustomerQrModal({ isOpen, onClose, user }) {
 
   if (!isOpen) return null;
 
-  const memberCode = liveQrCode || user?.qrCode || user?.memberCode || "STAMPY-MEMBER";
+  const memberCode = liveQrCode || user?.qrCode || user?.memberCode || "";
   const customerName = user?.name || "Customer";
 
   const handleCopy = () => {
