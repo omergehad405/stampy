@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -15,10 +15,17 @@ import {
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
+import { getAuthToken } from "@/app/lib/apiClient";
 
 export default function DashboardLoginPage() {
   const router = useRouter();
-  const { login, isLoading, loginError } = useDashboardAuthStore();
+  const { login, isLoading, loginError, isAuthenticated } = useDashboardAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated && getAuthToken()) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

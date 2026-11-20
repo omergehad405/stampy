@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MdOutlineMailOutline, MdLocalPhone } from "react-icons/md";
 import { ImUser } from "react-icons/im";
@@ -8,6 +8,7 @@ import { LuLock, LuEye, LuEyeOff, LuCoffee, LuUserCheck, LuShieldCheck } from "r
 import { toast } from "react-toastify";
 import { apiRegister, apiLogin } from "@/app/lib/authApi";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
+import { getAuthToken } from "@/app/lib/apiClient";
 
 const HERO_IMAGE = "/loginPageDesctop.png";
 
@@ -18,7 +19,13 @@ const inputBase =
 
 function LoginPage() {
   const router = useRouter();
-  const { setUser, fetchCurrentUser } = useLoyaltyStore();
+  const { user, setUser, fetchCurrentUser, isAuthenticated } = useLoyaltyStore();
+
+  useEffect(() => {
+    if (isAuthenticated && getAuthToken()) {
+      handleRoleRedirect(user);
+    }
+  }, [isAuthenticated, user]);
 
   const [mode, setMode] = useState("signup"); // "signup" or "login"
   const [accountType, setAccountType] = useState("customer"); // "customer" or "cafeOwner"

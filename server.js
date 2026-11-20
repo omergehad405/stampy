@@ -1,10 +1,7 @@
 require("dotenv").config();
-const fs = require("fs");
-const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const next = require("next");
 const connectDB = require("./backend/config/db");
 const authRoutes = require("./backend/app/routing/authRoutes");
 const adminCafeRoutes = require("./backend/app/routing/adminCafeRoutes");
@@ -17,30 +14,10 @@ const cafeRoutes = require("./backend/app/routing/cafeRoutes");
 const dashboardCafeRoutes = require("./backend/app/routing/dashboardCafeRoutes");
 
 const PORT = parseInt(process.env.PORT, 10) || 5000;
-const dev = process.env.NODE_ENV !== "production";
-
-// Auto-detect whether to serve Next.js:
-// - In development: always serve Next.js (unless BACKEND_ONLY=true is explicitly set)
-// - In production: serve Next.js if a production build exists in .next
-const isBackendOnly = process.env.BACKEND_ONLY === "true";
-const hasNextBuild = fs.existsSync(path.join(__dirname, ".next"));
-const shouldRunNext = !isBackendOnly && (dev || hasNextBuild);
 
 async function startServer() {
   try {
     await connectDB();
-
-    let nextApp = null;
-    let handle = null;
-
-    if (shouldRunNext) {
-      nextApp = next({ dev });
-      handle = nextApp.getRequestHandler();
-      await nextApp.prepare();
-      console.log(`[Stampy] Next.js frontend engine ready (${dev ? "development" : "production"})`);
-    } else {
-      console.log("[Stampy] Running in standalone API mode (backend only)");
-    }
 
     const app = express();
 
@@ -51,8 +28,6 @@ async function startServer() {
     });
 
     // ── CORS ──────────────────────────────────────────────────────────────────
-    // Allowed origins: comma-separated list from ALLOWED_ORIGINS env var,
-    // plus regex support for any localhost/127.0.0.1 port and *.vercel.app deployments.
     const customAllowedOrigins = (process.env.ALLOWED_ORIGINS || "")
       .split(",")
       .map((o) => o.trim())
@@ -89,6 +64,34 @@ async function startServer() {
     app.use(express.urlencoded({ extended: true, limit: "1mb" }));
     app.use(cookieParser());
 
+    // ── Health check ─────────────────────────────────────────────────────────
+    app.get("/api/health", (req, res) => {
+      res.status(200).json({
+        success: true,
+        message: "Stampy API is healthy",
+        timestamp: new Date().toISOString(),
+        port: PORT,
+      });
+    });
+
+    // ── Root info endpoint ───────────────────────────────────────────────────
+    app.get("/", (req, res) => {
+      res.status(200).json({
+        success: true,
+        name: "Stampy Backend API Server",
+        status: "online",
+        port: PORT,
+        frontendUrl: "http://localhost:3000",
+        endpoints: {
+          health: "/api/health",
+          auth: "/api/auth",
+          cafes: "/api/cafes",
+          dashboard: "/api/dashboard/cafe",
+          admin: "/api/admin/cafes",
+        },
+      });
+    });
+
     // ── API Routes ────────────────────────────────────────────────────────────
     app.use("/api/auth", authRoutes);
     app.use("/api/announcements", announcementRoutes);
@@ -102,67 +105,29 @@ async function startServer() {
     app.use("/api/dashboard/cafe", dashboardCafeRoutes);
     app.use("/api/dashboard/profile", dashboardCafeRoutes);
 
-    // ── Health check ─────────────────────────────────────────────────────────
-    app.get("/api/health", (req, res) => {
-      res.status(200).json({
-        success: true,
-        message: "Stampy API is healthy",
-        timestamp: new Date().toISOString(),
-        frontendAttached: Boolean(shouldRunNext),
-      });
-    });
-
-    // ── 404 for unmatched /api routes ─────────────────────────────────────────
-    app.use("/api", (req, res) => {
+    // ── 404 for unmatched routes ──────────────────────────────────────────────
+    app.use((req, res) => {
       res.status(404).json({
         success: false,
-        message: `API endpoint '${req.originalUrl}' not found`,
+        message: `API endpoint '${req.originalUrl}' not found on backend port ${PORT}.`,
       });
     });
-
-    // ── Frontend Routing / Next.js Handler ───────────────────────────────────
-    if (shouldRunNext && handle) {
-      // Pass all non-API requests to Next.js (pages, static assets, images)
-      app.use((req, res) => handle(req, res));
-    } else {
-      // In standalone API mode, return a friendly JSON status on /
-      app.get("/", (req, res) => {
-        res.status(200).json({
-          success: true,
-          name: "Stampy API Server",
-          status: "healthy",
-          mode: "backend-only",
-          endpoints: {
-            health: "/api/health",
-            auth: "/api/auth",
-            cafes: "/api/cafes",
-            dashboard: "/api/dashboard/cafe",
-            admin: "/api/admin/cafes",
-          },
-        });
-      });
-    }
 
     // ── Global error handler ──────────────────────────────────────────────────
     app.use((err, req, res, next) => {
       console.error("[Server Error]", err);
-      if (req.originalUrl && req.originalUrl.startsWith("/api")) {
-        return res.status(err.status || 500).json({
-          success: false,
-          message:
-            process.env.NODE_ENV === "production"
-              ? "Internal server error"
-              : err.message || "Internal server error",
-        });
-      }
-      return next(err);
+      res.status(err.status || 500).json({
+        success: false,
+        message:
+          process.env.NODE_ENV === "production"
+            ? "Internal server error"
+            : err.message || "Internal server error",
+      });
     });
 
     app.listen(PORT, () => {
-      console.log(`[Stampy] Server running on http://localhost:${PORT}`);
-      if (shouldRunNext) {
-        console.log(`[Stampy] Web App accessible at http://localhost:${PORT}`);
-      }
+      console.log(`[Stampy] Backend API Server running on http://localhost:${PORT}`);
+      console.log(`[Stampy] Frontend client expected at http://localhost:3000`);
     });
   } catch (error) {
     console.error("[Stampy Fatal Error]:", error);

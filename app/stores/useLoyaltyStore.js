@@ -45,9 +45,10 @@ export const useLoyaltyStore = create(
       // Fetch real authenticated customer data from backend
       fetchCurrentUser: async () => {
         const token = getAuthToken();
-        // Skip API roundtrip if user has no stored token and is not authenticated
-        if (!token && !get().isAuthenticated) {
-          return { success: false };
+        // If user has no stored token, clear session and reject
+        if (!token) {
+          get().logout();
+          return { success: false, unauthenticated: true };
         }
 
         set({ isLoadingUser: true });
@@ -132,11 +133,13 @@ export const useLoyaltyStore = create(
           if (
             err?.status === 401 ||
             err?.message?.toLowerCase().includes("unauthorized") ||
-            err?.message?.toLowerCase().includes("not authorized")
+            err?.message?.toLowerCase().includes("not authorized") ||
+            err?.message?.toLowerCase().includes("jwt") ||
+            err?.message?.toLowerCase().includes("expired")
           ) {
             get().logout();
           }
-          // On network errors, keep the persisted state intact
+          return { success: false, error: err.message };
         } finally {
           set({ isLoadingUser: false });
         }

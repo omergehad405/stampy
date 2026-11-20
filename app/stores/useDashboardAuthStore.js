@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { apiLogin, apiGetMe, apiLogout } from "@/app/lib/authApi";
+import { removeAuthToken } from "@/app/lib/apiClient";
 import { useDashboardStore } from "./useDashboardStore";
 import { DEFAULT_STAFF_MEMBERS } from "@/app/dashboard/data/staffMembers";
 
@@ -72,6 +73,7 @@ export const useDashboardAuthStore = create((set, get) => ({
       }
     } catch {
       // Session expired or not logged in
+      removeAuthToken();
     }
     set({
       currentUser: null,
