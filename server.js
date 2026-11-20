@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const next = require("next");
 const connectDB = require("./backend/config/db");
@@ -24,6 +25,29 @@ async function startServer() {
     await app.prepare();
 
     const server = express();
+
+    // CORS — allow the Vercel frontend (and any ALLOWED_ORIGINS in env) to reach this API.
+    // In production set ALLOWED_ORIGINS to a comma-separated list of your Vercel URLs.
+    const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
+
+    server.use(
+      cors({
+        origin(origin, callback) {
+          // Allow server-to-server requests (no origin header) and listed origins.
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error(`CORS: origin '${origin}' not allowed`));
+          }
+        },
+        credentials: true, // Required for HttpOnly cookie auth
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+      })
+    );
 
     server.use(express.json({ limit: "1mb" }));
     server.use(express.urlencoded({ extended: true, limit: "1mb" }));

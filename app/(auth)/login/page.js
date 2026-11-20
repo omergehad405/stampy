@@ -4,19 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdOutlineMailOutline, MdLocalPhone } from "react-icons/md";
 import { ImUser } from "react-icons/im";
-import { LuLock, LuEye, LuEyeOff, LuCoffee, LuUserCheck } from "react-icons/lu";
+import { LuLock, LuEye, LuEyeOff, LuCoffee, LuUserCheck, LuShieldCheck } from "react-icons/lu";
 import { toast } from "react-toastify";
 import { apiRegister, apiLogin } from "@/app/lib/authApi";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 
-// Replace these paths with your own images (files in /public)
 const HERO_IMAGE = "/loginPageDesctop.png";
-const ICONS = {
-  cup: "/icons/cup.png",
-  mail: "/icons/mail.png",
-  lock: "/icons/lock.png",
-  chevron: "/icons/chevron-down.png",
-};
 
 const inputBase =
   "w-full h-[42px] rounded-xl border border-[#e8dfca] bg-[#faf6ec] px-3 text-sm " +
@@ -156,7 +149,7 @@ function LoginPage() {
           {/* Brand */}
           <div className="flex items-center gap-2.5">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-[#d3e0e8]">
-              <img src={ICONS.cup} alt="" className="h-4 w-4 object-contain" />
+              <LuCoffee className="h-4 w-4" />
             </span>
             <span className="text-xs font-bold tracking-wide">STAMPY LOYALTY</span>
           </div>
@@ -390,7 +383,7 @@ function LoginPage() {
             </button>
 
             <p className="flex max-w-[320px] items-start gap-2 pt-1 text-[11px] leading-snug text-(--mainColor)/75">
-              <img src={ICONS.lock} alt="" className="mt-0.5 h-3 w-3 shrink-0 object-contain" />
+              <LuShieldCheck className="mt-0.5 h-3 w-3 shrink-0" />
               <span>
                 Your information is safe with us. We only use it to manage your loyalty rewards and account.
               </span>
