@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   LuUsers,
   LuSearch,
@@ -22,8 +22,18 @@ import DashboardPageHeader from "../components/DashboardPageHeader";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 
 export default function DashboardCustomersPage() {
-  const { customers, settings, updateCustomer, activities } =
-    useDashboardStore();
+  const {
+    customers,
+    isLoadingCustomers,
+    fetchCustomers,
+    settings,
+    updateCustomer,
+    activities,
+  } = useDashboardStore();
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // 'all' | 'active' | 'inactive'
@@ -159,7 +169,16 @@ export default function DashboardCustomersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#ebdcc8]">
-              {filteredCustomers.length > 0 ? (
+              {isLoadingCustomers ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center text-xs text-(--mainColor)/70">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-(--mainColor)/20 border-t-(--mainColor)" />
+                      <span className="font-semibold">Loading enrolled customers...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredCustomers.length > 0 ? (
                 filteredCustomers.map((cust) => (
                   <tr
                     key={cust.id}
@@ -222,7 +241,7 @@ export default function DashboardCustomersPage() {
                           e.stopPropagation();
                           setSelectedCustomer(cust);
                         }}
-                        className="rounded-lg border border-[#dacdb9] bg-white/80 px-2.5 py-1 text-xs font-semibold text-(--mainColor) hover:bg-white"
+                        className="rounded-lg border border-[#dacdb9] bg-white/80 px-2.5 py-1 text-xs font-semibold text-(--mainColor) hover:bg-white cursor-pointer"
                       >
                         View Profile
                       </button>
@@ -231,8 +250,20 @@ export default function DashboardCustomersPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-(--mainColor)/60">
-                    No customers found matching your search.
+                  <td colSpan={7} className="py-16 text-center text-xs text-(--mainColor)/70">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <LuUsers className="h-8 w-8 text-(--mainColor)/40" />
+                      <div className="font-bold text-sm text-(--mainColor)">
+                        {searchQuery || statusFilter !== "all"
+                          ? "No matching customers found"
+                          : "No customers enrolled yet"}
+                      </div>
+                      <p className="max-w-xs text-(--mainColor)/60">
+                        {searchQuery || statusFilter !== "all"
+                          ? "Try clearing your search query or status filter to see all members."
+                          : "Customers will appear here in real-time as soon as they join your cafe loyalty program!"}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}

@@ -20,7 +20,7 @@ export default function CustomerProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const { user, updateUserProfile, fetchCurrentUser } = useLoyaltyStore();
+  const { user, updateUserProfile, fetchCurrentUser, logout } = useLoyaltyStore();
 
   // Load real authenticated user from backend on refresh/mount
   useEffect(() => {
@@ -56,6 +56,7 @@ export default function CustomerProfilePage() {
     } catch (e) {
       console.warn("Logout error:", e);
     }
+    logout();
     toast("You have logged out of your Stampy account.", { type: "info" });
     router.push("/login");
   };

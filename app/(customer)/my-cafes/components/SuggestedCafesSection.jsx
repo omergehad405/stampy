@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import {
@@ -20,6 +21,7 @@ import { apiGetCafes } from "@/app/lib/cafeApi";
 import { getAllRegisteredCafes } from "@/app/(customer)/cafe/data/cafesCatalog";
 
 export default function SuggestedCafesSection() {
+  const router = useRouter();
   const { isCafeJoined, joinCafe } = useLoyaltyStore();
 
   const [suggestedCafes, setSuggestedCafes] = useState([]);
@@ -62,16 +64,21 @@ export default function SuggestedCafesSection() {
     };
   }, [isCafeJoined]);
 
-  const handleJoin = (cafe) => {
+  const handleJoin = async (cafe) => {
     setJoiningSlug(cafe.slug);
     try {
-      const res = joinCafe(cafe.slug);
+      const res = await joinCafe(cafe.slug);
       if (res?.success) {
-        toast.success(`Welcome to ${cafe.name}! 🎉 Welcome stamp added!`, {
+        toast.success(`Welcome to ${cafe.name}! 🎉 Your loyalty card is ready!`, {
           position: "top-right",
-          autoClose: 3500,
+          autoClose: 3000,
         });
+        router.push(`/cafe/${cafe.slug}`);
+      } else {
+        toast.error(res?.error || "Failed to join cafe.");
       }
+    } catch (err) {
+      toast.error(err.message || "Failed to join cafe.");
     } finally {
       setJoiningSlug(null);
     }

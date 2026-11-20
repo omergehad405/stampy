@@ -1,7 +1,10 @@
 require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const next = require("next");
 const connectDB = require("./backend/config/db");
 const authRoutes = require("./backend/app/routing/authRoutes");
 const adminCafeRoutes = require("./backend/app/routing/adminCafeRoutes");
@@ -14,12 +17,38 @@ const cafeRoutes = require("./backend/app/routing/cafeRoutes");
 const dashboardCafeRoutes = require("./backend/app/routing/dashboardCafeRoutes");
 
 const PORT = parseInt(process.env.PORT, 10) || 5000;
+const dev = process.env.NODE_ENV !== "production";
+
+// Auto-detect whether to serve Next.js:
+// - In development: always serve Next.js (unless BACKEND_ONLY=true is explicitly set)
+// - In production: serve Next.js if a production build exists in .next
+const isBackendOnly = process.env.BACKEND_ONLY === "true";
+const hasNextBuild = fs.existsSync(path.join(__dirname, ".next"));
+const shouldRunNext = !isBackendOnly && (dev || hasNextBuild);
 
 async function startServer() {
   try {
     await connectDB();
 
+    let nextApp = null;
+    let handle = null;
+
+    if (shouldRunNext) {
+      nextApp = next({ dev });
+      handle = nextApp.getRequestHandler();
+      await nextApp.prepare();
+      console.log(`[Stampy] Next.js frontend engine ready (${dev ? "development" : "production"})`);
+    } else {
+      console.log("[Stampy] Running in standalone API mode (backend only)");
+    }
+
     const app = express();
+
+    // ── Chrome DevTools Probe ─────────────────────────────────────────────────
+    // Silently acknowledge Chrome DevTools probing to prevent CSP / 404 console warnings
+    app.get("/.well-known/appspecific/com.chrome.devtools.json", (req, res) => {
+      res.status(204).end();
+    });
 
     // ── CORS ──────────────────────────────────────────────────────────────────
     // Allowed origins: comma-separated list from ALLOWED_ORIGINS env var,
@@ -60,7 +89,7 @@ async function startServer() {
     app.use(express.urlencoded({ extended: true, limit: "1mb" }));
     app.use(cookieParser());
 
-    // ── Routes ───────────────────────────────────────────────────────────────
+    // ── API Routes ────────────────────────────────────────────────────────────
     app.use("/api/auth", authRoutes);
     app.use("/api/announcements", announcementRoutes);
     app.use("/api/admin/cafes", adminCafeRoutes);
@@ -79,6 +108,7 @@ async function startServer() {
         success: true,
         message: "Stampy API is healthy",
         timestamp: new Date().toISOString(),
+        frontendAttached: Boolean(shouldRunNext),
       });
     });
 
@@ -90,21 +120,49 @@ async function startServer() {
       });
     });
 
+    // ── Frontend Routing / Next.js Handler ───────────────────────────────────
+    if (shouldRunNext && handle) {
+      // Pass all non-API requests to Next.js (pages, static assets, images)
+      app.use((req, res) => handle(req, res));
+    } else {
+      // In standalone API mode, return a friendly JSON status on /
+      app.get("/", (req, res) => {
+        res.status(200).json({
+          success: true,
+          name: "Stampy API Server",
+          status: "healthy",
+          mode: "backend-only",
+          endpoints: {
+            health: "/api/health",
+            auth: "/api/auth",
+            cafes: "/api/cafes",
+            dashboard: "/api/dashboard/cafe",
+            admin: "/api/admin/cafes",
+          },
+        });
+      });
+    }
+
     // ── Global error handler ──────────────────────────────────────────────────
-    // eslint-disable-next-line no-unused-vars
     app.use((err, req, res, next) => {
       console.error("[Server Error]", err);
-      return res.status(err.status || 500).json({
-        success: false,
-        message:
-          process.env.NODE_ENV === "production"
-            ? "Internal server error"
-            : err.message || "Internal server error",
-      });
+      if (req.originalUrl && req.originalUrl.startsWith("/api")) {
+        return res.status(err.status || 500).json({
+          success: false,
+          message:
+            process.env.NODE_ENV === "production"
+              ? "Internal server error"
+              : err.message || "Internal server error",
+        });
+      }
+      return next(err);
     });
 
     app.listen(PORT, () => {
       console.log(`[Stampy] Server running on http://localhost:${PORT}`);
+      if (shouldRunNext) {
+        console.log(`[Stampy] Web App accessible at http://localhost:${PORT}`);
+      }
     });
   } catch (error) {
     console.error("[Stampy Fatal Error]:", error);

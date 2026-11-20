@@ -12,6 +12,8 @@ import {
   apiDeleteReward,
   apiGetCafeProfile,
   apiUpdateCafeProfile,
+  apiGetCafeCustomers,
+  apiUpdateCustomerStamps,
 } from "@/app/lib/dashboardApi";
 
 export const INITIAL_CUSTOMERS = [
@@ -276,8 +278,10 @@ export const useDashboardStore = create((set, get) => ({
   isLoadingCafe: false,
   cafeError: null,
 
-  // Program & Customers State
-  customers: INITIAL_CUSTOMERS,
+  // Program & Customers State (Loaded from MongoDB via /api/dashboard/cafe/customers)
+  customers: [],
+  isLoadingCustomers: false,
+  customersLoaded: false,
   rewards: [],
   isLoadingRewards: false,
   rewardsError: null,
@@ -722,11 +726,31 @@ export const useDashboardStore = create((set, get) => ({
     return { success: true, customer: newCustomer };
   },
 
-  updateCustomer: (customerId, data) => {
+  fetchCustomers: async () => {
+    set({ isLoadingCustomers: true });
+    try {
+      const customers = await apiGetCafeCustomers();
+      set({ customers, isLoadingCustomers: false, customersLoaded: true });
+      return { success: true, customers };
+    } catch (err) {
+      console.warn("[Dashboard Store] Failed to fetch customers:", err.message);
+      set({ isLoadingCustomers: false });
+      return { success: false, error: err.message };
+    }
+  },
+
+  updateCustomer: async (customerId, data) => {
     const { customers } = get();
     set({
       customers: customers.map((c) => (c.id === customerId ? { ...c, ...data } : c)),
     });
+
+    try {
+      await apiUpdateCustomerStamps(customerId, data);
+    } catch (err) {
+      console.warn("[Dashboard Store] Failed to persist customer update:", err.message);
+    }
+
     return { success: true };
   },
 

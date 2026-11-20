@@ -6,7 +6,7 @@ import { AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 
 import CafeTopBar from "../CafeTopBar";
-import { getCafeBySlug } from "../../data/cafesCatalog";
+import { useCafeData } from "../../data/useCafeData";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 
 import StampBalanceCard from "./components/StampBalanceCard";
@@ -24,7 +24,7 @@ function DedicatedCafeRewardsContent() {
   const params = useParams();
   const slug = params?.slug;
 
-  const cafe = getCafeBySlug(slug);
+  const { cafe, isLoading } = useCafeData(slug);
   const {
     isCafeJoined,
     getMembership,
@@ -38,6 +38,17 @@ function DedicatedCafeRewardsContent() {
   const [activeTab, setActiveTab] = useState("available");
   const [selectedRewardToRedeem, setSelectedRewardToRedeem] = useState(null);
   const [activeQrRedemption, setActiveQrRedemption] = useState(null);
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10 pb-12 text-center">
+        <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-(--mainColor)/20 border-t-(--mainColor)" />
+          <p className="text-sm font-medium text-(--mainColor)/70">Loading rewards...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!cafe) {
     return <RewardsNotFound />;
@@ -80,9 +91,13 @@ function DedicatedCafeRewardsContent() {
     setActiveQrRedemption(redemption);
   };
 
-  const handleJoin = () => {
-    joinCafe(slug);
-    showToast(`🎉 Welcome to ${cafe.name}!`, "success");
+  const handleJoin = async () => {
+    const res = await joinCafe(cafe.id || slug);
+    if (res?.success) {
+      showToast(`🎉 Welcome to ${cafe.name}!`, "success");
+    } else {
+      showToast(res?.error || `Failed to join ${cafe.name}`, "error");
+    }
   };
 
   return (

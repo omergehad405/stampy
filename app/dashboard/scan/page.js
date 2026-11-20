@@ -18,17 +18,23 @@ import {
   LuCalendar,
   LuSparkles,
   LuCircleAlert,
+  LuX,
+  LuCheck,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
+import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
+import { useNotificationStore } from "@/app/stores/useNotificationStore";
+import { apiScanCustomer, apiAwardCustomerStamp } from "@/app/lib/dashboardApi";
 
 export default function DashboardScanPage() {
   const {
     customers,
     rewards,
     settings,
+    fetchCustomers,
     recordVisitAndStamps,
     redeemCustomerReward,
   } = useDashboardStore();
@@ -46,6 +52,10 @@ export default function DashboardScanPage() {
   const [stampsToAdd, setStampsToAdd] = useState(1);
   const [visitNote, setVisitNote] = useState("");
   const [allowDailyOverride, setAllowDailyOverride] = useState(false);
+
+  // Scanned Customer Centered Verification Modal State
+  const [scanModal, setScanModal] = useState(null);
+  const [isScanningQuery, setIsScanningQuery] = useState(false);
 
   // Modals & Feedback
   const [rewardToRedeem, setRewardToRedeem] = useState(null);
@@ -133,7 +143,7 @@ export default function DashboardScanPage() {
     };
   }, []);
 
-  // Active customer object
+  // Active customer object in local view
   const activeCustomer = customers.find((c) => c.id === selectedCustomerId);
 
   // Check if customer visited today
@@ -147,30 +157,100 @@ export default function DashboardScanPage() {
       )
     : [];
 
-  // Handle identification by code or ID
+  // Primary Scan Verification handler (checks if user joined this cafe & opens centered popup)
   const handleIdentifyCustomer = useCallback(
-    (codeOrId) => {
-      const query = (codeOrId || codeInput).trim().toUpperCase();
+    async (codeOrId) => {
+      const query = (codeOrId || codeInput).trim();
       if (!query) return;
 
-      const found = customers.find(
-        (c) =>
-          c.code.toUpperCase() === query ||
-          c.id.toUpperCase() === query ||
-          c.email.toUpperCase() === query ||
-          c.phone.replace(/\s+/g, "") === query.replace(/\s+/g, "")
-      );
+      setIsScanningQuery(true);
+      try {
+        const res = await apiScanCustomer(query);
+        if (res?.success && res.data) {
+          const { customer, cafe, isJoined, stamps, totalStamps, alreadyVisitedToday } = res.data;
 
-      if (found) {
-        setSelectedCustomerId(found.id);
-        setCodeInput("");
-        setActionSuccessData(null);
-        toast.success(`Customer identified: ${found.name}`);
-      } else {
-        toast.error(`No customer found matching "${query}". Try code like STAMPY-7842.`);
+          // Open the centered confirmation & stamp awarding popup
+          setScanModal({
+            isOpen: true,
+            isLoading: false,
+            isAwarding: false,
+            awardSuccess: null,
+            error: null,
+            customer,
+            cafe,
+            isJoined,
+            stamps,
+            totalStamps: totalStamps || 10,
+            alreadyVisitedToday,
+            stampsToAward: 1,
+            note: "",
+            allowOverride: false,
+          });
+
+          // Also set local selection for the side details view
+          setSelectedCustomerId(customer.id);
+          setCodeInput("");
+          setActionSuccessData(null);
+
+          if (isJoined) {
+            toast.success(`Verified: ${customer.name} is enrolled in ${cafe.name}!`);
+          } else {
+            toast.warn(`Customer found, but has not joined ${cafe.name} yet.`);
+          }
+        }
+      } catch (err) {
+        // Fallback to local store if server offline
+        const localFound = customers.find(
+          (c) =>
+            (c.code && c.code.toUpperCase() === query.toUpperCase()) ||
+            (c.id && c.id.toUpperCase() === query.toUpperCase()) ||
+            (c.email && c.email.toUpperCase() === query.toUpperCase()) ||
+            (c.phone && c.phone.replace(/\s+/g, "") === query.replace(/\s+/g, ""))
+        );
+
+        if (localFound) {
+          setScanModal({
+            isOpen: true,
+            isLoading: false,
+            isAwarding: false,
+            awardSuccess: null,
+            error: null,
+            customer: {
+              id: localFound.id,
+              name: localFound.name,
+              email: localFound.email,
+              phone: localFound.phone || "",
+              avatar: localFound.avatar || "",
+              joinedDate: localFound.registeredDate || "Recently",
+            },
+            cafe: {
+              name: currentUser?.cafeName || "This Café",
+              stampTarget: settings.stampTarget || 10,
+            },
+            isJoined: true,
+            stamps: localFound.stamps || 0,
+            totalStamps: settings.stampTarget || 10,
+            alreadyVisitedToday: localFound.lastVisitDate === todayStr,
+            stampsToAward: 1,
+            note: "",
+            allowOverride: false,
+          });
+          setSelectedCustomerId(localFound.id);
+          setCodeInput("");
+        } else {
+          setScanModal({
+            isOpen: true,
+            isLoading: false,
+            error: err.message || `No customer found matching "${query}".`,
+            customer: null,
+            isJoined: false,
+          });
+        }
+      } finally {
+        setIsScanningQuery(false);
       }
     },
-    [customers, codeInput]
+    [customers, codeInput, currentUser, settings, todayStr]
   );
 
   // Automatic QR code detection if native BarcodeDetector is available
@@ -188,7 +268,10 @@ export default function DashboardScanPage() {
     }
 
     const intervalId = setInterval(async () => {
-      if (!isScanning || !videoRef.current || videoRef.current.readyState < 2) return;
+      // Don't auto-scan while a modal is already open
+      if (!isScanning || scanModal?.isOpen || !videoRef.current || videoRef.current.readyState < 2) {
+        return;
+      }
       try {
         const barcodes = await detector.detect(videoRef.current);
         if (barcodes.length > 0 && barcodes[0].rawValue) {
@@ -198,15 +281,108 @@ export default function DashboardScanPage() {
       } catch {
         // frame busy or no barcode detected in frame
       }
-    }, 400);
+    }, 450);
 
     return () => {
       isScanning = false;
       clearInterval(intervalId);
     };
-  }, [isCameraActive, handleIdentifyCustomer]);
+  }, [isCameraActive, handleIdentifyCustomer, scanModal?.isOpen]);
 
-  // Record visit & add stamp
+  // Award stamp from the centered modal popup
+  const handleAwardStampFromModal = async () => {
+    if (!scanModal?.customer) return;
+
+    setScanModal((prev) => ({ ...prev, isAwarding: true }));
+    const count = scanModal.stampsToAward || 1;
+    const note = scanModal.note || "Visit recorded via Barista QR Scan";
+
+    try {
+      const res = await apiAwardCustomerStamp({
+        customerId: scanModal.customer.id,
+        stampsCount: count,
+        note,
+      });
+
+      if (res?.success) {
+        const newStamps = res.data?.newStamps ?? (scanModal.stamps + count);
+        const cafeName = scanModal.cafe?.name || "Café";
+        const customerName = scanModal.customer?.name || "Customer";
+
+        // Update modal state to show celebratory success
+        setScanModal((prev) => ({
+          ...prev,
+          isAwarding: false,
+          isJoined: true,
+          stamps: newStamps,
+          awardSuccess: {
+            stampsAwarded: count,
+            newStamps,
+            unlockedReward: res.data?.unlockedReward,
+          },
+        }));
+
+        // Refresh dashboard customer list in background
+        fetchCustomers();
+
+        // Sync with local customer loyalty store and notifications if in same browser
+        try {
+          useLoyaltyStore.getState().recordVisit(scanModal.cafe?.slug || "coffee-house", count);
+        } catch (e) {
+          console.warn("Could not sync loyalty store:", e);
+        }
+
+        try {
+          useNotificationStore.getState().addNotification({
+            title: "New Stamp Collected!",
+            message: `Barista verified your visit at ${cafeName}! (+${count} Stamp)`,
+            type: "stamp",
+          });
+        } catch (e) {
+          console.warn("Could not push notification:", e);
+        }
+
+        toast.success(`🎉 +${count} stamp(s) awarded to ${customerName}!`);
+      }
+    } catch (err) {
+      console.warn("Server award error, falling back to local action:", err.message);
+
+      // Fallback local update
+      const localRes = recordVisitAndStamps({
+        customerId: scanModal.customer.id,
+        stampsCount: count,
+        note,
+        staffName: currentUser?.name || "Barista",
+      });
+
+      setScanModal((prev) => ({
+        ...prev,
+        isAwarding: false,
+        isJoined: true,
+        stamps: localRes.newStamps || prev.stamps + count,
+        awardSuccess: {
+          stampsAwarded: count,
+          newStamps: localRes.newStamps || prev.stamps + count,
+          unlockedReward: localRes.unlockedReward,
+        },
+      }));
+
+      try {
+        useLoyaltyStore.getState().recordVisit(scanModal.cafe?.slug || "coffee-house", count);
+        useNotificationStore.getState().addNotification({
+          title: "New Stamp Collected!",
+          message: `Barista recorded your visit at ${scanModal.cafe?.name || "Café"}! (+${count} Stamp)`,
+          type: "stamp",
+        });
+      } catch (e) {
+        console.warn("Could not sync loyalty store:", e);
+      }
+
+      toast.success(`+${count} stamp(s) recorded!`);
+    }
+  };
+
+  // Record visit & add stamp from side panel
   const handleRecordVisit = () => {
     if (!activeCustomer) return;
 
@@ -230,6 +406,14 @@ export default function DashboardScanPage() {
       });
       setVisitNote("");
       setAllowDailyOverride(false);
+
+      // Push notification
+      useNotificationStore.getState().addNotification({
+        title: "New Stamp Collected!",
+        message: `Barista credited +${stampsToAdd} stamp(s)! Total: ${res.newStamps} stamps.`,
+        type: "stamp",
+      });
+
       toast.success(`+${stampsToAdd} stamp(s) issued!`);
     } else {
       toast.error(res.error || "Could not record visit.");
@@ -294,10 +478,10 @@ export default function DashboardScanPage() {
                 <button
                   type="button"
                   onClick={toggleCamera}
-                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
                     isCameraActive
                       ? "bg-rose-100 text-rose-800 hover:bg-rose-200"
-                      : "bg-(--secondColor)/30 text-(--mainColor) hover:bg-(--secondColor)/50"
+                      : "bg-(--secondColor) text-(--mainColor) hover:opacity-90"
                   }`}
                 >
                   {isCameraActive ? (
@@ -355,7 +539,7 @@ export default function DashboardScanPage() {
                   </p>
                   <button
                     onClick={() => startCamera()}
-                    className="mt-4 rounded-xl bg-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/30"
+                    className="mt-4 rounded-xl bg-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/30 cursor-pointer"
                   >
                     Try Again
                   </button>
@@ -369,7 +553,7 @@ export default function DashboardScanPage() {
                     Camera Standby
                   </h3>
                   <p className="mt-1 max-w-xs text-xs text-(--bgColor)/60">
-                    Click &ldquo;Start Camera&rdquo; above to stream live video, or use the code lookup below.
+                    Click &ldquo;Start Camera&rdquo; above to stream live video, or enter customer QR code below.
                   </p>
                   <button
                     onClick={() => startCamera()}
@@ -384,7 +568,7 @@ export default function DashboardScanPage() {
             {/* Fallback Manual Code / ID Lookup */}
             <div className="p-4 border-t border-[#ebdcc8]">
               <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
-                Manual Code / Member ID Entry
+                Scan Code / Customer Identifier Entry
               </label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -393,7 +577,8 @@ export default function DashboardScanPage() {
                     value={codeInput}
                     onChange={(e) => setCodeInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleIdentifyCustomer()}
-                    placeholder="e.g. STAMPY-7842"
+                    placeholder="Scan QR or enter customer code..."
+                    disabled={isScanningQuery}
                     className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] pl-9 pr-3 text-xs font-semibold text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none focus:border-(--mainColor)"
                   />
                   <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--mainColor)/50" />
@@ -401,9 +586,15 @@ export default function DashboardScanPage() {
                 <button
                   type="button"
                   onClick={() => handleIdentifyCustomer()}
-                  className="rounded-xl bg-(--mainColor) px-4 text-xs font-bold text-(--secondColor) hover:opacity-95"
+                  disabled={isScanningQuery || !codeInput.trim()}
+                  className="rounded-xl bg-(--mainColor) px-4 text-xs font-bold text-(--secondColor) hover:opacity-95 disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
                 >
-                  Lookup
+                  {isScanningQuery ? (
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-(--secondColor)/30 border-t-(--secondColor)" />
+                  ) : (
+                    <LuStamp className="h-3.5 w-3.5" />
+                  )}
+                  <span>Scan</span>
                 </button>
               </div>
 
@@ -417,8 +608,8 @@ export default function DashboardScanPage() {
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() => handleIdentifyCustomer(c.code)}
-                      className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition ${
+                      onClick={() => handleIdentifyCustomer(c.code || c.id)}
+                      className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition cursor-pointer ${
                         selectedCustomerId === c.id
                           ? "border-(--mainColor) bg-(--mainColor) text-(--secondColor)"
                           : "border-[#dacdb9] bg-white/70 text-(--mainColor) hover:bg-white"
@@ -441,22 +632,33 @@ export default function DashboardScanPage() {
               <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#ebdcc8] pb-4">
                   <div className="flex items-center gap-3.5">
-                    <img
-                      src={activeCustomer.avatar}
-                      alt={activeCustomer.name}
-                      className="h-14 w-14 rounded-2xl object-cover border-2 border-[#decfa8] shadow-2xs"
-                    />
+                    {activeCustomer.avatar ? (
+                      <img
+                        src={activeCustomer.avatar}
+                        alt={activeCustomer.name}
+                        className="h-14 w-14 rounded-2xl object-cover border-2 border-[#decfa8] shadow-2xs"
+                      />
+                    ) : (
+                      <div className="h-14 w-14 rounded-2xl bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-lg border-2 border-[#decfa8]">
+                        {activeCustomer.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                    )}
                     <div>
                       <div className="flex items-center gap-2">
                         <h2 className="text-lg font-bold text-(--mainColor)">
                           {activeCustomer.name}
                         </h2>
                         <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 uppercase">
-                          {activeCustomer.status}
+                          {activeCustomer.status || "Active Member"}
                         </span>
                       </div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-(--mainColor)/70">
-                        <span className="font-mono font-semibold">{activeCustomer.code}</span>
+                        <span className="font-mono font-semibold">{activeCustomer.code || "MEMBER"}</span>
                         <span>•</span>
                         <span>{activeCustomer.email}</span>
                       </div>
@@ -468,7 +670,7 @@ export default function DashboardScanPage() {
                       setSelectedCustomerId(null);
                       setActionSuccessData(null);
                     }}
-                    className="flex items-center gap-1.5 rounded-xl border border-[#dacdb9] bg-white/70 px-3 py-1.5 text-xs font-semibold text-(--mainColor) hover:bg-white self-start sm:self-auto"
+                    className="flex items-center gap-1.5 rounded-xl border border-[#dacdb9] bg-white/70 px-3 py-1.5 text-xs font-semibold text-(--mainColor) hover:bg-white self-start sm:self-auto cursor-pointer"
                   >
                     <LuRefreshCw className="h-3.5 w-3.5" />
                     <span>Scan Next</span>
@@ -502,98 +704,46 @@ export default function DashboardScanPage() {
                     </div>
                   </div>
 
-                  {/* Stamp Card Visual Slots */}
-                  <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                  {/* Stamp grid slots */}
+                  <div className="mt-4 grid grid-cols-5 sm:grid-cols-10 gap-2">
                     {Array.from({ length: settings.stampTarget }).map((_, idx) => {
                       const isStamped = idx < activeCustomer.stamps;
-                      const isNext = idx === activeCustomer.stamps;
-
                       return (
                         <div
                           key={idx}
-                          className={`flex aspect-square flex-col items-center justify-center rounded-xl border transition-all ${
+                          className={`aspect-square rounded-xl flex items-center justify-center border transition-all ${
                             isStamped
-                              ? "border-(--mainColor) bg-(--mainColor) text-(--secondColor) shadow-2xs"
-                              : isNext
-                              ? "border-dashed border-(--mainColor)/60 bg-white/60 text-(--mainColor)/50 animate-pulse"
-                              : "border-[#dfd2be] bg-white/30 text-(--mainColor)/30"
+                              ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor) shadow-xs"
+                              : "bg-white/60 border-[#dacdb9] text-(--mainColor)/30"
                           }`}
                         >
                           <LuCoffee className="h-4 w-4" />
-                          <span className="mt-0.5 text-[9px] font-bold">
-                            {idx + 1}
-                          </span>
                         </div>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Daily Visit Notice / Alert */}
-                <div className="mt-4">
-                  {hasVisitedToday ? (
-                    <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
-                      <LuTriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                      <div className="flex-1">
-                        <span className="font-bold">
-                          Daily Visit Already Recorded Today
-                        </span>
-                        <p className="mt-0.5 text-amber-800">
-                          This customer already received a stamp today. Under normal rules, only 1 visit per day counts.
-                        </p>
-                        <label className="mt-2 flex items-center gap-2 cursor-pointer font-semibold text-amber-900">
-                          <input
-                            type="checkbox"
-                            checked={allowDailyOverride}
-                            onChange={(e) => setAllowDailyOverride(e.target.checked)}
-                            className="rounded border-amber-400 text-(--mainColor)"
-                          />
-                          <span>Allow Barista Override (+ extra stamp)</span>
-                        </label>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-semibold text-emerald-800">
-                      <LuCircleCheck className="h-4 w-4 text-emerald-600" />
-                      <span>Ready for today&apos;s visit stamp!</span>
-                    </div>
-                  )}
-                </div>
-
                 {/* Action Feedback Notification */}
                 {actionSuccessData && (
-                  <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-100/70 p-3.5 text-xs text-emerald-900">
-                    <div className="flex items-center gap-2 font-bold">
-                      <LuCircleCheck className="h-4 w-4 text-emerald-700" />
+                  <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <LuCircleCheck className="h-5 w-5 text-emerald-600 shrink-0" />
                       <span>{actionSuccessData.message}</span>
                     </div>
                     {actionSuccessData.unlockedReward && (
-                      <p className="mt-1 font-semibold text-emerald-800">
-                        🎉 Stamp card completed! Customer is now eligible for all rewards.
-                      </p>
+                      <span className="rounded-md bg-emerald-200 px-2 py-0.5 font-bold uppercase text-[10px]">
+                        Reward Unlocked!
+                      </span>
                     )}
                   </div>
                 )}
-              </div>
 
-              {/* Action Box: Issue Stamp */}
-              <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs">
-                <div className="flex items-center justify-between border-b border-[#ebdcc8] pb-3">
-                  <div className="flex items-center gap-2">
-                    <LuStamp className="h-4 w-4 text-(--mainColor)" />
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-(--mainColor)">
-                      Issue Visit Stamps
-                    </h3>
-                  </div>
-                  <span className="text-xs font-medium text-(--mainColor)/60">
-                    Staff: {currentUser?.name || "Elena"}
-                  </span>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* Stamp Action Controls */}
+                <div className="mt-5 space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
-                      Stamps to Add
+                      Stamps to Issue
                     </label>
                     <div className="flex gap-2">
                       {[1, 2, 3].map((num) => (
@@ -601,7 +751,7 @@ export default function DashboardScanPage() {
                           key={num}
                           type="button"
                           onClick={() => setStampsToAdd(num)}
-                          className={`flex-1 rounded-xl py-2 text-xs font-bold transition ${
+                          className={`flex-1 rounded-xl py-2 text-xs font-bold transition cursor-pointer ${
                             stampsToAdd === num
                               ? "bg-(--mainColor) text-(--secondColor) shadow-2xs"
                               : "border border-[#dacdb9] bg-[#f5ecdd] text-(--mainColor) hover:bg-white"
@@ -621,7 +771,7 @@ export default function DashboardScanPage() {
                       type="text"
                       value={visitNote}
                       onChange={(e) => setVisitNote(e.target.value)}
-                      placeholder="e.g. Flat white & muffin"
+                      placeholder="e.g. Flat white & croissant"
                       className="w-full h-9 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
                     />
                   </div>
@@ -683,7 +833,7 @@ export default function DashboardScanPage() {
                         <button
                           type="button"
                           onClick={() => setRewardToRedeem(reward)}
-                          className="rounded-xl bg-purple-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs transition hover:bg-purple-800"
+                          className="rounded-xl bg-purple-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs transition hover:bg-purple-800 cursor-pointer"
                         >
                           Redeem Now
                         </button>
@@ -696,7 +846,7 @@ export default function DashboardScanPage() {
                         No rewards unlocked yet.
                       </p>
                       <p className="text-[11px] text-(--mainColor)/50">
-                        Customer needs {Math.max(0, 5 - activeCustomer.stamps)} more stamp(s) to unlock the first reward (Free Classic Coffee).
+                        Customer needs {Math.max(0, 5 - (activeCustomer.stamps || 0))} more stamp(s) to unlock the first reward.
                       </p>
                     </div>
                   )}
@@ -713,12 +863,12 @@ export default function DashboardScanPage() {
                 No Customer Scanned Yet
               </h3>
               <p className="mt-1.5 max-w-sm text-xs text-(--mainColor)/70">
-                Point the camera at a customer&apos;s Stampy QR card, or type their code (e.g. <strong>STAMPY-7842</strong>) to view their card and issue stamps.
+                Point the camera at a customer&apos;s Stampy QR card, or enter their code to verify membership and issue stamps.
               </p>
               <div className="mt-5 flex gap-2">
                 <button
                   onClick={() => handleIdentifyCustomer("STAMPY-7842")}
-                  className="rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor)"
+                  className="rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) cursor-pointer hover:opacity-95"
                 >
                   Load Omar Hassan (Test Demo)
                 </button>
@@ -727,6 +877,235 @@ export default function DashboardScanPage() {
           )}
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 🌟 CENTERED QR VERIFICATION & STAMP AWARDING POPUP MODAL                */}
+      {/* ========================================================================= */}
+      {scanModal?.isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="relative w-full max-w-md rounded-3xl border border-[#e8dfca] bg-[#faf6ed] p-6 sm:p-7 shadow-2xl text-(--mainColor)">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setScanModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-full text-(--mainColor)/60 hover:text-(--mainColor) hover:bg-(--mainColor)/10 transition cursor-pointer"
+              aria-label="Close modal"
+            >
+              <LuX className="w-5 h-5" />
+            </button>
+
+            {/* Error State */}
+            {scanModal.error ? (
+              <div className="text-center py-4 space-y-3">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-xs">
+                  <LuTriangleAlert className="w-7 h-7" />
+                </div>
+                <h3 className="text-lg font-bold text-(--mainColor)">Customer Not Found</h3>
+                <p className="text-xs text-rose-700/90 bg-rose-50 border border-rose-200 rounded-xl p-3 leading-relaxed">
+                  {scanModal.error}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setScanModal(null)}
+                  className="w-full mt-4 rounded-xl bg-(--mainColor) py-2.5 text-xs font-bold text-(--secondColor) hover:opacity-90 cursor-pointer"
+                >
+                  Close & Try Again
+                </button>
+              </div>
+            ) : scanModal.customer && (
+              <div className="space-y-4">
+                {/* Header Badge */}
+                <div className="flex items-center justify-center">
+                  {scanModal.isJoined ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-xs font-bold text-emerald-800">
+                      <LuCircleCheck className="w-4 h-4 text-emerald-600" />
+                      Verified Member • {scanModal.cafe?.name || "This Café"}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-800">
+                      <LuCircleAlert className="w-4 h-4 text-amber-600" />
+                      Not Joined to {scanModal.cafe?.name || "This Café"}
+                    </span>
+                  )}
+                </div>
+
+                {/* Customer Information Card */}
+                <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white border border-[#e3d7c0] shadow-xs">
+                  {scanModal.customer.avatar ? (
+                    <img
+                      src={scanModal.customer.avatar}
+                      alt={scanModal.customer.name}
+                      className="w-14 h-14 rounded-2xl object-cover border border-[#e3d7c0] shadow-xs"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-lg border border-[#e3d7c0]">
+                      {scanModal.customer.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-bold text-(--mainColor) truncate">
+                      {scanModal.customer.name}
+                    </h3>
+                    <div className="flex flex-col gap-0.5 text-xs text-(--mainColor)/70 mt-0.5">
+                      {scanModal.customer.email && (
+                        <span className="truncate">{scanModal.customer.email}</span>
+                      )}
+                      <div className="flex items-center gap-1 text-[11px] text-(--mainColor)/60">
+                        <LuCalendar className="w-3 h-3 shrink-0" />
+                        <span>Member since: <strong>{scanModal.customer.joinedDate || "Recently"}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Membership & Stamp Status */}
+                {scanModal.isJoined ? (
+                  <div className="rounded-2xl border border-[#dacdb9] bg-[#f5ecdd] p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-(--mainColor)/70">
+                        Current Loyalty Card
+                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-black text-(--mainColor)">
+                          {scanModal.stamps}
+                        </span>
+                        <span className="text-xs font-bold text-(--mainColor)/60">
+                          / {scanModal.totalStamps} Stamps
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full h-2.5 rounded-full bg-white/70 overflow-hidden border border-[#dacdb9]">
+                      <div
+                        className="h-full bg-(--mainColor) rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            (scanModal.stamps / scanModal.totalStamps) * 100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+
+                    {scanModal.alreadyVisitedToday && (
+                      <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-900 flex items-center gap-2">
+                        <LuTriangleAlert className="w-4 h-4 shrink-0 text-amber-700" />
+                        <span>Customer already visited today. Daily override is enabled.</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-amber-800 font-bold text-xs">
+                      <LuCircleAlert className="w-4 h-4 shrink-0" />
+                      <span>Not a member of this café yet</span>
+                    </div>
+                    <p className="text-xs text-amber-900/80 leading-relaxed">
+                      {scanModal.customer.name} has a Stampy account, but has not yet joined{" "}
+                      <strong>{scanModal.cafe?.name || "your café"}</strong>. You can enroll them right now and credit their first stamp!
+                    </p>
+                  </div>
+                )}
+
+                {/* Celebratory Award Success Banner */}
+                {scanModal.awardSuccess ? (
+                  <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-center space-y-2 animate-in fade-in">
+                    <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <LuCheck className="w-6 h-6 stroke-[3]" />
+                    </div>
+                    <h4 className="font-extrabold text-sm text-emerald-950">
+                      🎉 Stamp Successfully Awarded!
+                    </h4>
+                    <p className="text-xs text-emerald-800">
+                      {scanModal.customer.name} now has{" "}
+                      <strong>
+                        {scanModal.awardSuccess.newStamps} / {scanModal.totalStamps} stamps
+                      </strong>{" "}
+                      at {scanModal.cafe?.name}.
+                    </p>
+                    {scanModal.awardSuccess.unlockedReward && (
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-200 px-3 py-1 text-xs font-bold text-emerald-900 mt-1">
+                        <LuSparkles className="w-3.5 h-3.5" />
+                        <span>Reward Target Reached! Unlocked reward tier.</span>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setScanModal(null)}
+                      className="w-full mt-3 rounded-xl bg-emerald-800 text-white font-bold text-xs py-2.5 hover:bg-emerald-900 transition cursor-pointer"
+                    >
+                      Done • Scan Next Customer
+                    </button>
+                  </div>
+                ) : (
+                  /* Action Buttons to Award Stamp */
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-(--mainColor)">Quantity:</span>
+                      {[1, 2, 3].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setScanModal((prev) => ({ ...prev, stampsToAward: n }))}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                            (scanModal.stampsToAward || 1) === n
+                              ? "bg-(--mainColor) text-(--secondColor)"
+                              : "bg-white border border-[#dacdb9] text-(--mainColor)"
+                          }`}
+                        >
+                          +{n} Stamp{n > 1 ? "s" : ""}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAwardStampFromModal}
+                      disabled={scanModal.isAwarding}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-(--secondColor) text-(--mainColor) py-3.5 px-4 font-extrabold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition cursor-pointer disabled:opacity-50"
+                    >
+                      {scanModal.isAwarding ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--mainColor)/30 border-t-(--mainColor)" />
+                          <span>Crediting Stamp to Account...</span>
+                        </>
+                      ) : (
+                        <>
+                          <LuCoffee className="w-5 h-5" />
+                          <span>
+                            {scanModal.isJoined
+                              ? `Give +${scanModal.stampsToAward || 1} Stamp to ${scanModal.customer.name.split(" ")[0]}`
+                              : `Enroll & Give +${scanModal.stampsToAward || 1} First Stamp`}
+                          </span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setScanModal(null)}
+                      className="w-full text-center text-xs font-bold text-(--mainColor)/60 hover:text-(--mainColor) py-1 transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Modal for Reward Redemption */}
       {rewardToRedeem && (
@@ -757,14 +1136,14 @@ export default function DashboardScanPage() {
               <button
                 type="button"
                 onClick={() => setRewardToRedeem(null)}
-                className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor)"
+                className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor) cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmRedeem}
-                className="rounded-xl bg-purple-700 px-4 py-2 text-xs font-bold text-white hover:bg-purple-800"
+                className="rounded-xl bg-purple-700 px-4 py-2 text-xs font-bold text-white hover:bg-purple-800 cursor-pointer"
               >
                 Yes, Redeem Reward
               </button>

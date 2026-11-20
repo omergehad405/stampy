@@ -3,7 +3,7 @@
  * Talks to /api/cafes
  */
 
-import { API_BASE } from "./apiClient";
+import { API_BASE, getAuthHeaders } from "./apiClient";
 
 const BASE = `${API_BASE}/api/cafes`;
 
@@ -13,6 +13,7 @@ const BASE = `${API_BASE}/api/cafes`;
 export async function apiGetCafes() {
   const res = await fetch(BASE, {
     cache: "no-store",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
   const data = await res.json();
@@ -29,6 +30,7 @@ export async function apiGetCafeBySlug(slugOrId) {
   if (!slugOrId) return null;
   const res = await fetch(`${BASE}/${encodeURIComponent(slugOrId)}`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
   const data = await res.json();
@@ -36,4 +38,58 @@ export async function apiGetCafeBySlug(slugOrId) {
     throw new Error(data.message || `Failed to fetch cafe '${slugOrId}'.`);
   }
   return data.data?.cafe || null;
+}
+
+/**
+ * Join a cafe loyalty program
+ */
+export async function apiJoinCafe(cafeIdOrSlug) {
+  if (!cafeIdOrSlug) throw new Error("Cafe identifier is required.");
+  const res = await fetch(`${BASE}/${encodeURIComponent(cafeIdOrSlug)}/join`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to join cafe loyalty program.");
+  }
+  return data;
+}
+
+/**
+ * Leave a cafe loyalty program
+ */
+export async function apiLeaveCafe(cafeIdOrSlug) {
+  if (!cafeIdOrSlug) throw new Error("Cafe identifier is required.");
+  const res = await fetch(`${BASE}/${encodeURIComponent(cafeIdOrSlug)}/leave`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to leave cafe loyalty program.");
+  }
+  return data;
+}
+
+/**
+ * Fetch authenticated customer's enrolled cafe memberships
+ */
+export async function apiGetMyMemberships() {
+  const res = await fetch(`${BASE}/my/memberships`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to fetch memberships.");
+  }
+  return data.data?.memberships || [];
 }

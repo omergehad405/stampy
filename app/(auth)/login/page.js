@@ -18,7 +18,7 @@ const inputBase =
 
 function LoginPage() {
   const router = useRouter();
-  const { updateUserProfile } = useLoyaltyStore();
+  const { setUser, fetchCurrentUser } = useLoyaltyStore();
 
   const [mode, setMode] = useState("signup"); // "signup" or "login"
   const [accountType, setAccountType] = useState("customer"); // "customer" or "cafeOwner"
@@ -96,14 +96,11 @@ function LoginPage() {
           );
 
           if (user.role === "user") {
-            updateUserProfile({
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              phone: form.phone ? `${form.countryCode} ${form.phone}` : "",
-              memberCode: user.qrCode || "STAMPY-MEMBER",
-              qrCode: user.qrCode,
+            setUser({
+              ...user,
+              phone: form.phone ? `${form.countryCode} ${form.phone}` : user.phone,
             });
+            fetchCurrentUser();
           }
 
           handleRoleRedirect(user);
@@ -120,13 +117,8 @@ function LoginPage() {
           toast.success(`Welcome back, ${user.name}!`);
 
           if (user.role === "user") {
-            updateUserProfile({
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              memberCode: user.qrCode || "STAMPY-MEMBER",
-              qrCode: user.qrCode,
-            });
+            setUser(user);
+            fetchCurrentUser();
           }
 
           handleRoleRedirect(user);

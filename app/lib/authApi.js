@@ -68,7 +68,9 @@ export async function apiGetMe() {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || "Unauthorized session.");
+    const error = new Error(data.message || "Unauthorized session.");
+    error.status = response.status;
+    throw error;
   }
   return data;
 }

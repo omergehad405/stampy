@@ -46,17 +46,23 @@ function DedicatedCafePageContent() {
     }, 2500);
   };
 
-  const handleJoinCafe = () => {
+  const handleJoinCafe = async () => {
     setIsJoining(true);
-    setTimeout(() => {
-      const result = joinCafe(slug);
-      setIsJoining(false);
+    try {
+      const result = await joinCafe(cafe?.id || cafe?._id || slug);
       if (result.success) {
-        toast(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`, {
-          type: "success",
+        toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`, {
+          position: "top-right",
+          autoClose: 3500,
         });
+      } else {
+        toast.error(result.error || "Failed to join cafe loyalty program.");
       }
-    }, 300);
+    } catch (err) {
+      toast.error(err.message || "Failed to join cafe.");
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   if (!cafe) {

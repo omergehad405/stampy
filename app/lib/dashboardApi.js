@@ -1,6 +1,6 @@
 /**
- * Client-side Dashboard API helpers — Rewards
- * Talks to /api/dashboard/rewards
+ * Client-side Dashboard API helpers — Rewards & Cafe Profile & Customers
+ * Talks to /api/dashboard
  */
 
 import { API_BASE, getAuthHeaders } from "./apiClient";
@@ -89,5 +89,69 @@ export async function apiUpdateCafeProfile(profileData) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Failed to update cafe profile.");
+  return data;
+}
+
+/**
+ * Cafe Customers API endpoints
+ * Talks to /api/dashboard/cafe/customers
+ */
+export async function apiGetCafeCustomers(cafeId = null) {
+  const url = cafeId
+    ? `${CAFE_BASE}/customers?cafeId=${encodeURIComponent(cafeId)}`
+    : `${CAFE_BASE}/customers`;
+
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to fetch cafe customers.");
+  return data.data?.customers || [];
+}
+
+/**
+ * Manually adjust a customer's stamps from the cafe dashboard
+ */
+export async function apiUpdateCustomerStamps(customerId, { stamps, lifetimeStamps, reason } = {}) {
+  const res = await fetch(`${CAFE_BASE}/customers/${customerId}/stamps`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ stamps, lifetimeStamps, reason }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update customer stamps.");
+  return data;
+}
+
+/**
+ * Verify scanned customer QR code against the barista's cafe
+ */
+export async function apiScanCustomer(code) {
+  const res = await fetch(`${CAFE_BASE}/scan`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to scan customer code.");
+  return data;
+}
+
+/**
+ * Award stamps to a customer after scanning
+ */
+export async function apiAwardCustomerStamp({ customerId, stampsCount = 1, note = "" }) {
+  const res = await fetch(`${CAFE_BASE}/award-stamp`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ customerId, stampsCount, note }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to award stamp.");
   return data;
 }

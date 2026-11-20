@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
-import { getCafeBySlug } from "./cafesCatalog";
+import { getCafeBySlug, registerCafeCatalogEntry } from "./cafesCatalog";
 import { apiGetCafeBySlug } from "@/app/lib/cafeApi";
 
 // Stable external store for client-side time
@@ -147,6 +147,11 @@ export function useCafeData(slugOrCafe = null) {
         if (!isCancelled) {
           if (data) {
             setFetchedCafe(data);
+            try {
+              registerCafeCatalogEntry(data.slug || slugOrCafe, data);
+            } catch (e) {
+              console.warn("Could not register in catalog:", e);
+            }
           } else {
             const fallback = getCafeBySlug(slugOrCafe);
             setFetchedCafe(fallback || null);
