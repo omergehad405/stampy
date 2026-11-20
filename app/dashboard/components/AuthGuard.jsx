@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
 
@@ -9,14 +9,39 @@ const emptySubscribe = () => () => {};
 export default function AuthGuard({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated } = useDashboardAuthStore();
+  const { isAuthenticated, checkAuth } = useDashboardAuthStore();
   const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (isClient && !isAuthenticated && pathname !== "/dashboard/login") {
-      router.push("/dashboard/login");
+    let isMounted = true;
+
+    async function verify() {
+      if (!isClient) return;
+
+      if (pathname === "/dashboard/login") {
+        if (isMounted) setIsChecking(false);
+        return;
+      }
+
+      if (!isAuthenticated) {
+        const res = await checkAuth();
+        if (!res?.success) {
+          router.replace("/dashboard/login");
+          if (isMounted) setIsChecking(false);
+          return;
+        }
+      }
+
+      if (isMounted) setIsChecking(false);
     }
-  }, [isAuthenticated, pathname, router, isClient]);
+
+    verify();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, pathname, router, isClient, checkAuth]);
 
   // Don't protect the login page itself
   if (pathname === "/dashboard/login") {
@@ -24,7 +49,7 @@ export default function AuthGuard({ children }) {
   }
 
   // Allow render once confirmed authenticated
-  if (!isClient) {
+  if (!isClient || isChecking) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-(--bgColor)">
         <div className="flex flex-col items-center gap-3">

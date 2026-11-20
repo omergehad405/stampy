@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { apiLogout } from "@/app/lib/authApi";
 
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 
@@ -14,38 +16,59 @@ import EditProfileModal from "./components/EditProfileModal";
 import LogoutConfirmModal from "./components/LogoutConfirmModal";
 
 export default function CustomerProfilePage() {
+  const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const { user, updateUserProfile } = useLoyaltyStore();
+  const { user, updateUserProfile, fetchCurrentUser } = useLoyaltyStore();
 
-  const handleSaveProfile = (form) => {
+  // Load real authenticated user from backend on refresh/mount
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
+
+  const handleSaveProfile = async (form) => {
     if (!form.name.trim()) {
       toast("Name cannot be empty", { type: "error" });
       return;
     }
-    updateUserProfile({
+    const res = await updateUserProfile({
       name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
+      email: form.email?.trim(),
+      phone: form.phone?.trim() || "",
+      avatar: form.avatar?.trim() || "",
     });
+
+    if (res?.success) {
+      toast("Profile updated successfully! 🎉", { type: "success" });
+    } else if (res?.error) {
+      toast(res.error, { type: "error" });
+    } else {
+      toast("Profile updated successfully! 🎉", { type: "success" });
+    }
     setIsEditModalOpen(false);
-    toast("Profile updated successfully! 🎉", { type: "success" });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLogoutModalOpen(false);
+    try {
+      await apiLogout();
+    } catch (e) {
+      console.warn("Logout error:", e);
+    }
     toast("You have logged out of your Stampy account.", { type: "info" });
+    router.push("/login");
   };
 
   const initials = user?.name
     ? user.name
         .split(" ")
+        .filter(Boolean)
         .map((n) => n[0])
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : "OH";
+    : "SP";
 
   return (
     <div className="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10 pb-16">

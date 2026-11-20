@@ -3,7 +3,16 @@
 import { create } from "zustand";
 import { CAFES_CATALOG, updateCafeCatalogEntry } from "../(customer)/cafe/data/cafesCatalog";
 import { useLoyaltyStore } from "./useLoyaltyStore";
-import { DEFAULT_STAFF_MEMBERS } from "./useDashboardAuthStore";
+import { DEFAULT_STAFF_MEMBERS } from "../dashboard/data/staffMembers";
+import {
+  apiGetRewards,
+  apiCreateReward,
+  apiUpdateReward,
+  apiToggleRewardStatus,
+  apiDeleteReward,
+  apiGetCafeProfile,
+  apiUpdateCafeProfile,
+} from "@/app/lib/dashboardApi";
 
 export const INITIAL_CUSTOMERS = [
   {
@@ -191,37 +200,93 @@ export const INITIAL_DASHBOARD_ACTIVITIES = [
   },
 ];
 
-const initialCafe = CAFES_CATALOG["coffee-house"] || {
-  id: "cafe-coffee-house",
-  slug: "coffee-house",
-  name: "Coffee House",
-  tagline: "Specialty Coffee Roasters & Artisan Bakery",
-  category: "Specialty Coffee & Bakery",
+const EMPTY_CAFE = {
+  id: "",
+  slug: "",
+  name: "",
+  tagline: "",
+  category: "Coffee & Bakery",
+  establishedYear: 2021,
+  status: "active",
   isActive: true,
   isVerified: true,
-  establishedYear: 2021,
   stampTarget: 10,
+  customerCount: 0,
+  totalStampsIssued: 0,
+  totalRewardsRedeemed: 0,
+  coverImage:
+    "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1600&q=80",
+  coverImageAlt: "",
+  logoImage:
+    "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80",
+  logoAlt: "",
+  accentColor: "#3B2418",
+  about: {
+    shortDescription: "",
+    fullDescription: "",
+    highlights: [],
+  },
+  location: {
+    address: "",
+    district: "",
+    city: "",
+    postcode: "",
+    fullAddress: "",
+    directionsHint: "",
+    googleMapsUrl: "",
+  },
+  openingHours: {
+    timezone: "Europe/London",
+    holidayNotice: "",
+    schedule: [
+      { day: "Monday", open: "07:30", close: "19:00", isClosed: false },
+      { day: "Tuesday", open: "07:30", close: "19:00", isClosed: false },
+      { day: "Wednesday", open: "07:30", close: "19:00", isClosed: false },
+      { day: "Thursday", open: "07:30", close: "20:00", isClosed: false },
+      { day: "Friday", open: "07:30", close: "21:00", isClosed: false },
+      { day: "Saturday", open: "08:30", close: "21:00", isClosed: false },
+      { day: "Sunday", open: "08:30", close: "18:00", isClosed: false },
+    ],
+  },
+  contact: {
+    phone: "",
+    displayPhone: "",
+    email: "",
+  },
+  website: {
+    url: "",
+    displayUrl: "",
+  },
+  socialMedia: {
+    instagram: { handle: "", url: "", followersCount: "" },
+    facebook: { handle: "", url: "" },
+    tiktok: { handle: "", url: "" },
+    whatsapp: { handle: "", url: "" },
+  },
+  menuPreview: {
+    isAvailable: true,
+    note: "",
+    categories: [],
+  },
 };
-
-const initialRewards = (initialCafe.rewards || []).map((r) => ({
-  ...r,
-  isActive: true,
-  redemptionsCount: r.stampsRequired === 5 ? 38 : r.stampsRequired === 8 ? 16 : 8,
-}));
 
 export const useDashboardStore = create((set, get) => ({
   // Core Cafe Profile State
-  cafe: initialCafe,
+  cafe: EMPTY_CAFE,
+  isLoadingCafe: false,
+  cafeError: null,
 
   // Program & Customers State
   customers: INITIAL_CUSTOMERS,
-  rewards: initialRewards,
+  rewards: [],
+  isLoadingRewards: false,
+  rewardsError: null,
   activities: INITIAL_DASHBOARD_ACTIVITIES,
   staffMembers: DEFAULT_STAFF_MEMBERS,
 
   // Settings
   settings: {
-    stampTarget: initialCafe.stampTarget || 10,
+    stampTarget: 10,
     enforceDailyVisit: true,
     welcomeBonusStamp: true,
     allowManualOverride: true,
@@ -404,57 +469,187 @@ export const useDashboardStore = create((set, get) => ({
   },
 
   // === REWARDS MANAGEMENT ===
-  createReward: (newReward) => {
-    const { rewards } = get();
-    const id = `rew-custom-${Date.now()}`;
-    const reward = {
-      id,
-      isActive: true,
-      redemptionsCount: 0,
-      tag: "Special",
-      iconType: "coffee",
-      ...newReward,
-    };
-    set({ rewards: [...rewards, reward] });
-    return { success: true, reward };
+  fetchRewards: async (status) => {
+    set({ isLoadingRewards: true, rewardsError: null });
+    try {
+      const res = await apiGetRewards({ status });
+      if (res.success && res.data?.rewards) {
+        set({ rewards: res.data.rewards, isLoadingRewards: false });
+        return { success: true, rewards: res.data.rewards };
+      }
+      set({ isLoadingRewards: false });
+      return { success: true, rewards: [] };
+    } catch (err) {
+      console.warn("fetchRewards error:", err.message);
+      set({ isLoadingRewards: false, rewardsError: err.message });
+      return { success: false, error: err.message };
+    }
   },
 
-  updateReward: (rewardId, updatedData) => {
-    const { rewards } = get();
-    set({
-      rewards: rewards.map((r) => (r.id === rewardId ? { ...r, ...updatedData } : r)),
-    });
-    return { success: true };
+  createReward: async (newReward) => {
+    try {
+      const res = await apiCreateReward(newReward);
+      if (res.success && res.data?.reward) {
+        const reward = res.data.reward;
+        set((state) => ({ rewards: [reward, ...state.rewards] }));
+        return { success: true, reward };
+      }
+      return { success: false, error: res.message || "Failed to create reward" };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   },
 
-  deleteReward: (rewardId) => {
-    const { rewards } = get();
-    set({
-      rewards: rewards.filter((r) => r.id !== rewardId),
-    });
-    return { success: true };
+  updateReward: async (rewardId, updatedData) => {
+    try {
+      const res = await apiUpdateReward(rewardId, updatedData);
+      if (res.success && res.data?.reward) {
+        const updated = res.data.reward;
+        set((state) => ({
+          rewards: state.rewards.map((r) =>
+            r.id === rewardId || r._id === rewardId ? updated : r
+          ),
+        }));
+        return { success: true, reward: updated };
+      }
+      return { success: false, error: res.message || "Failed to update reward" };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   },
 
-  toggleRewardStatus: (rewardId) => {
-    const { rewards } = get();
-    set({
-      rewards: rewards.map((r) =>
-        r.id === rewardId ? { ...r, isActive: !r.isActive } : r
-      ),
-    });
+  deleteReward: async (rewardId) => {
+    try {
+      const res = await apiDeleteReward(rewardId);
+      if (res.success) {
+        set((state) => ({
+          rewards: state.rewards.filter((r) => r.id !== rewardId && r._id !== rewardId),
+        }));
+        return { success: true };
+      }
+      return { success: false, error: res.message || "Failed to delete reward" };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  toggleRewardStatus: async (rewardId) => {
+    try {
+      const res = await apiToggleRewardStatus(rewardId);
+      if (res.success && res.data?.reward) {
+        const updated = res.data.reward;
+        set((state) => ({
+          rewards: state.rewards.map((r) =>
+            r.id === rewardId || r._id === rewardId ? updated : r
+          ),
+        }));
+        return { success: true, reward: updated };
+      }
+      return { success: false, error: res.message || "Failed to toggle status" };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   },
 
   // === CAFE PROFILE MANAGEMENT ===
-  updateCafeProfile: (updatedFields) => {
-    const { cafe } = get();
-    const merged = { ...cafe, ...updatedFields };
+  fetchCafeProfile: async () => {
+    set({ isLoadingCafe: true, cafeError: null });
+    try {
+      const data = await apiGetCafeProfile();
+      if (data.success && data.data?.cafe) {
+        get().setCafe(data.data.cafe);
+        set({ isLoadingCafe: false });
+        return { success: true, cafe: data.data.cafe };
+      }
+      set({ isLoadingCafe: false });
+      return { success: false };
+    } catch (err) {
+      set({ isLoadingCafe: false, cafeError: err.message });
+      return { success: false, error: err.message };
+    }
+  },
 
-    set({ cafe: merged });
+  setCafe: (serverCafe) => {
+    if (!serverCafe) return;
+    set((state) => {
+      const merged = {
+        ...state.cafe,
+        ...serverCafe,
+        id: serverCafe.id || serverCafe._id || state.cafe.id,
+        name: serverCafe.name || state.cafe.name,
+        slug: serverCafe.slug || state.cafe.slug,
+        tagline: serverCafe.tagline !== undefined ? serverCafe.tagline : state.cafe.tagline,
+        category: serverCafe.category || state.cafe.category,
+        establishedYear: serverCafe.establishedYear || state.cafe.establishedYear || 2021,
+        status: serverCafe.status || state.cafe.status,
+        isActive: serverCafe.isActive !== undefined ? serverCafe.isActive : state.cafe.isActive,
+        isVerified: serverCafe.isVerified !== undefined ? serverCafe.isVerified : state.cafe.isVerified,
+        stampTarget: serverCafe.stampTarget || state.cafe.stampTarget || 10,
+        customerCount: serverCafe.customerCount ?? state.cafe.customerCount,
+        totalStampsIssued: serverCafe.totalStampsIssued ?? state.cafe.totalStampsIssued,
+        totalRewardsRedeemed: serverCafe.totalRewardsRedeemed ?? state.cafe.totalRewardsRedeemed,
+        coverImage: serverCafe.coverImage || state.cafe.coverImage,
+        coverImageAlt: serverCafe.coverImageAlt !== undefined ? serverCafe.coverImageAlt : state.cafe.coverImageAlt,
+        logoImage: serverCafe.logoImage || state.cafe.logoImage,
+        logoAlt: serverCafe.logoAlt !== undefined ? serverCafe.logoAlt : state.cafe.logoAlt,
+        accentColor: serverCafe.accentColor || state.cafe.accentColor,
+        about: {
+          ...state.cafe.about,
+          ...(serverCafe.about || {}),
+          highlights: serverCafe.about?.highlights || state.cafe.about?.highlights || [],
+        },
+        location: {
+          ...state.cafe.location,
+          ...(serverCafe.location || {}),
+        },
+        openingHours: {
+          ...state.cafe.openingHours,
+          ...(serverCafe.openingHours || {}),
+          schedule: serverCafe.openingHours?.schedule || state.cafe.openingHours?.schedule || [],
+        },
+        contact: {
+          ...state.cafe.contact,
+          ...(serverCafe.contact || {}),
+        },
+        website: {
+          ...state.cafe.website,
+          ...(serverCafe.website || {}),
+        },
+        socialMedia: {
+          ...state.cafe.socialMedia,
+          ...(serverCafe.socialMedia || {}),
+        },
+        menuPreview: {
+          ...state.cafe.menuPreview,
+          ...(serverCafe.menuPreview || {}),
+          categories: serverCafe.menuPreview?.categories || state.cafe.menuPreview?.categories || [],
+        },
+      };
 
-    // Sync directly to the customer-facing catalog
-    updateCafeCatalogEntry("coffee-house", merged);
+      return {
+        cafe: merged,
+        settings: {
+          ...state.settings,
+          stampTarget: serverCafe.stampTarget || state.settings.stampTarget,
+        },
+      };
+    });
+  },
 
-    return { success: true, cafe: merged };
+  updateCafeProfile: async (updatedFields) => {
+    try {
+      const data = await apiUpdateCafeProfile(updatedFields);
+      if (data.success && data.data?.cafe) {
+        get().setCafe(data.data.cafe);
+        updateCafeCatalogEntry(data.data.cafe.slug || "coffee-house", data.data.cafe);
+        return { success: true, cafe: data.data.cafe };
+      }
+      throw new Error(data.message || "Failed to update cafe profile.");
+    } catch (err) {
+      // Fallback local update
+      set((state) => ({ cafe: { ...state.cafe, ...updatedFields } }));
+      throw err;
+    }
   },
 
   // === STAFF MANAGEMENT ===

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useSyncExternalStore } from "react";
+import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
 import { getCafeBySlug } from "./cafesCatalog";
-import { MOCK_CAFE_DATA } from "./cafeData";
+import { apiGetCafeBySlug } from "@/app/lib/cafeApi";
 
 // Stable external store for client-side time
 let currentTimeSnapshot = typeof window !== "undefined" ? Date.now() : null;
@@ -127,22 +127,62 @@ function computeOpenStatus(schedule, timestamp) {
 }
 
 /**
- * Custom hook to retrieve cafe data and computed helpers.
+ * Custom hook to retrieve live cafe data from API and computed helpers.
  * Can be called with a cafe slug or cafe object, or with no params for default.
  */
 export function useCafeData(slugOrCafe = null) {
-  const cafe = useMemo(() => {
-    if (!slugOrCafe) {
-      return getCafeBySlug("coffee-house") || MOCK_CAFE_DATA;
+  const [fetchedCafe, setFetchedCafe] = useState(null);
+  const [isLoading, setIsLoading] = useState(() => Boolean(slugOrCafe && typeof slugOrCafe === "string"));
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    if (!slugOrCafe || typeof slugOrCafe !== "string") return;
+
+    let isCancelled = false;
+    async function fetchCafe() {
+      setIsLoading(true);
+      setIsError(false);
+      try {
+        const data = await apiGetCafeBySlug(slugOrCafe);
+        if (!isCancelled) {
+          if (data) {
+            setFetchedCafe(data);
+          } else {
+            const fallback = getCafeBySlug(slugOrCafe);
+            setFetchedCafe(fallback || null);
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.warn("[useCafeData] Using catalog fallback:", err.message);
+          const fallback = getCafeBySlug(slugOrCafe);
+          setFetchedCafe(fallback || null);
+          setIsError(!fallback);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
     }
-    if (typeof slugOrCafe === "string") {
-      return getCafeBySlug(slugOrCafe) || getCafeBySlug("coffee-house") || MOCK_CAFE_DATA;
-    }
-    return slugOrCafe;
+
+    fetchCafe();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [slugOrCafe]);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const cafe = useMemo(() => {
+    if (typeof slugOrCafe === "object" && slugOrCafe !== null) {
+      return slugOrCafe;
+    }
+    if (fetchedCafe) return fetchedCafe;
+    if (typeof slugOrCafe === "string") {
+      return getCafeBySlug(slugOrCafe) || null;
+    }
+    return getCafeBySlug("coffee-house") || null;
+  }, [slugOrCafe, fetchedCafe]);
 
   // Safely subscribe to client time with a stable snapshot
   const clientTime = useSyncExternalStore(subscribeTime, getClientTime, getServerTime);

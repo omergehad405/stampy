@@ -48,7 +48,11 @@ export default function CafeQrModal({ cafe, user, totalStamps, onClose }) {
         </p>
 
         <div className="w-52 h-52 sm:w-64 sm:h-64 p-4 border-2 border-(--bgColor)/30 rounded-2xl bg-white shadow-md my-4 flex items-center justify-center">
-          <QRCodeGraphic className="w-full h-full text-[#3b2418]" />
+          <QRCodeGraphic
+            value={user?.qrCode || user?.memberCode || "STAMPY-MEMBER"}
+            className="w-full h-full"
+            size={240}
+          />
         </div>
 
         <div className="text-xs sm:text-sm font-semibold bg-(--bgColor)/10 border border-(--bgColor)/15 px-4 py-1.5 rounded-full">

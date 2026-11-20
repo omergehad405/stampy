@@ -4,23 +4,39 @@ import React from "react";
 import { LuPencil, LuShieldCheck } from "react-icons/lu";
 
 export default function ProfileOverview({ user, initials, onEdit }) {
+  const memberCode = user?.memberCode || user?.qrCode || "STAMPY-MEMBER";
+  const displayName = user?.name || "Customer";
+  const joinedDate = user?.joinedDate || "Recently";
+
   return (
     <section className="mt-6 p-6 sm:p-8 rounded-3xl bg-(--mainColor) text-(--bgColor) shadow-sm">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-(--secondColor) text-[#3b2418] flex items-center justify-center text-2xl sm:text-3xl font-extrabold shadow-md shrink-0">
-          {initials}
+        {/* Avatar Image or Initials Box */}
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-(--secondColor) text-[#3b2418] flex items-center justify-center text-2xl sm:text-3xl font-extrabold shadow-md shrink-0 overflow-hidden border-2 border-(--secondColor)/30">
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt={displayName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <span>{initials}</span>
+          )}
         </div>
 
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                {user?.name || "Omar Hassan"}
+                {displayName}
               </h1>
               <p className="text-xs sm:text-sm opacity-80 mt-0.5">
                 Stampy Member ID:{" "}
                 <span className="font-mono font-semibold tracking-wider">
-                  {user?.memberCode || "STAMPY-7842"}
+                  {memberCode}
                 </span>
               </p>
             </div>
@@ -40,7 +56,7 @@ export default function ProfileOverview({ user, initials, onEdit }) {
               <LuShieldCheck className="w-4 h-4 text-emerald-400" />
               Verified Account
             </span>
-            <span>Member since {user?.joinedDate || "October 2026"}</span>
+            <span>Member since {joinedDate}</span>
           </div>
         </div>
       </div>

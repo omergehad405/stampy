@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 
 import CafeTopBar from "./CafeTopBar";
-import { getCafeBySlug } from "../data/cafesCatalog";
+import { useCafeData } from "../data/useCafeData";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 
 import CafeNotFound from "./components/CafeNotFound";
@@ -25,7 +25,7 @@ function DedicatedCafePageContent() {
   const params = useParams();
   const slug = params?.slug;
 
-  const cafe = getCafeBySlug(slug);
+  const { cafe, isLoading } = useCafeData(slug);
   const { user, isCafeJoined, getMembership, joinCafe } = useLoyaltyStore();
 
   const isJoined = isCafeJoined(slug);

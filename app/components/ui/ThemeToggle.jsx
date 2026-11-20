@@ -2,7 +2,7 @@
 
 import React, { useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/app/components/providers/ThemeProvider";
 import { LuMoon, LuSun } from "react-icons/lu";
 
 const emptySubscribe = () => () => { };

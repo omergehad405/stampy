@@ -17,7 +17,7 @@ export default function PersonalInformation({ user }) {
             Full Name
           </span>
           <span className="font-semibold text-(--bgColor)">
-            {user?.name || "Omar Hassan"}
+            {user?.name || "Customer"}
           </span>
         </div>
 
@@ -27,7 +27,7 @@ export default function PersonalInformation({ user }) {
             Email Address
           </span>
           <span className="font-semibold text-(--bgColor)">
-            {user?.email || "omar.hassan@example.com"}
+            {user?.email || "—"}
           </span>
         </div>
 
@@ -37,7 +37,7 @@ export default function PersonalInformation({ user }) {
             Phone Number
           </span>
           <span className="font-semibold text-(--bgColor)">
-            {user?.phone || "+44 7700 900456"}
+            {user?.phone || "Not set"}
           </span>
         </div>
       </div>

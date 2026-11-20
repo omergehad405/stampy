@@ -80,9 +80,20 @@ export default function WelcomeHeader({ user }) {
           <Link
             href="/profile"
             aria-label="View Profile"
-            className="group relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-(--mainColor) text-(--bgColor) flex items-center justify-center font-bold text-base sm:text-lg shadow-sm hover:scale-105 transition-transform shrink-0 border-2 border-(--bgColor)/20"
+            className="group relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-(--mainColor) text-(--bgColor) flex items-center justify-center font-bold text-base sm:text-lg shadow-sm hover:scale-105 transition-transform shrink-0 border-2 border-(--bgColor)/20 overflow-hidden"
           >
-            {initials || <LuUser className="w-6 h-6" />}
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={fullName}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              initials || <LuUser className="w-6 h-6" />
+            )}
             <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-(--bgColor)" />
           </Link>
 
@@ -93,7 +104,7 @@ export default function WelcomeHeader({ user }) {
                 <span>Customer Dashboard</span>
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-(--mainColor)/10 text-(--mainColor) font-medium">
-                {user?.memberCode || "STAMPY-7842"}
+                {user?.memberCode || user?.qrCode || "STAMPY-MEMBER"}
               </span>
             </div>
 

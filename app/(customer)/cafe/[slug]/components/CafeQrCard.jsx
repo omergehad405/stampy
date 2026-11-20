@@ -26,7 +26,11 @@ const CafeQrCard = React.forwardRef(function CafeQrCard(
       </div>
 
       <div className="border-2 border-(--bgColor)/20 rounded-2xl lg:rounded-3xl p-4 sm:p-6 bg-white flex items-center justify-center my-3 max-w-[210px] sm:max-w-[230px] lg:max-w-[250px] mx-auto w-full aspect-square transition-colors duration-300">
-        <QRCodeGraphic className="w-32 h-32 sm:w-36 sm:h-36 lg:w-44 lg:h-44 text-[#3b2418]" />
+        <QRCodeGraphic
+          value={cafe?.slug ? `STAMPY-CAFE-${cafe.slug.toUpperCase()}` : "STAMPY-CAFE"}
+          className="w-32 h-32 sm:w-36 sm:h-36 lg:w-44 lg:h-44"
+          size={180}
+        />
       </div>
 
       <p className="text-xs sm:text-sm text-center text-(--bgColor)/75 mt-3">

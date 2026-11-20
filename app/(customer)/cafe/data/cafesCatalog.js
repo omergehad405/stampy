@@ -480,6 +480,19 @@ export function getAllRegisteredCafes() {
 }
 
 /**
+ * Register a new cafe in the catalog (e.g., created by Super Admin).
+ */
+export function registerCafeCatalogEntry(slug, cafeData) {
+  if (!slug) return null;
+  CAFES_CATALOG[slug] = {
+    id: cafeData.id || `cafe-${slug}`,
+    slug,
+    ...cafeData,
+  };
+  return CAFES_CATALOG[slug];
+}
+
+/**
  * Update a cafe entry in the catalog (e.g., from the Cafe Dashboard).
  */
 export function updateCafeCatalogEntry(slug, updatedData) {
@@ -490,6 +503,11 @@ export function updateCafeCatalogEntry(slug, updatedData) {
       ...updatedData,
     };
     return CAFES_CATALOG[slug];
+  } else {
+    CAFES_CATALOG[slug] = {
+      slug,
+      ...updatedData,
+    };
+    return CAFES_CATALOG[slug];
   }
-  return null;
 }

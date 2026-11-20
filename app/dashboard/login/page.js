@@ -20,8 +20,8 @@ export default function DashboardLoginPage() {
   const router = useRouter();
   const { login, isLoading, loginError } = useDashboardAuthStore();
 
-  const [email, setEmail] = useState("elena@coffeehouse.london");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -42,9 +42,9 @@ export default function DashboardLoginPage() {
     }
   };
 
-  const handleQuickFill = (accountEmail) => {
+  const handleQuickFill = (accountEmail, accountPassword) => {
     setEmail(accountEmail);
-    setPassword("admin123");
+    setPassword(accountPassword);
   };
 
   return (
@@ -166,40 +166,6 @@ export default function DashboardLoginPage() {
             )}
           </button>
         </form>
-
-        {/* Demo Fast Logins */}
-        <div className="rounded-2xl border border-[#ebdcc8] bg-[#f4ebe0]/50 p-3.5 text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-(--mainColor)">
-            <LuInfo className="h-3.5 w-3.5 text-(--mainColor)" />
-            <span>Fast Demo Sign-In</span>
-          </div>
-          <p className="mt-1 text-[11px] text-(--mainColor)/70">
-            Click an account to auto-fill credentials:
-          </p>
-          <div className="mt-2.5 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickFill("elena@coffeehouse.london")}
-              className="rounded-lg bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-(--mainColor) border border-[#dacdb9] hover:bg-white"
-            >
-              Elena (Owner)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill("marcus@coffeehouse.london")}
-              className="rounded-lg bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-(--mainColor) border border-[#dacdb9] hover:bg-white"
-            >
-              Marcus (Head Barista)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill("sophia@coffeehouse.london")}
-              className="rounded-lg bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-(--mainColor) border border-[#dacdb9] hover:bg-white"
-            >
-              Sophia (Barista)
-            </button>
-          </div>
-        </div>
 
         {/* Return to Customer App Link */}
         <div className="text-center pt-2">

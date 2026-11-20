@@ -9,7 +9,7 @@ export default function MyCafesEmptyState() {
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl bg-(--mainColor) text-(--bgColor) border border-(--bgColor)/15 shadow-sm"
+      className="flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl bg-(--mainColor) text-(--bgColor) border border-(--bgColor)/15 shadow-sm h-full min-h-[320px]"
     >
       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-(--bgColor)/15 text-(--bgColor) flex items-center justify-center mb-4">
         <LuCoffee className="w-8 h-8 sm:w-10 sm:h-10 opacity-80" />

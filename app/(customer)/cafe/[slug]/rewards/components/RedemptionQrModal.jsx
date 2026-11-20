@@ -11,82 +11,19 @@ import {
   LuShieldCheck,
   LuSparkles,
 } from "react-icons/lu";
+import QRCodeImage from "@/app/components/ui/QRCodeImage";
 
-// High-contrast crisp SVG QR Code for redemption
+// Scannable QR Code for reward redemption
 function RedemptionQRCodeGraphic({ code, className = "w-44 h-44" }) {
-  // Generate deterministic variations in data modules based on the redemption code string
-  const hash = code ? code.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 42;
-  const modA = hash % 2 === 0;
-  const modB = hash % 3 === 0;
-
   return (
-    <svg
-      viewBox="0 0 29 29"
-      fill="currentColor"
+    <QRCodeImage
+      value={code || "STAMPY-REWARD"}
+      size={200}
       className={className}
-      shapeRendering="crispEdges"
-      aria-label={`Redemption QR Code for ${code}`}
-    >
-      {/* Top-Left Finder */}
-      <rect x="2" y="2" width="7" height="7" fill="currentColor" />
-      <rect x="3" y="3" width="5" height="5" fill="#FFFFFF" />
-      <rect x="4" y="4" width="3" height="3" fill="currentColor" />
-
-      {/* Top-Right Finder */}
-      <rect x="20" y="2" width="7" height="7" fill="currentColor" />
-      <rect x="21" y="3" width="5" height="5" fill="#FFFFFF" />
-      <rect x="22" y="4" width="3" height="3" fill="currentColor" />
-
-      {/* Bottom-Left Finder */}
-      <rect x="2" y="20" width="7" height="7" fill="currentColor" />
-      <rect x="3" y="21" width="5" height="5" fill="#FFFFFF" />
-      <rect x="4" y="22" width="3" height="3" fill="currentColor" />
-
-      {/* Center & Timing modules */}
-      <rect x="10" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="12" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="14" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="16" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="18" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="10" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="12" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="14" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="16" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="18" width="1" height="1" fill="currentColor" />
-
-      {/* Unique dynamic data pattern modules */}
-      <rect x="11" y="11" width="3" height="3" fill="currentColor" />
-      <rect x="15" y="11" width="2" height="1" fill="currentColor" />
-      <rect x="10" y="15" width="2" height="3" fill="currentColor" />
-      <rect x="13" y="14" width="3" height="2" fill="currentColor" />
-      <rect x="17" y="15" width="2" height="2" fill="currentColor" />
-
-      {/* Custom modules varied by code hash */}
-      {modA ? (
-        <>
-          <rect x="10" y="2" width="2" height="1" fill="currentColor" />
-          <rect x="14" y="2" width="1" height="2" fill="currentColor" />
-          <rect x="2" y="11" width="2" height="1" fill="currentColor" />
-          <rect x="10" y="21" width="2" height="2" fill="currentColor" />
-          <rect x="21" y="11" width="3" height="1" fill="currentColor" />
-        </>
-      ) : (
-        <>
-          <rect x="11" y="3" width="1" height="2" fill="currentColor" />
-          <rect x="15" y="1" width="2" height="1" fill="currentColor" />
-          <rect x="3" y="12" width="1" height="2" fill="currentColor" />
-          <rect x="11" y="22" width="2" height="1" fill="currentColor" />
-          <rect x="22" y="12" width="2" height="2" fill="currentColor" />
-        </>
-      )}
-
-      {modB && (
-        <>
-          <rect x="14" y="21" width="2" height="3" fill="currentColor" />
-          <rect x="18" y="23" width="3" height="1" fill="currentColor" />
-        </>
-      )}
-    </svg>
+      alt={`Redemption QR Code for ${code}`}
+      darkColor="#1B120C"
+      lightColor="#FFFFFF"
+    />
   );
 }
 

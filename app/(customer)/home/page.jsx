@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useSyncExternalStore } from "react";
+import React, { useState, useMemo, useEffect, useSyncExternalStore } from "react";
 import { toast } from "react-toastify";
 
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
@@ -45,7 +45,13 @@ export default function HomePage() {
     joinCafe,
     redeemCafeReward,
     markCafeRedemptionAsUsed,
+    fetchCurrentUser,
   } = useLoyaltyStore();
+
+  // Load real authenticated customer profile & stats on mount
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   // Joined Cafes
   const joinedCafes = useMemo(() => {
@@ -190,22 +196,21 @@ export default function HomePage() {
       {/* Conditional: New customer onboarding guide */}
       {isNewCustomer && <HowStampyWorks />}
 
-      {/* Section 2: Loyalty Overview Statistics */}
+      {/* Section 2: Loyalty Overview Statistics (Sourced directly from Backend User Data) */}
       <LoyaltyOverviewStats
-        totalStamps={totalStamps}
-        availableRewards={availableRewardsCount}
-        joinedCafesCount={joinedCafes.length}
-        redeemedRewards={redeemedRewardsCount}
+        totalStamps={user?.totalStamps !== undefined && user?.totalStamps !== null ? user.totalStamps : totalStamps}
+        availableRewards={user?.availableRewards !== undefined && user?.availableRewards !== null ? user.availableRewards : availableRewardsCount}
+        joinedCafesCount={user?.joinedCafes !== undefined && user?.joinedCafes !== null ? user.joinedCafes : joinedCafes.length}
+        redeemedRewards={user?.redeemedRewards !== undefined && user?.redeemedRewards !== null ? user.redeemedRewards : redeemedRewardsCount}
       />
 
       {/* Section 3: Continue Your Journey (Active Loyalty Cards) */}
       <ActiveLoyaltyCards joinedCafes={joinedCafes} />
 
-      {/* Section 4: Discover Cafés */}
-      <DiscoverCafesSection
-        unjoinedCafes={unjoinedCafes}
-        onJoinCafe={joinCafe}
-      />
+      {/* Section 4: Discover Cafés (Shown ONLY if user is not joining any cafes) */}
+      {joinedCafes.length === 0 && (
+        <DiscoverCafesSection onJoinCafe={joinCafe} />
+      )}
 
       {/* Section 5 & 6: Grid on larger screens or stacked on mobile */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-start">

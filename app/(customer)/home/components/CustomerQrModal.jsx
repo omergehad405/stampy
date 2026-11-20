@@ -3,78 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuX, LuCopy, LuCheck, LuQrCode, LuUser, LuSun } from "react-icons/lu";
-
-// High-contrast SVG QR Code
-function CustomerQRCodeGraphic({ className = "w-44 h-44" }) {
-  return (
-    <svg
-      viewBox="0 0 29 29"
-      fill="currentColor"
-      className={className}
-      shapeRendering="crispEdges"
-      aria-label="Customer Loyalty QR Code"
-    >
-      {/* Top-Left Finder */}
-      <rect x="2" y="2" width="7" height="7" fill="currentColor" />
-      <rect x="3" y="3" width="5" height="5" fill="#FFFFFF" />
-      <rect x="4" y="4" width="3" height="3" fill="currentColor" />
-      {/* Top-Right Finder */}
-      <rect x="20" y="2" width="7" height="7" fill="currentColor" />
-      <rect x="21" y="3" width="5" height="5" fill="#FFFFFF" />
-      <rect x="22" y="4" width="3" height="3" fill="currentColor" />
-      {/* Bottom-Left Finder */}
-      <rect x="2" y="20" width="7" height="7" fill="currentColor" />
-      <rect x="3" y="21" width="5" height="5" fill="#FFFFFF" />
-      <rect x="4" y="22" width="3" height="3" fill="currentColor" />
-      {/* Alignment Pattern */}
-      <rect x="18" y="18" width="5" height="5" fill="currentColor" />
-      <rect x="19" y="19" width="3" height="3" fill="#FFFFFF" />
-      <rect x="20" y="20" width="1" height="1" fill="currentColor" />
-      {/* Timing Patterns */}
-      <rect x="10" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="12" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="14" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="16" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="18" y="5" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="10" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="12" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="14" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="16" width="1" height="1" fill="currentColor" />
-      <rect x="5" y="18" width="1" height="1" fill="currentColor" />
-      {/* Data Modules */}
-      <rect x="10" y="2" width="2" height="1" fill="currentColor" />
-      <rect x="14" y="2" width="1" height="2" fill="currentColor" />
-      <rect x="17" y="3" width="2" height="1" fill="currentColor" />
-      <rect x="11" y="7" width="3" height="1" fill="currentColor" />
-      <rect x="16" y="8" width="2" height="2" fill="currentColor" />
-      <rect x="10" y="10" width="2" height="2" fill="currentColor" />
-      <rect x="13" y="10" width="2" height="1" fill="currentColor" />
-      <rect x="17" y="11" width="1" height="3" fill="currentColor" />
-      <rect x="20" y="10" width="2" height="1" fill="currentColor" />
-      <rect x="24" y="11" width="2" height="2" fill="currentColor" />
-      <rect x="11" y="13" width="1" height="3" fill="currentColor" />
-      <rect x="13" y="13" width="3" height="2" fill="currentColor" />
-      <rect x="21" y="13" width="3" height="1" fill="currentColor" />
-      <rect x="2" y="11" width="2" height="1" fill="currentColor" />
-      <rect x="7" y="11" width="1" height="2" fill="currentColor" />
-      <rect x="2" y="14" width="1" height="2" fill="currentColor" />
-      <rect x="10" y="17" width="2" height="2" fill="currentColor" />
-      <rect x="14" y="17" width="2" height="1" fill="currentColor" />
-      <rect x="25" y="16" width="2" height="2" fill="currentColor" />
-      <rect x="11" y="21" width="2" height="1" fill="currentColor" />
-      <rect x="14" y="20" width="1" height="3" fill="currentColor" />
-      <rect x="16" y="22" width="2" height="1" fill="currentColor" />
-      <rect x="24" y="21" width="2" height="2" fill="currentColor" />
-      <rect x="10" y="25" width="3" height="1" fill="currentColor" />
-      <rect x="15" y="24" width="2" height="2" fill="currentColor" />
-      <rect x="19" y="25" width="2" height="1" fill="currentColor" />
-      <rect x="23" y="25" width="3" height="1" fill="currentColor" />
-    </svg>
-  );
-}
+import QRCodeImage from "@/app/components/ui/QRCodeImage";
+import { apiGetQrCode } from "@/app/lib/authApi";
 
 export default function CustomerQrModal({ isOpen, onClose, user }) {
   const [copied, setCopied] = useState(false);
+  const [liveQrCode, setLiveQrCode] = useState(user?.qrCode || "");
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -83,6 +17,19 @@ export default function CustomerQrModal({ isOpen, onClose, user }) {
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+
+      // If user object doesn't have qrCode yet, fetch the permanent identifier
+      if (!user?.qrCode && !liveQrCode) {
+        apiGetQrCode()
+          .then((res) => {
+            if (res?.data?.qrCode) {
+              setLiveQrCode(res.data.qrCode);
+            }
+          })
+          .catch((err) => {
+            console.warn("Could not fetch customer QR identifier:", err);
+          });
+      }
     } else {
       document.body.style.overflow = "";
     }
@@ -90,11 +37,18 @@ export default function CustomerQrModal({ isOpen, onClose, user }) {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, user?.qrCode, liveQrCode]);
+
+  // Keep liveQrCode in sync if user changes
+  useEffect(() => {
+    if (user?.qrCode) {
+      setLiveQrCode(user.qrCode);
+    }
+  }, [user?.qrCode]);
 
   if (!isOpen) return null;
 
-  const memberCode = user?.memberCode || "STAMPY-7842";
+  const memberCode = liveQrCode || user?.qrCode || user?.memberCode || "STAMPY-MEMBER";
   const customerName = user?.name || "Customer";
 
   const handleCopy = () => {
@@ -151,14 +105,23 @@ export default function CustomerQrModal({ isOpen, onClose, user }) {
             Present this code to the barista at any participating café to collect stamps.
           </p>
 
-          {/* QR Code Container with High-Contrast White Background */}
+          {/* Scannable QR Code Container with High-Contrast White Background */}
           <div className="mt-5 p-4 rounded-3xl bg-white border-2 border-(--bgColor)/20 shadow-md text-[#3B2418] flex flex-col items-center">
-            <CustomerQRCodeGraphic className="w-44 h-44 text-[#3B2418]" />
+            <div className="w-48 h-48 sm:w-52 sm:h-52 flex items-center justify-center overflow-hidden">
+              <QRCodeImage
+                value={memberCode}
+                size={220}
+                className="w-full h-full"
+                alt={`Loyalty QR code for ${customerName}`}
+                darkColor="#1B120C"
+                lightColor="#FFFFFF"
+              />
+            </div>
             <div className="mt-2 text-center">
               <span className="text-[11px] font-bold tracking-wider uppercase text-[#3B2418]/60">
-                Customer ID
+                Customer Identifier
               </span>
-              <p className="text-sm font-mono font-extrabold text-[#3B2418] tracking-wider">
+              <p className="text-xs sm:text-sm font-mono font-extrabold text-[#3B2418] tracking-wider break-all max-w-[240px]">
                 {memberCode}
               </p>
             </div>

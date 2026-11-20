@@ -8,6 +8,7 @@ import MyCafesHeader from "./components/MyCafesHeader";
 import MyCafesOverview from "./components/MyCafesOverview";
 import MyCafesEmptyState from "./components/MyCafesEmptyState";
 import JoinedCafesGrid from "./components/JoinedCafesGrid";
+import SuggestedCafesSection from "./components/SuggestedCafesSection";
 
 export default function MyCafesPage() {
   const { getJoinedCafes, leaveCafe } = useLoyaltyStore();
@@ -21,7 +22,14 @@ export default function MyCafesPage() {
 
       <div className="mt-8">
         {joinedCafes.length === 0 ? (
-          <MyCafesEmptyState />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div className="lg:col-span-5">
+              <MyCafesEmptyState />
+            </div>
+            <div className="lg:col-span-7">
+              <SuggestedCafesSection />
+            </div>
+          </div>
         ) : (
           <JoinedCafesGrid cafes={joinedCafes} onLeave={leaveCafe} />
         )}
