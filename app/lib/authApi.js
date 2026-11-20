@@ -1,9 +1,9 @@
 /**
  * Client-side Authentication API helper
- * Integrates with Stampy Phase 1 Backend Authentication
+ * Integrates with Stampy Backend Authentication
  */
 
-import { API_BASE } from "./apiClient";
+import { API_BASE, getAuthHeaders, setAuthToken, removeAuthToken } from "./apiClient";
 
 export async function apiRegister({ name, email, password, registrationType = "customer" }) {
   const response = await fetch(`${API_BASE}/api/auth/register`, {
@@ -11,7 +11,7 @@ export async function apiRegister({ name, email, password, registrationType = "c
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include", // Required for HttpOnly cookies
+    credentials: "include", // For HttpOnly cookie support
     body: JSON.stringify({
       name,
       email,
@@ -24,6 +24,12 @@ export async function apiRegister({ name, email, password, registrationType = "c
   if (!response.ok) {
     throw new Error(data.message || "Registration failed. Please check your details.");
   }
+
+  // Persist token for cross-origin or non-cookie environments
+  if (data?.data?.token) {
+    setAuthToken(data.data.token);
+  }
+
   return data;
 }
 
@@ -33,7 +39,7 @@ export async function apiLogin({ email, password }) {
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include", // Required for HttpOnly cookies
+    credentials: "include", // For HttpOnly cookie support
     body: JSON.stringify({
       email,
       password,
@@ -44,12 +50,19 @@ export async function apiLogin({ email, password }) {
   if (!response.ok) {
     throw new Error(data.message || "Invalid email or password.");
   }
+
+  // Persist token for cross-origin or non-cookie environments
+  if (data?.data?.token) {
+    setAuthToken(data.data.token);
+  }
+
   return data;
 }
 
 export async function apiGetMe() {
   const response = await fetch(`${API_BASE}/api/auth/me`, {
     method: "GET",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -63,9 +76,9 @@ export async function apiGetMe() {
 export async function apiUpdateProfile(updates) {
   const response = await fetch(`${API_BASE}/api/auth/profile`, {
     method: "PUT",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(updates),
   });
@@ -81,10 +94,13 @@ export async function apiLogout() {
   try {
     const response = await fetch(`${API_BASE}/api/auth/logout`, {
       method: "POST",
+      headers: getAuthHeaders(),
       credentials: "include",
     });
+    removeAuthToken();
     return await response.json();
   } catch (error) {
+    removeAuthToken();
     console.warn("Logout error:", error);
     return { success: false };
   }
@@ -93,6 +109,7 @@ export async function apiLogout() {
 export async function apiGetQrCode() {
   const response = await fetch(`${API_BASE}/api/auth/qr-code`, {
     method: "GET",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 

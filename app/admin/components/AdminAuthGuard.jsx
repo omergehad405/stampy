@@ -25,19 +25,26 @@ export default function AdminAuthGuard({ children }) {
         return;
       }
 
-      if (!isAuthenticated) {
+      let authed = isAuthenticated;
+      if (!authed) {
         const res = await checkAuth();
         if (!res?.success) {
-          router.push("/admin/login");
+          if (isMounted) {
+            router.push("/admin/login");
+          }
           return;
         }
+        authed = true;
       }
 
-      // Preload cafes, customers, plans, and announcements from database
-      useAdminStore.getState().fetchCafes();
-      useAdminStore.getState().fetchCustomers();
-      useAdminStore.getState().fetchPlans();
-      useAdminStore.getState().fetchAnnouncements();
+      // Preload cafes, customers, plans, and announcements from MongoDB
+      // and wait for them so the dashboard renders with full data
+      await Promise.allSettled([
+        useAdminStore.getState().fetchCafes(),
+        useAdminStore.getState().fetchCustomers(),
+        useAdminStore.getState().fetchPlans(),
+        useAdminStore.getState().fetchAnnouncements(),
+      ]);
 
       if (isMounted) setIsChecking(false);
     }
@@ -47,14 +54,14 @@ export default function AdminAuthGuard({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, pathname, router, isClient, checkAuth]);
+  }, [pathname, isClient]); // Only re-run if route pathname changes
 
   // Don't protect the login page itself
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }
 
-  // Allow render once confirmed authenticated
+  // Show loading spinner while checking authentication or preloading data
   if (!isClient || isChecking) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-(--bgColor)">

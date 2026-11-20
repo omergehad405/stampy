@@ -88,7 +88,6 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="stampy2026@gmail.com"
                 className="w-full h-11 rounded-xl border border-[#e3d7c0] bg-[#f5ecdd] pl-10 pr-3 text-sm text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none transition focus:border-(--mainColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
             </div>

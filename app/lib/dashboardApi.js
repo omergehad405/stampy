@@ -3,13 +3,16 @@
  * Talks to /api/dashboard/rewards
  */
 
-import { API_BASE } from "./apiClient";
+import { API_BASE, getAuthHeaders } from "./apiClient";
 
 const BASE = `${API_BASE}/api/dashboard/rewards`;
 
 export async function apiGetRewards({ status } = {}) {
   const url = status ? `${BASE}?status=${status}` : BASE;
-  const res = await fetch(url, { credentials: "include" });
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Failed to fetch rewards.");
   return data;
@@ -18,7 +21,7 @@ export async function apiGetRewards({ status } = {}) {
 export async function apiCreateReward(rewardData) {
   const res = await fetch(BASE, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
     body: JSON.stringify(rewardData),
   });
@@ -30,7 +33,7 @@ export async function apiCreateReward(rewardData) {
 export async function apiUpdateReward(id, updates) {
   const res = await fetch(`${BASE}/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
     body: JSON.stringify(updates),
   });
@@ -42,6 +45,7 @@ export async function apiUpdateReward(id, updates) {
 export async function apiToggleRewardStatus(id) {
   const res = await fetch(`${BASE}/${id}/status`, {
     method: "PATCH",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
   const data = await res.json();
@@ -52,6 +56,7 @@ export async function apiToggleRewardStatus(id) {
 export async function apiDeleteReward(id) {
   const res = await fetch(`${BASE}/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
   const data = await res.json();
@@ -66,7 +71,10 @@ export async function apiDeleteReward(id) {
 const CAFE_BASE = `${API_BASE}/api/dashboard/cafe`;
 
 export async function apiGetCafeProfile() {
-  const res = await fetch(CAFE_BASE, { credentials: "include" });
+  const res = await fetch(CAFE_BASE, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Failed to fetch cafe profile.");
   return data;
@@ -75,7 +83,7 @@ export async function apiGetCafeProfile() {
 export async function apiUpdateCafeProfile(profileData) {
   const res = await fetch(CAFE_BASE, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
     body: JSON.stringify(profileData),
   });

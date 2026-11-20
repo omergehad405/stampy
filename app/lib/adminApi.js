@@ -3,11 +3,12 @@
  * Integrates with Stampy Admin Backend Endpoints
  */
 
-import { API_BASE } from "./apiClient";
+import { API_BASE, getAuthHeaders } from "./apiClient";
 
 export async function apiAdminGetCafes() {
   const response = await fetch(`${API_BASE}/api/admin/cafes`, {
     method: "GET",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -28,9 +29,9 @@ export async function apiAdminCreateCafe({
 }) {
   const response = await fetch(`${API_BASE}/api/admin/cafes`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify({
       name,
@@ -52,9 +53,9 @@ export async function apiAdminCreateCafe({
 export async function apiAdminUpdateCafeStatus(cafeId, status) {
   const response = await fetch(`${API_BASE}/api/admin/cafes/${cafeId}/status`, {
     method: "PATCH",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify({ status }),
   });
@@ -69,9 +70,9 @@ export async function apiAdminUpdateCafeStatus(cafeId, status) {
 export async function apiAdminUpdateCafe(cafeId, updates) {
   const response = await fetch(`${API_BASE}/api/admin/cafes/${cafeId}`, {
     method: "PUT",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(updates),
   });
@@ -86,6 +87,7 @@ export async function apiAdminUpdateCafe(cafeId, updates) {
 export async function apiAdminGetCustomers() {
   const response = await fetch(`${API_BASE}/api/admin/customers`, {
     method: "GET",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -99,9 +101,9 @@ export async function apiAdminGetCustomers() {
 export async function apiAdminUpdateCustomerStatus(customerId, status) {
   const response = await fetch(`${API_BASE}/api/admin/customers/${customerId}/status`, {
     method: "PATCH",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify({ status }),
   });
@@ -116,6 +118,7 @@ export async function apiAdminUpdateCustomerStatus(customerId, status) {
 export async function apiAdminGetPlans() {
   const response = await fetch(`${API_BASE}/api/admin/plans`, {
     method: "GET",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -129,6 +132,7 @@ export async function apiAdminGetPlans() {
 export async function apiAdminGetPlanFeatures() {
   const response = await fetch(`${API_BASE}/api/admin/plans/features`, {
     method: "GET",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -142,9 +146,9 @@ export async function apiAdminGetPlanFeatures() {
 export async function apiAdminCreatePlan(planData) {
   const response = await fetch(`${API_BASE}/api/admin/plans`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(planData),
   });
@@ -159,9 +163,9 @@ export async function apiAdminCreatePlan(planData) {
 export async function apiAdminUpdatePlan(planId, updates) {
   const response = await fetch(`${API_BASE}/api/admin/plans/${planId}`, {
     method: "PUT",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(updates),
   });
@@ -176,9 +180,9 @@ export async function apiAdminUpdatePlan(planId, updates) {
 export async function apiAdminTogglePlanStatus(planId, isActive) {
   const response = await fetch(`${API_BASE}/api/admin/plans/${planId}/status`, {
     method: "PATCH",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify({ isActive }),
   });
@@ -193,9 +197,9 @@ export async function apiAdminTogglePlanStatus(planId, isActive) {
 export async function apiAdminAssignPlanToCafe({ cafeId, planId }) {
   const response = await fetch(`${API_BASE}/api/admin/plans/assign`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify({ cafeId, planId }),
   });
@@ -210,6 +214,7 @@ export async function apiAdminAssignPlanToCafe({ cafeId, planId }) {
 export async function apiAdminDeletePlan(planId) {
   const response = await fetch(`${API_BASE}/api/admin/plans/${planId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -225,6 +230,7 @@ export async function apiAdminDeletePlan(planId) {
 export async function apiAdminGetAnnouncements() {
   const response = await fetch(`${API_BASE}/api/admin/announcements`, {
     method: "GET",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -238,9 +244,9 @@ export async function apiAdminGetAnnouncements() {
 export async function apiAdminCreateAnnouncement(payload) {
   const response = await fetch(`${API_BASE}/api/admin/announcements`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(payload),
   });
@@ -255,9 +261,9 @@ export async function apiAdminCreateAnnouncement(payload) {
 export async function apiAdminUpdateAnnouncement(id, payload) {
   const response = await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
     method: "PUT",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify(payload),
   });
@@ -272,9 +278,9 @@ export async function apiAdminUpdateAnnouncement(id, payload) {
 export async function apiAdminToggleAnnouncementPublish(id, isPublished) {
   const response = await fetch(`${API_BASE}/api/admin/announcements/${id}/publish`, {
     method: "PATCH",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     credentials: "include",
     body: JSON.stringify({ isPublished }),
   });
@@ -289,6 +295,7 @@ export async function apiAdminToggleAnnouncementPublish(id, isPublished) {
 export async function apiAdminDeleteAnnouncement(id) {
   const response = await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
     credentials: "include",
   });
 
@@ -302,6 +309,8 @@ export async function apiAdminDeleteAnnouncement(id) {
 export async function apiGetActiveAnnouncements() {
   const response = await fetch(`${API_BASE}/api/announcements/active`, {
     method: "GET",
+    headers: getAuthHeaders(),
+    credentials: "include",
   });
 
   const data = await response.json();

@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { apiLogin, apiGetMe, apiLogout, apiUpdateProfile } from "@/app/lib/authApi";
+import { setAuthToken, removeAuthToken } from "@/app/lib/apiClient";
 
 export const useAdminAuthStore = create((set, get) => ({
   currentAdmin: null,
@@ -9,7 +10,7 @@ export const useAdminAuthStore = create((set, get) => ({
   loginError: null,
   isLoading: false,
 
-  // Check current session from backend cookie
+  // Check current session from backend using Bearer token / cookie
   checkAuth: async () => {
     try {
       const data = await apiGetMe();
@@ -29,12 +30,13 @@ export const useAdminAuthStore = create((set, get) => ({
             : "2026-01-01",
           lastActive: "Just now",
         };
-        set({ currentAdmin: adminObj, isAuthenticated: true });
+        set({ currentAdmin: adminObj, isAuthenticated: true, loginError: null });
         return { success: true, admin: adminObj };
       }
-    } catch {
+    } catch (err) {
       // Session expired or not logged in
     }
+    set({ currentAdmin: null, isAuthenticated: false });
     return { success: false };
   },
 
@@ -48,14 +50,21 @@ export const useAdminAuthStore = create((set, get) => ({
 
         // Verify that this account is an administrator
         if (user.role !== "admin") {
+          removeAuthToken();
           set({
             isLoading: false,
             loginError: "Access denied. Only Super Admins can access this area.",
+            isAuthenticated: false,
+            currentAdmin: null,
           });
           return {
             success: false,
             error: "Access denied. Only Super Admins can access this area.",
           };
+        }
+
+        if (res.data?.token) {
+          setAuthToken(res.data.token);
         }
 
         const adminObj = {
@@ -88,6 +97,8 @@ export const useAdminAuthStore = create((set, get) => ({
       set({
         isLoading: false,
         loginError: errorMessage,
+        isAuthenticated: false,
+        currentAdmin: null,
       });
       return {
         success: false,
@@ -102,6 +113,7 @@ export const useAdminAuthStore = create((set, get) => ({
     } catch (e) {
       console.warn("Logout error:", e);
     }
+    removeAuthToken();
     set({
       currentAdmin: null,
       isAuthenticated: false,
