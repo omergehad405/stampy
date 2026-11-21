@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, useRef, useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 
 import CafeTopBar from "./CafeTopBar";
@@ -21,22 +21,39 @@ import RecentActivity from "./components/RecentActivity";
 import CafeQrCard from "./components/CafeQrCard";
 import QrScrollBadge from "./components/QrScrollBadge";
 import CafeQrModal from "./components/CafeQrModal";
+import WelcomeStampModal from "./components/WelcomeStampModal";
 
 function DedicatedCafePageContent() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = params?.slug;
 
   const { cafe, isLoading } = useCafeData(slug);
-  const router = useRouter();
   const { user, isCafeJoined, getMembership, joinCafe, isAuthenticated } = useLoyaltyStore();
 
   const isJoined = isCafeJoined(slug);
   const membership = getMembership(slug);
 
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
   const [isBadgeHighlighted, setIsBadgeHighlighted] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const qrSectionRef = useRef(null);
+
+  // Detect welcome flag from signup auto-join or info page redirect
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hasWelcomeParam = searchParams?.get("welcome") === "true";
+      const hasSessionFlag =
+        sessionStorage.getItem(`stampy_welcome_stamp_${slug}`) === "true";
+
+      if (hasWelcomeParam || hasSessionFlag) {
+        setIsWelcomeModalOpen(true);
+        sessionStorage.removeItem(`stampy_welcome_stamp_${slug}`);
+      }
+    }
+  }, [searchParams, slug]);
 
   const scrollToQr = () => {
     setIsBadgeHighlighted(true);
@@ -70,6 +87,7 @@ function DedicatedCafePageContent() {
     try {
       const result = await joinCafe(cafe?.id || cafe?._id || slug);
       if (result.success) {
+        setIsWelcomeModalOpen(true);
         toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`, {
           position: "top-right",
           autoClose: 3500,
@@ -137,6 +155,14 @@ function DedicatedCafePageContent() {
           onClose={() => setIsQrModalOpen(false)}
         />
       )}
+
+      {/* 🌟 Welcome Bonus Stamp Physical Animation Modal */}
+      <WelcomeStampModal
+        cafe={cafe}
+        isOpen={isWelcomeModalOpen}
+        onClose={() => setIsWelcomeModalOpen(false)}
+        totalStamps={totalStamps}
+      />
     </div>
   );
 }

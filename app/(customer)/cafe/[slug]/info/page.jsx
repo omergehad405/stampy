@@ -55,8 +55,11 @@ function DedicatedCafeInfoContent() {
     try {
       const res = await joinCafe(cafe?.id || cafe?._id || slug);
       if (res?.success) {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(`stampy_welcome_stamp_${slug}`, "true");
+        }
         toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`);
-        router.push(`/cafe/${slug}`);
+        router.push(`/cafe/${slug}?welcome=true`);
       } else {
         toast.error(res?.error || "Could not join café loyalty program.");
       }

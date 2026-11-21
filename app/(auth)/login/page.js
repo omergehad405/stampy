@@ -51,7 +51,11 @@ function LoginPageContent() {
               `🎉 You've joined ${pendingCafe.name || "the café"}! Your loyalty card is ready.`
             );
           }
-          router.push(`/cafe/${pendingCafe.slug || pendingCafe.cafeId}`);
+          const cafeSlug = pendingCafe.slug || pendingCafe.cafeId;
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(`stampy_welcome_stamp_${cafeSlug}`, "true");
+          }
+          router.push(`/cafe/${cafeSlug}?welcome=true`);
           return;
         }
       } catch (err) {
