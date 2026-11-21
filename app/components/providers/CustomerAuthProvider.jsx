@@ -22,7 +22,15 @@ function CustomerAuthGuardContent({ children }) {
   const isDashboardRoute = pathname ? pathname.startsWith("/dashboard") : false;
   const isAdminRoute = pathname ? pathname.startsWith("/admin") : false;
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
-  const isExcluded = isDashboardRoute || isAdminRoute || isAuthRoute;
+  // Public customer routes that do not require authentication to browse
+  const isCafeInfoRoute = pathname ? /\/cafe\/[^/]+\/info(\/.*)?$/.test(pathname) : false;
+  const isPublicCafeRoute = pathname ? /^\/cafe\/[^/]+$/.test(pathname) : false;
+  const isExcluded =
+    isDashboardRoute ||
+    isAdminRoute ||
+    isAuthRoute ||
+    isCafeInfoRoute ||
+    isPublicCafeRoute;
 
   useEffect(() => {
     let isMounted = true;
@@ -30,9 +38,14 @@ function CustomerAuthGuardContent({ children }) {
     async function verifyCustomerSession() {
       if (!isClient) return;
 
-      // Excluded routes (login, dashboard, admin) have their own guards or are public
+      // Excluded routes (login, dashboard, admin, public cafe info) have their own guards or are public
       if (isExcluded) {
         if (isMounted) setIsVerifying(false);
+        // If a stored token exists, populate customer session in background without blocking
+        const storedToken = getAuthToken();
+        if (storedToken && !isAuthenticated) {
+          fetchCurrentUser();
+        }
         return;
       }
 

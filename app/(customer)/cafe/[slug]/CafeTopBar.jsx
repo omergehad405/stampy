@@ -2,12 +2,17 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { LuArrowLeft, LuCoffee, LuBell, LuStore } from "react-icons/lu";
+import { LuArrowLeft, LuCoffee, LuBell, LuStore, LuLogIn } from "react-icons/lu";
 import ThemeToggle from "@/app/components/ui/ThemeToggle";
 import NotificationBox from "@/app/components/layout/NotificationBox";
+import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
+import { getAuthToken } from "@/app/lib/apiClient";
 
 export default function CafeTopBar({ cafe }) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { isAuthenticated } = useLoyaltyStore();
+  const hasToken = typeof window !== "undefined" ? Boolean(getAuthToken()) : false;
+  const isUserLoggedIn = isAuthenticated || hasToken;
 
   return (
     <>
@@ -40,21 +45,31 @@ export default function CafeTopBar({ cafe }) {
           </div>
         </div>
 
-        {/* Right: Theme & Notifications */}
-        <div className="flex items-center gap-1 shrink-0">
+        {/* Right: Theme & Notifications / Login */}
+        <div className="flex items-center gap-2 shrink-0">
           <ThemeToggle />
-          <button
-            type="button"
-            aria-label="Open notifications"
-            onClick={() => setIsNotificationOpen(true)}
-            className="relative p-2 rounded-full hover:bg-(--mainColor)/10 text-(--mainColor) transition-colors cursor-pointer shrink-0"
-          >
-            <LuBell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-(--secondColor) opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-(--secondColor)"></span>
-            </span>
-          </button>
+          {isUserLoggedIn ? (
+            <button
+              type="button"
+              aria-label="Open notifications"
+              onClick={() => setIsNotificationOpen(true)}
+              className="relative p-2 rounded-full hover:bg-(--mainColor)/10 text-(--mainColor) transition-colors cursor-pointer shrink-0"
+            >
+              <LuBell className="w-5 h-5" />
+              <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-(--secondColor) opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-(--secondColor)"></span>
+              </span>
+            </button>
+          ) : (
+            <Link
+              href={`/login${cafe?.slug ? `?redirect=/cafe/${cafe.slug}&autoJoin=true` : ""}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-(--mainColor) text-(--secondColor) text-xs font-bold hover:opacity-95 transition shadow-2xs"
+            >
+              <LuLogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </Link>
+          )}
         </div>
       </header>
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MdOutlineMailOutline, MdLocalPhone } from "react-icons/md";
 import { ImUser } from "react-icons/im";
 import { LuLock, LuEye, LuEyeOff, LuCoffee, LuUserCheck, LuShieldCheck } from "react-icons/lu";
@@ -17,45 +17,62 @@ const inputBase =
   "text-(--mainColor) placeholder:text-(--mainColor)/45 outline-none transition " +
   "focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40";
 
-function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, setUser, fetchCurrentUser, isAuthenticated } = useLoyaltyStore();
+
+  const handleRoleRedirect = async (currentUser) => {
+    const role = currentUser?.role;
+    if (role === "cafeOwner" || role === "cafeManager" || role === "cafeBarista") {
+      router.push("/dashboard");
+      return;
+    } else if (role === "admin") {
+      router.push("/admin");
+      return;
+    }
+
+    // Customer role: check if there was a pending cafe to join
+    const pendingJoinRaw =
+      typeof window !== "undefined"
+        ? localStorage.getItem("stampy_pending_cafe_join")
+        : null;
+
+    if (pendingJoinRaw) {
+      try {
+        const pendingCafe = JSON.parse(pendingJoinRaw);
+        localStorage.removeItem("stampy_pending_cafe_join");
+
+        if (pendingCafe?.cafeId || pendingCafe?.slug) {
+          const target = pendingCafe.cafeId || pendingCafe.slug;
+          const joinRes = await useLoyaltyStore.getState().joinCafe(target);
+          if (joinRes?.success) {
+            toast.success(
+              `🎉 You've joined ${pendingCafe.name || "the café"}! Your loyalty card is ready.`
+            );
+          }
+          router.push(`/cafe/${pendingCafe.slug || pendingCafe.cafeId}`);
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not auto-join pending cafe:", err);
+      }
+    }
+
+    const redirectParam = searchParams.get("redirect");
+    if (redirectParam && redirectParam.startsWith("/")) {
+      router.push(redirectParam);
+      return;
+    }
+
+    router.push("/");
+  };
 
   useEffect(() => {
     if (isAuthenticated && getAuthToken()) {
       handleRoleRedirect(user);
     }
   }, [isAuthenticated, user]);
-
-  const [mode, setMode] = useState("signup"); // "signup" or "login"
-  const [accountType, setAccountType] = useState("customer"); // "customer" or "cafeOwner"
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const [form, setForm] = useState({
-    fullName: "",
-    countryCode: "+1",
-    phone: "",
-    email: "",
-    password: "",
-  });
-
-  const handleChange = (e) => {
-    setErrorMessage("");
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleRoleRedirect = (user) => {
-    const role = user?.role;
-    if (role === "cafeOwner" || role === "cafeManager" || role === "cafeBarista") {
-      router.push("/dashboard");
-    } else if (role === "admin") {
-      router.push("/admin");
-    } else {
-      router.push("/");
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -408,4 +425,16 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#f2ebda]">
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-(--mainColor)/20 border-t-(--mainColor)" />
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
+  );
+}

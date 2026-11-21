@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 import CafeTopBar from "./CafeTopBar";
 import { useCafeData } from "../data/useCafeData";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
+import { getAuthToken } from "@/app/lib/apiClient";
 
 import CafeNotFound from "./components/CafeNotFound";
 import PublicCafeHero from "./components/PublicCafeHero";
@@ -26,7 +27,8 @@ function DedicatedCafePageContent() {
   const slug = params?.slug;
 
   const { cafe, isLoading } = useCafeData(slug);
-  const { user, isCafeJoined, getMembership, joinCafe } = useLoyaltyStore();
+  const router = useRouter();
+  const { user, isCafeJoined, getMembership, joinCafe, isAuthenticated } = useLoyaltyStore();
 
   const isJoined = isCafeJoined(slug);
   const membership = getMembership(slug);
@@ -47,6 +49,23 @@ function DedicatedCafePageContent() {
   };
 
   const handleJoinCafe = async () => {
+    const token = getAuthToken();
+    if (!isAuthenticated || !token) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "stampy_pending_cafe_join",
+          JSON.stringify({
+            cafeId: cafe?.id || cafe?._id || slug,
+            slug,
+            name: cafe?.name || "This Café",
+          })
+        );
+      }
+      toast.info(`Please sign in or create an account to join ${cafe?.name || "this café"}.`);
+      router.push(`/login?redirect=/cafe/${slug}&autoJoin=true`);
+      return;
+    }
+
     setIsJoining(true);
     try {
       const result = await joinCafe(cafe?.id || cafe?._id || slug);

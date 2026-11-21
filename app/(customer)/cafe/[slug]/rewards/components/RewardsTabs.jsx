@@ -41,7 +41,7 @@ export default function RewardsTabs({
           <LuHistory className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>My Rewards</span>
           {pendingCount > 0 && (
-            <span className="flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500 text-white">
+            <span className="flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-(--secondColor) text-[#3b2418]">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
               {pendingCount} Ready
             </span>
