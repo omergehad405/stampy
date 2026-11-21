@@ -15,6 +15,10 @@ export default function WelcomeStampModal({
   isOpen,
   onClose,
   totalStamps = 10,
+  stampNumber = 1,
+  isWelcome = true,
+  unlockedReward = false,
+  addedStamps = 1,
 }) {
   const [animationStage, setAnimationStage] = useState("start"); // 'start' | 'stamping' | 'impact' | 'done'
 
@@ -43,6 +47,8 @@ export default function WelcomeStampModal({
   if (!isOpen) return null;
 
   const isStamped = animationStage === "impact" || animationStage === "done";
+  const displaySlotNumber = Math.min(totalStamps, Math.max(1, stampNumber));
+  const remainingStamps = Math.max(0, totalStamps - displaySlotNumber);
 
   return (
     <AnimatePresence>
@@ -79,10 +85,22 @@ export default function WelcomeStampModal({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-(--secondColor)/30 border border-(--secondColor) px-3 py-1 text-xs font-bold text-(--mainColor)"
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                unlockedReward
+                  ? "bg-purple-100 border border-purple-300 text-purple-900"
+                  : isWelcome
+                  ? "bg-(--secondColor)/30 border border-(--secondColor) text-(--mainColor)"
+                  : "bg-emerald-100 border border-emerald-300 text-emerald-900"
+              }`}
             >
-              <LuSparkles className="w-3.5 h-3.5 text-(--mainColor)" />
-              <span>Welcome Gift Unlocked</span>
+              <LuSparkles className="w-3.5 h-3.5" />
+              <span>
+                {unlockedReward
+                  ? "🎉 Reward Tier Unlocked!"
+                  : isWelcome
+                  ? "Welcome Gift Unlocked"
+                  : "Visit Verified & Stamped"}
+              </span>
             </motion.div>
           </div>
 
@@ -163,7 +181,7 @@ export default function WelcomeStampModal({
                     isStamped ? "text-(--secondColor)/75" : "text-(--mainColor)/40"
                   }`}
                 >
-                  #1
+                  #{displaySlotNumber}
                 </span>
 
                 {isStamped ? (
@@ -182,7 +200,7 @@ export default function WelcomeStampModal({
                   <div className="flex flex-col items-center opacity-40">
                     <LuCoffee className="w-10 h-10 stroke-[1.5]" />
                     <span className="text-[10px] font-semibold mt-1">
-                      Empty Slot
+                      Slot #{displaySlotNumber}
                     </span>
                   </div>
                 )}
@@ -202,7 +220,7 @@ export default function WelcomeStampModal({
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{
                       duration: 0.45,
-                      ease: [0.175, 0.885, 0.32, 1.275], // Custom punchy spring
+                      ease: [0.175, 0.885, 0.32, 1.275],
                     }}
                     className="absolute z-30 pointer-events-none flex flex-col items-center"
                   >
@@ -224,7 +242,11 @@ export default function WelcomeStampModal({
                 className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-(--secondColor) text-(--mainColor) px-3.5 py-1 text-xs font-black shadow-sm"
               >
                 <LuPartyPopper className="w-4 h-4" />
-                <span>+1 Stamp Added Automatically!</span>
+                <span>
+                  {isWelcome
+                    ? "+1 Stamp Added Automatically!"
+                    : `+${addedStamps || 1} Stamp Collected!`}
+                </span>
               </motion.div>
             )}
           </div>
@@ -239,7 +261,11 @@ export default function WelcomeStampModal({
               transition={{ delay: 0.2 }}
               className="text-xl sm:text-2xl font-black text-(--mainColor)"
             >
-              Welcome to {cafe?.name || "the Café"}!
+              {unlockedReward
+                ? "🎉 Stamp Target Reached!"
+                : isWelcome
+                ? `Welcome to ${cafe?.name || "the Café"}!`
+                : `🎉 New Stamp Collected!`}
             </motion.h3>
 
             <motion.p
@@ -248,8 +274,23 @@ export default function WelcomeStampModal({
               transition={{ delay: 0.3 }}
               className="text-xs sm:text-sm text-(--mainColor)/75 leading-relaxed max-w-xs mx-auto"
             >
-              We credited your <strong>first loyalty stamp</strong> right now as a welcome gift. Collect{" "}
-              <strong>{Math.max(0, totalStamps - 1)} more stamps</strong> on your next visits to claim free rewards!
+              {unlockedReward ? (
+                <>
+                  Congratulations! You collected <strong>{displaySlotNumber} stamps</strong> at{" "}
+                  <strong>{cafe?.name}</strong>. You unlocked your reward tier and can now claim your free item!
+                </>
+              ) : isWelcome ? (
+                <>
+                  We credited your <strong>first loyalty stamp</strong> right now as a welcome gift. Collect{" "}
+                  <strong>{remainingStamps} more stamps</strong> on your next visits to claim free rewards!
+                </>
+              ) : (
+                <>
+                  Barista verified your visit at <strong>{cafe?.name}</strong>! Slot #
+                  <strong>{displaySlotNumber}</strong> has been stamped. Collect{" "}
+                  <strong>{remainingStamps} more stamps</strong> to unlock your reward.
+                </>
+              )}
             </motion.p>
           </div>
 
@@ -258,18 +299,30 @@ export default function WelcomeStampModal({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="mt-5 rounded-2xl border border-[#dacdb9] bg-[#f5ecdd] p-3.5 flex items-center justify-between text-xs"
+            className="mt-5 rounded-2xl border border-[#dacdb9] bg-[#f5ecdd] p-3.5 space-y-2 text-xs"
           >
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-[11px]">
-                <LuCheck className="w-3.5 h-3.5 stroke-[3]" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-[11px]">
+                  <LuCheck className="w-3.5 h-3.5 stroke-[3]" />
+                </div>
+                <span className="font-bold text-(--mainColor)">
+                  Card Progress
+                </span>
               </div>
-              <span className="font-bold text-(--mainColor)">
-                Current Card Progress
-              </span>
+              <div className="font-extrabold text-(--mainColor)">
+                {displaySlotNumber} / {totalStamps} Stamps
+              </div>
             </div>
-            <div className="font-extrabold text-(--mainColor)">
-              1 / {totalStamps} Stamps
+
+            {/* Progress bar */}
+            <div className="w-full h-2 rounded-full bg-white/70 overflow-hidden border border-[#dacdb9]">
+              <div
+                className="h-full bg-(--mainColor) rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, (displaySlotNumber / totalStamps) * 100)}%`,
+                }}
+              />
             </div>
           </motion.div>
 

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { LuQrCode } from "react-icons/lu";
 import { toast } from "react-toastify";
 
 import CafeTopBar from "./CafeTopBar";
@@ -30,16 +31,39 @@ function DedicatedCafePageContent() {
   const slug = params?.slug;
 
   const { cafe, isLoading } = useCafeData(slug);
-  const { user, isCafeJoined, getMembership, joinCafe, isAuthenticated } = useLoyaltyStore();
+  const {
+    user,
+    isCafeJoined,
+    getMembership,
+    joinCafe,
+    isAuthenticated,
+    fetchCurrentUser,
+  } = useLoyaltyStore();
 
   const isJoined = isCafeJoined(slug);
   const membership = getMembership(slug);
 
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
   const [isBadgeHighlighted, setIsBadgeHighlighted] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const qrSectionRef = useRef(null);
+
+  // Active stamps tracking and celebration modal state
+  const currentStamps = membership?.stamps ?? 0;
+  const totalStamps = membership?.totalStamps ?? cafe?.stampTarget ?? 10;
+  const prevStampsRef = useRef(null);
+  const [stampModalConfig, setStampModalConfig] = useState(null);
+
+  // Background polling every 3.5s so barista scan is immediately picked up
+  useEffect(() => {
+    if (!isJoined) return;
+
+    const intervalId = setInterval(() => {
+      fetchCurrentUser();
+    }, 3500);
+
+    return () => clearInterval(intervalId);
+  }, [isJoined, fetchCurrentUser]);
 
   // Detect welcome flag from signup auto-join or info page redirect
   useEffect(() => {
@@ -49,11 +73,46 @@ function DedicatedCafePageContent() {
         sessionStorage.getItem(`stampy_welcome_stamp_${slug}`) === "true";
 
       if (hasWelcomeParam || hasSessionFlag) {
-        setIsWelcomeModalOpen(true);
+        setStampModalConfig({
+          isOpen: true,
+          stampNumber: 1,
+          addedStamps: 1,
+          isWelcome: true,
+          unlockedReward: false,
+        });
         sessionStorage.removeItem(`stampy_welcome_stamp_${slug}`);
       }
     }
   }, [searchParams, slug]);
+
+  // Detect when customer's stamps increase (e.g. barista scan awarded stamp)
+  useEffect(() => {
+    if (!isJoined || membership?.stamps === undefined) return;
+
+    if (prevStampsRef.current !== null && membership.stamps > prevStampsRef.current) {
+      const addedStamps = membership.stamps - prevStampsRef.current;
+      const newTotal = membership.stamps;
+
+      // 1. Close QR modal if open so customer sees the celebration
+      setIsQrModalOpen(false);
+
+      // 2. Automatically navigate smoothly to top if scrolled down on mobile
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // 3. Open celebration modal
+      setStampModalConfig({
+        isOpen: true,
+        stampNumber: newTotal,
+        addedStamps,
+        isWelcome: false,
+        unlockedReward: newTotal >= totalStamps,
+      });
+    }
+
+    prevStampsRef.current = membership.stamps;
+  }, [isJoined, membership?.stamps, totalStamps]);
 
   const scrollToQr = () => {
     setIsBadgeHighlighted(true);
@@ -87,7 +146,13 @@ function DedicatedCafePageContent() {
     try {
       const result = await joinCafe(cafe?.id || cafe?._id || slug);
       if (result.success) {
-        setIsWelcomeModalOpen(true);
+        setStampModalConfig({
+          isOpen: true,
+          stampNumber: 1,
+          addedStamps: 1,
+          isWelcome: true,
+          unlockedReward: false,
+        });
         toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`, {
           position: "top-right",
           autoClose: 3500,
@@ -118,8 +183,6 @@ function DedicatedCafePageContent() {
     );
   }
 
-  const currentStamps = membership?.stamps ?? 0;
-  const totalStamps = membership?.totalStamps ?? cafe?.stampTarget ?? 10;
   const recentActivities = (membership?.history || []).slice(0, 5);
 
   return (
@@ -130,11 +193,51 @@ function DedicatedCafePageContent() {
         <div className="md:col-span-7 flex flex-col gap-6">
           <CafeGreeting cafe={cafe} user={user} />
           <StampProgress currentStamps={currentStamps} totalStamps={totalStamps} />
+
+          {/* 📱 Mobile Quick Present QR Code Bar (< md screens) */}
+          <div className="block md:hidden">
+            <button
+              type="button"
+              onClick={() => setIsQrModalOpen(true)}
+              className="w-full flex items-center justify-between p-4 rounded-2xl bg-(--mainColor) text-(--secondColor) shadow-sm hover:opacity-95 active:scale-[0.99] transition cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-(--secondColor)/20 flex items-center justify-center">
+                  <LuQrCode className="w-6 h-6 text-(--secondColor)" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-bold text-xs uppercase tracking-wider text-(--secondColor)">
+                    Present to Barista
+                  </h3>
+                  <p className="text-[11px] text-(--bgColor)/75">
+                    Tap to open full-screen loyalty QR card
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-(--secondColor) text-[#3b2418]">
+                Show QR
+              </span>
+            </button>
+          </div>
+
           <StampsGrid currentStamps={currentStamps} totalStamps={totalStamps} />
+
+          {/* 📱 On Mobile, QR card is placed right under StampsGrid so customer doesn't scroll past activities */}
+          <div className="block md:hidden">
+            <CafeQrCard
+              ref={qrSectionRef}
+              cafe={cafe}
+              user={user}
+              isHighlighted={isBadgeHighlighted}
+              onShowQr={() => setIsQrModalOpen(true)}
+            />
+          </div>
+
           <RecentActivity activities={recentActivities} slug={slug} />
         </div>
 
-        <div className="md:col-span-5 mt-6 md:mt-0 md:sticky md:top-6 lg:top-8">
+        {/* 💻 Desktop Sticky QR Column (hidden on mobile, sticky on desktop) */}
+        <div className="hidden md:block md:col-span-5 md:sticky md:top-6 lg:top-8">
           <CafeQrCard
             ref={qrSectionRef}
             cafe={cafe}
@@ -156,13 +259,19 @@ function DedicatedCafePageContent() {
         />
       )}
 
-      {/* 🌟 Welcome Bonus Stamp Physical Animation Modal */}
-      <WelcomeStampModal
-        cafe={cafe}
-        isOpen={isWelcomeModalOpen}
-        onClose={() => setIsWelcomeModalOpen(false)}
-        totalStamps={totalStamps}
-      />
+      {/* 🌟 Celebratory Barista Stamp Animation Modal */}
+      {stampModalConfig?.isOpen && (
+        <WelcomeStampModal
+          cafe={cafe}
+          isOpen={stampModalConfig.isOpen}
+          onClose={() => setStampModalConfig(null)}
+          totalStamps={totalStamps}
+          stampNumber={stampModalConfig.stampNumber}
+          isWelcome={stampModalConfig.isWelcome}
+          unlockedReward={stampModalConfig.unlockedReward}
+          addedStamps={stampModalConfig.addedStamps}
+        />
+      )}
     </div>
   );
 }
