@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
@@ -29,6 +29,7 @@ function DedicatedCafeRewardsContent() {
     isCafeJoined,
     getMembership,
     redeemCafeReward,
+    fetchCafeRedemptions,
     joinCafe,
   } = useLoyaltyStore();
 
@@ -38,6 +39,13 @@ function DedicatedCafeRewardsContent() {
   const [activeTab, setActiveTab] = useState("available");
   const [selectedRewardToRedeem, setSelectedRewardToRedeem] = useState(null);
   const [activeQrRedemption, setActiveQrRedemption] = useState(null);
+
+  // Sync real customer redemptions from server for this cafe
+  useEffect(() => {
+    if (slug && isJoined) {
+      fetchCafeRedemptions(slug);
+    }
+  }, [slug, isJoined, fetchCafeRedemptions]);
 
   if (isLoading) {
     return (
@@ -75,8 +83,8 @@ function DedicatedCafeRewardsContent() {
     setSelectedRewardToRedeem(reward);
   };
 
-  const handleConfirmRedeem = (reward) => {
-    const result = redeemCafeReward(slug, reward.id);
+  const handleConfirmRedeem = async (reward) => {
+    const result = await redeemCafeReward(slug, reward.id);
     setSelectedRewardToRedeem(null);
 
     if (result.success && result.redemption) {

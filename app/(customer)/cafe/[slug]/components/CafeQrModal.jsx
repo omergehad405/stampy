@@ -1,11 +1,27 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { LuX } from "react-icons/lu";
-
+import { apiGetQrCode } from "@/app/lib/authApi";
 import QRCodeGraphic from "./QRCodeGraphic";
 
 export default function CafeQrModal({ cafe, user, totalStamps, onClose }) {
+  const [liveQrCode, setLiveQrCode] = useState(user?.qrCode || "");
+
+  useEffect(() => {
+    if (user?.qrCode) {
+      setLiveQrCode(user.qrCode);
+    } else if (!liveQrCode) {
+      apiGetQrCode()
+        .then((res) => {
+          if (res?.data?.qrCode) {
+            setLiveQrCode(res.data.qrCode);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.qrCode, liveQrCode]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
@@ -17,6 +33,8 @@ export default function CafeQrModal({ cafe, user, totalStamps, onClose }) {
       document.body.style.overflow = "";
     };
   }, [onClose]);
+
+  const customerQr = liveQrCode || user?.qrCode || user?.memberCode || "";
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
@@ -41,22 +59,22 @@ export default function CafeQrModal({ cafe, user, totalStamps, onClose }) {
         </button>
 
         <h3 id="qr-modal-title" className="text-xl sm:text-2xl font-bold mt-2">
-          Scan to Collect Stamps
+          Your Loyalty QR Code
         </h3>
         <p className="text-xs sm:text-sm opacity-70 mt-1">
-          Show this code to the barista at {cafe.name}
+          Show this code to the barista at {cafe.name} to collect your visit stamp.
         </p>
 
         <div className="w-52 h-52 sm:w-64 sm:h-64 p-4 border-2 border-(--bgColor)/30 rounded-2xl bg-white shadow-md my-4 flex items-center justify-center">
           <QRCodeGraphic
-            value={user?.qrCode || user?.memberCode || ""}
+            value={customerQr}
             className="w-full h-full"
             size={240}
           />
         </div>
 
         <div className="text-xs sm:text-sm font-semibold bg-(--bgColor)/10 border border-(--bgColor)/15 px-4 py-1.5 rounded-full">
-          {user?.name || "Omar"} • {user?.memberCode || "STAMPY-7842"} • {cafe.name}
+          {user?.name || "Customer"} • {cafe.name}
         </div>
 
         <p className="text-xs opacity-60 mt-3">

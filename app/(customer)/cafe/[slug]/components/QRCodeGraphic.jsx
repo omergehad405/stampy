@@ -4,7 +4,7 @@ import React from "react";
 import QRCodeImage from "@/app/components/ui/QRCodeImage";
 
 export default function QRCodeGraphic({
-  value = "STAMPY-CAFE-CHECKIN",
+  value = "",
   className = "w-36 h-36",
   size = 180,
 }) {

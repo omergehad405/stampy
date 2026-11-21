@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getCafeBySlug } from "../(customer)/cafe/data/cafesCatalog";
 import { apiGetMe, apiUpdateProfile } from "@/app/lib/authApi";
-import { apiJoinCafe, apiLeaveCafe } from "@/app/lib/cafeApi";
+import { apiJoinCafe, apiLeaveCafe, apiRedeemReward, apiGetMyRedemptions } from "@/app/lib/cafeApi";
 import { getAuthToken, removeAuthToken } from "@/app/lib/apiClient";
 import { useNotificationStore } from "./useNotificationStore";
 
@@ -504,8 +504,33 @@ export const useLoyaltyStore = create(
         return { success: true };
       },
 
-      // Redeem a specific reward for a specific cafe
-      redeemCafeReward: (cafeSlug, rewardId) => {
+      // Fetch real customer redemptions from server for a cafe
+      fetchCafeRedemptions: async (cafeSlug) => {
+        try {
+          const redemptions = await apiGetMyRedemptions(cafeSlug);
+          if (Array.isArray(redemptions)) {
+            set((state) => {
+              const currentMembership = state.memberships[cafeSlug] || {};
+              return {
+                memberships: {
+                  ...state.memberships,
+                  [cafeSlug]: {
+                    ...currentMembership,
+                    redemptions,
+                  },
+                },
+              };
+            });
+            return { success: true, redemptions };
+          }
+        } catch (err) {
+          console.warn("[LoyaltyStore] Could not fetch cafe redemptions:", err.message);
+        }
+        return { success: false };
+      },
+
+      // Redeem a specific reward for a specific cafe (Server-backed + local sync)
+      redeemCafeReward: async (cafeSlug, rewardId) => {
         const membership = get().getMembership(cafeSlug);
         if (!membership) {
           return {
@@ -514,81 +539,77 @@ export const useLoyaltyStore = create(
           };
         }
 
-        const cafe = getCafeBySlug(cafeSlug);
-        const targetReward = cafe?.rewards?.find((r) => r.id === rewardId);
+        try {
+          // 1. Call server to validate, atomically deduct stamps and generate official single-use redemption code
+          const res = await apiRedeemReward({
+            cafeSlug,
+            cafeId: membership.cafeId,
+            rewardId,
+          });
 
-        if (!targetReward) {
-          return { success: false, error: "Reward not found." };
+          if (!res?.success || !res?.data?.redemption) {
+            return {
+              success: false,
+              error: res?.message || "Failed to redeem reward on server.",
+            };
+          }
+
+          const newRedemption = res.data.redemption;
+          const remainingStamps = res.data.remainingStamps ?? Math.max(0, membership.stamps - (newRedemption.stampsSpent || 0));
+
+          const newActivity = {
+            id: `act-rdm-${Date.now()}`,
+            type: "redemption",
+            title: `Redeemed ${newRedemption.rewardName}`,
+            date: "Just now",
+            description: `Code ${newRedemption.code}`,
+            stampsDelta: -newRedemption.stampsSpent,
+          };
+
+          // 2. Update local Zustand state
+          set((state) => {
+            const currentMem = state.memberships[cafeSlug] || membership;
+            const existingRedemptions = currentMem.redemptions || [];
+            const updatedRedemptions = [newRedemption, ...existingRedemptions.filter(r => r.code !== newRedemption.code)];
+
+            const updatedMembership = {
+              ...currentMem,
+              stamps: remainingStamps,
+              redemptions: updatedRedemptions,
+              history: [newActivity, ...(currentMem.history || [])],
+            };
+
+            const redeemedCount = (state.user?.redeemedRewards || 0) + 1;
+
+            return {
+              memberships: {
+                ...state.memberships,
+                [cafeSlug]: updatedMembership,
+              },
+              user: {
+                ...state.user,
+                redeemedRewards: redeemedCount,
+                totalStamps: Math.max(0, (state.user?.totalStamps || 0) - newRedemption.stampsSpent),
+              },
+            };
+          });
+
+          // 3. Push real-time notification
+          try {
+            useNotificationStore.getState().addNotification({
+              title: "Reward Redeemed!",
+              message: `You unlocked ${newRedemption.rewardName}! Show the QR code at the counter to claim.`,
+              type: "reward",
+            });
+          } catch (notifErr) {
+            console.warn("[LoyaltyStore] Could not trigger notification:", notifErr);
+          }
+
+          return { success: true, redemption: newRedemption };
+        } catch (err) {
+          console.error("[LoyaltyStore] redeemCafeReward error:", err);
+          return { success: false, error: err.message || "Failed to redeem reward." };
         }
-
-        if (membership.stamps < targetReward.stampsRequired) {
-          return {
-            success: false,
-            error: `Insufficient stamps. You need ${targetReward.stampsRequired} stamps for this reward.`,
-          };
-        }
-
-        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        const newRedemption = {
-          id: `rdm-${Date.now()}`,
-          code: `STAMPY-RDM-${randomSuffix}`,
-          rewardId: targetReward.id,
-          rewardName: targetReward.name,
-          stampsSpent: targetReward.stampsRequired,
-          createdAt: new Date().toISOString(),
-          formattedDate: new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
-          status: "pending",
-          branch: `${cafe?.name || "Cafe"} • Main Branch`,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(
-            "en-US",
-            {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }
-          ),
-        };
-
-        const newActivity = {
-          id: `act-rdm-${Date.now()}`,
-          type: "redemption",
-          title: `Redeemed ${targetReward.name}`,
-          date: "Just now",
-          description: `Code ${newRedemption.code}`,
-          stampsDelta: -targetReward.stampsRequired,
-        };
-
-        const updatedStamps = membership.stamps - targetReward.stampsRequired;
-
-        set((state) => {
-          const updatedMembership = {
-            ...membership,
-            stamps: updatedStamps,
-            redemptions: [newRedemption, ...(membership.redemptions || [])],
-            history: [newActivity, ...(membership.history || [])],
-          };
-
-          const allMemberships = {
-            ...state.memberships,
-            [cafeSlug]: updatedMembership,
-          };
-
-          const redeemedCount = (state.user?.redeemedRewards || 0) + 1;
-
-          return {
-            memberships: allMemberships,
-            user: {
-              ...state.user,
-              redeemedRewards: redeemedCount,
-            },
-          };
-        });
-
-        return { success: true, redemption: newRedemption };
       },
 
       // Mark a pending redemption as used

@@ -93,3 +93,45 @@ export async function apiGetMyMemberships() {
   }
   return data.data?.memberships || [];
 }
+
+/**
+ * Redeem a reward for a cafe
+ */
+export async function apiRedeemReward({ cafeSlug, cafeId, rewardId }) {
+  const identifier = cafeId || cafeSlug;
+  if (!identifier || !rewardId) {
+    throw new Error("Cafe identifier and reward ID are required.");
+  }
+  const res = await fetch(`${BASE}/${encodeURIComponent(identifier)}/redeem`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    credentials: "include",
+    body: JSON.stringify({ rewardId, cafeSlug, cafeId }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to redeem reward.");
+  }
+  return data;
+}
+
+/**
+ * Fetch customer's redemptions for a cafe
+ */
+export async function apiGetMyRedemptions(cafeSlugOrId = "") {
+  const url = cafeSlugOrId
+    ? `${BASE}/my/redemptions?cafeSlug=${encodeURIComponent(cafeSlugOrId)}`
+    : `${BASE}/my/redemptions`;
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to fetch redemptions.");
+  }
+  return data.data?.redemptions || [];
+}

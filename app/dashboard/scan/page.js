@@ -27,7 +27,11 @@ import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import { useNotificationStore } from "@/app/stores/useNotificationStore";
-import { apiScanCustomer, apiAwardCustomerStamp } from "@/app/lib/dashboardApi";
+import {
+  apiScanCustomer,
+  apiAwardCustomerStamp,
+  apiFulfillRewardRedemption,
+} from "@/app/lib/dashboardApi";
 
 export default function DashboardScanPage() {
   const {
@@ -55,6 +59,7 @@ export default function DashboardScanPage() {
 
   // Scanned Customer Centered Verification Modal State
   const [scanModal, setScanModal] = useState(null);
+  const [rewardRedemptionModal, setRewardRedemptionModal] = useState(null);
   const [isScanningQuery, setIsScanningQuery] = useState(false);
 
   // Modals & Feedback
@@ -167,6 +172,29 @@ export default function DashboardScanPage() {
       try {
         const res = await apiScanCustomer(query);
         if (res?.success && res.data) {
+          // If the scanned QR is a Reward Redemption Voucher
+          if (res.type === "reward") {
+            setRewardRedemptionModal({
+              isOpen: true,
+              isFulfilling: false,
+              fulfilledSuccess: null,
+              error: null,
+              redemption: res.data.redemption,
+              customer: res.data.customer,
+              cafe: res.data.cafe,
+            });
+            setCodeInput("");
+            setActionSuccessData(null);
+            if (res.data.redemption?.isValid) {
+              toast.success(`🎁 Reward Voucher: ${res.data.redemption.rewardName} is valid!`);
+            } else if (res.data.redemption?.isUsed) {
+              toast.warn(`⚠️ Reward Voucher has already been claimed.`);
+            } else {
+              toast.error(`⚠️ Reward Voucher has expired.`);
+            }
+            return;
+          }
+
           const { customer, cafe, isJoined, stamps, totalStamps, alreadyVisitedToday } = res.data;
 
           // Open the centered confirmation & stamp awarding popup
@@ -440,6 +468,45 @@ export default function DashboardScanPage() {
       toast.success(`Reward "${rewardToRedeem.name}" redeemed successfully!`);
     } else {
       toast.error(res.error || "Failed to redeem reward.");
+    }
+  };
+
+  // Fulfill Scanned Reward Voucher from Barista Centered Modal
+  const handleFulfillRewardFromModal = async () => {
+    if (!rewardRedemptionModal?.redemption?.code) return;
+    setRewardRedemptionModal((prev) => ({ ...prev, isFulfilling: true, error: null }));
+    try {
+      const res = await apiFulfillRewardRedemption({
+        code: rewardRedemptionModal.redemption.code,
+      });
+
+      if (res?.success) {
+        setRewardRedemptionModal((prev) => ({
+          ...prev,
+          isFulfilling: false,
+          fulfilledSuccess: true,
+          redemption: {
+            ...prev.redemption,
+            status: "used",
+            isValid: false,
+            isUsed: true,
+            usedAt: new Date().toISOString(),
+          },
+        }));
+        toast.success(
+          `🎉 Reward "${rewardRedemptionModal.redemption.rewardName}" confirmed and fulfilled!`
+        );
+        fetchCustomers();
+        // Refresh live activities if supported
+        useDashboardStore.getState().fetchActivities?.();
+      }
+    } catch (err) {
+      setRewardRedemptionModal((prev) => ({
+        ...prev,
+        isFulfilling: false,
+        error: err.message || "Failed to fulfill reward redemption voucher.",
+      }));
+      toast.error(err.message || "Failed to fulfill reward.");
     }
   };
 
@@ -743,28 +810,6 @@ export default function DashboardScanPage() {
                 <div className="mt-5 space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
-                      Stamps to Issue
-                    </label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3].map((num) => (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() => setStampsToAdd(num)}
-                          className={`flex-1 rounded-xl py-2 text-xs font-bold transition cursor-pointer ${
-                            stampsToAdd === num
-                              ? "bg-(--mainColor) text-(--secondColor) shadow-2xs"
-                              : "border border-[#dacdb9] bg-[#f5ecdd] text-(--mainColor) hover:bg-white"
-                          }`}
-                        >
-                          +{num} Stamp{num > 1 ? "s" : ""}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
                       Order / Item Note (Optional)
                     </label>
                     <input
@@ -785,7 +830,11 @@ export default function DashboardScanPage() {
                     className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-5 py-2.5 text-xs font-bold text-(--secondColor) shadow-sm transition hover:opacity-95 disabled:opacity-50 cursor-pointer"
                   >
                     <LuCircleCheck className="h-4 w-4" />
-                    <span>Confirm Visit & Credit +{stampsToAdd} Stamp</span>
+                    <span>
+                      {hasVisitedToday && !allowDailyOverride
+                        ? "Already Visited Today (1 Stamp/Day)"
+                        : "Confirm Visit & Credit 1 Stamp"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1001,7 +1050,7 @@ export default function DashboardScanPage() {
                     {scanModal.alreadyVisitedToday && (
                       <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-900 flex items-center gap-2">
                         <LuTriangleAlert className="w-4 h-4 shrink-0 text-amber-700" />
-                        <span>Customer already visited today. Daily override is enabled.</span>
+                        <span>Customer already received today&apos;s visit stamp. (Rule: 1 stamp per calendar day)</span>
                       </div>
                     )}
                   </div>
@@ -1049,48 +1098,41 @@ export default function DashboardScanPage() {
                     </button>
                   </div>
                 ) : (
-                  /* Action Buttons to Award Stamp */
+                  /* Action Button to Award 1 Stamp */
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-(--mainColor)">Quantity:</span>
-                      {[1, 2, 3].map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => setScanModal((prev) => ({ ...prev, stampsToAward: n }))}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                            (scanModal.stampsToAward || 1) === n
-                              ? "bg-(--mainColor) text-(--secondColor)"
-                              : "bg-white border border-[#dacdb9] text-(--mainColor)"
-                          }`}
-                        >
-                          +{n} Stamp{n > 1 ? "s" : ""}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleAwardStampFromModal}
-                      disabled={scanModal.isAwarding}
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-(--secondColor) text-(--mainColor) py-3.5 px-4 font-extrabold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition cursor-pointer disabled:opacity-50"
-                    >
-                      {scanModal.isAwarding ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--mainColor)/30 border-t-(--mainColor)" />
-                          <span>Crediting Stamp to Account...</span>
-                        </>
-                      ) : (
-                        <>
-                          <LuCoffee className="w-5 h-5" />
-                          <span>
-                            {scanModal.isJoined
-                              ? `Give +${scanModal.stampsToAward || 1} Stamp to ${scanModal.customer.name.split(" ")[0]}`
-                              : `Enroll & Give +${scanModal.stampsToAward || 1} First Stamp`}
-                          </span>
-                        </>
-                      )}
-                    </button>
+                    {scanModal.alreadyVisitedToday ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-amber-100 border border-amber-300 text-amber-900 py-3.5 px-4 font-bold text-sm opacity-80 cursor-not-allowed"
+                      >
+                        <LuTriangleAlert className="w-5 h-5 text-amber-700" />
+                        <span>Already Received Today&apos;s Stamp</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleAwardStampFromModal}
+                        disabled={scanModal.isAwarding}
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-(--secondColor) text-(--mainColor) py-3.5 px-4 font-extrabold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition cursor-pointer disabled:opacity-50"
+                      >
+                        {scanModal.isAwarding ? (
+                          <>
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--mainColor)/30 border-t-(--mainColor)" />
+                            <span>Crediting Stamp to Account...</span>
+                          </>
+                        ) : (
+                          <>
+                            <LuCoffee className="w-5 h-5" />
+                            <span>
+                              {scanModal.isJoined
+                                ? `Give Stamp to ${scanModal.customer.name.split(" ")[0]}`
+                                : `Enroll & Give First Stamp`}
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    )}
 
                     <button
                       type="button"
@@ -1103,6 +1145,199 @@ export default function DashboardScanPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🎁 CENTERED REWARD REDEMPTION VOUCHER SCAN MODAL                          */}
+      {/* ========================================================================= */}
+      {rewardRedemptionModal?.isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="relative w-full max-w-md rounded-3xl border border-[#e8dfca] bg-[#faf6ed] p-6 sm:p-7 shadow-2xl text-(--mainColor)">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setRewardRedemptionModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-full text-(--mainColor)/60 hover:text-(--mainColor) hover:bg-(--mainColor)/10 transition cursor-pointer"
+              aria-label="Close modal"
+            >
+              <LuX className="w-5 h-5" />
+            </button>
+
+            {/* Error Message */}
+            {rewardRedemptionModal.error && (
+              <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 flex items-center gap-2">
+                <LuTriangleAlert className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{rewardRedemptionModal.error}</span>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {/* Header Badge & Title */}
+              <div className="text-center space-y-1">
+                <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-xs">
+                  <LuGift className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-(--mainColor)">
+                  Reward Voucher Verification
+                </h3>
+                <p className="text-xs text-(--mainColor)/60">
+                  Scanned single-use reward QR code
+                </p>
+              </div>
+
+              {/* Status Badge */}
+              <div className="flex items-center justify-center">
+                {rewardRedemptionModal.redemption?.isValid ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-xs font-bold text-emerald-800">
+                    <LuCircleCheck className="w-4 h-4 text-emerald-600" />
+                    Valid Voucher • Ready to Claim
+                  </span>
+                ) : rewardRedemptionModal.redemption?.isUsed ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-800">
+                    <LuTriangleAlert className="w-4 h-4 text-amber-600" />
+                    Voucher Already Claimed / Used
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 border border-rose-300 px-3 py-1 text-xs font-bold text-rose-800">
+                    <LuCircleAlert className="w-4 h-4 text-rose-600" />
+                    Voucher Expired
+                  </span>
+                )}
+              </div>
+
+              {/* Voucher Card Info */}
+              <div className="rounded-2xl border border-purple-200 bg-purple-50/60 p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <LuGift className="w-5 h-5 text-purple-700 shrink-0" />
+                    <h4 className="font-extrabold text-base text-purple-950">
+                      {rewardRedemptionModal.redemption?.rewardName}
+                    </h4>
+                  </div>
+                  <span className="rounded-md bg-purple-200/80 px-2 py-0.5 text-xs font-bold text-purple-900">
+                    -{rewardRedemptionModal.redemption?.stampsSpent || 0} Stamps
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-purple-200/70 text-xs text-purple-900/80">
+                  <span>Voucher Code:</span>
+                  <span className="font-mono font-bold text-(--mainColor) bg-white px-2 py-0.5 rounded border border-purple-200">
+                    {rewardRedemptionModal.redemption?.code}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-purple-900/80">
+                  <span>Eligible Café:</span>
+                  <span className="font-semibold text-(--mainColor)">
+                    {rewardRedemptionModal.cafe?.name || "This Café"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Customer Info Card */}
+              {rewardRedemptionModal.customer && (
+                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white border border-[#e3d7c0] shadow-2xs">
+                  {rewardRedemptionModal.customer.avatar ? (
+                    <img
+                      src={rewardRedemptionModal.customer.avatar}
+                      alt={rewardRedemptionModal.customer.name}
+                      className="w-12 h-12 rounded-xl object-cover border border-[#e3d7c0]"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-base border border-[#e3d7c0]">
+                      {rewardRedemptionModal.customer.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase() || "CU"}
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-bold text-sm text-(--mainColor) truncate">
+                      {rewardRedemptionModal.customer.name}
+                    </h5>
+                    <p className="text-xs text-(--mainColor)/60 truncate">
+                      {rewardRedemptionModal.customer.email || "Registered Member"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Celebratory Success Banner */}
+              {rewardRedemptionModal.fulfilledSuccess ? (
+                <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-center space-y-2 animate-in fade-in">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <LuCheck className="w-6 h-6 stroke-[3]" />
+                  </div>
+                  <h4 className="font-extrabold text-sm text-emerald-950">
+                    🎉 Reward Confirmed & Fulfilled!
+                  </h4>
+                  <p className="text-xs text-emerald-800">
+                    {rewardRedemptionModal.redemption?.rewardName} has been verified and given to{" "}
+                    <strong>{rewardRedemptionModal.customer?.name}</strong>.
+                  </p>
+                  <p className="text-[11px] text-emerald-700/80">
+                    Recorded in café activity and customer redemption history.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setRewardRedemptionModal(null)}
+                    className="w-full mt-2 rounded-xl bg-emerald-800 text-white font-bold text-xs py-2.5 hover:bg-emerald-900 transition cursor-pointer"
+                  >
+                    Done • Close
+                  </button>
+                </div>
+              ) : (
+                /* Action Button */
+                <div className="space-y-2.5 pt-2">
+                  {rewardRedemptionModal.redemption?.isValid ? (
+                    <button
+                      type="button"
+                      onClick={handleFulfillRewardFromModal}
+                      disabled={rewardRedemptionModal.isFulfilling}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white py-3.5 px-4 font-extrabold text-sm shadow-md transition cursor-pointer disabled:opacity-50"
+                    >
+                      {rewardRedemptionModal.isFulfilling ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          <span>Fulfilling Reward...</span>
+                        </>
+                      ) : (
+                        <>
+                          <LuGift className="w-5 h-5" />
+                          <span>Confirm & Fulfill Reward</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gray-200 text-gray-600 py-3.5 px-4 font-bold text-sm cursor-not-allowed opacity-80"
+                    >
+                      <LuTriangleAlert className="w-4 h-4 text-gray-500" />
+                      <span>Reward Already Claimed • Cannot Fulfill</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setRewardRedemptionModal(null)}
+                    className="w-full text-center text-xs font-bold text-(--mainColor)/60 hover:text-(--mainColor) py-1 transition cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

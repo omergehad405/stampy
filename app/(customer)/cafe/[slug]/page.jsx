@@ -101,6 +101,7 @@ function DedicatedCafePageContent() {
           <CafeQrCard
             ref={qrSectionRef}
             cafe={cafe}
+            user={user}
             isHighlighted={isBadgeHighlighted}
             onShowQr={() => setIsQrModalOpen(true)}
           />

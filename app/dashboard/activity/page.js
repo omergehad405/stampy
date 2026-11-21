@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   LuHistory,
   LuSearch,
@@ -17,7 +17,11 @@ import DashboardPageHeader from "../components/DashboardPageHeader";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 
 export default function DashboardActivityPage() {
-  const { activities } = useDashboardStore();
+  const { activities, fetchActivities, isLoadingActivities } = useDashboardStore();
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all"); // 'all' | 'stamp' | 'redemption' | 'join'
@@ -153,7 +157,16 @@ export default function DashboardActivityPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#ebdcc8]">
-              {filteredActivities.length > 0 ? (
+              {isLoadingActivities ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-xs text-(--mainColor)/60">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-(--mainColor)/20 border-t-(--mainColor)" />
+                      <span>Loading live activity history from server...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredActivities.length > 0 ? (
                 filteredActivities.map((act) => (
                   <tr key={act.id} className="hover:bg-[#f6efe4] transition">
                     <td className="px-5 py-4 whitespace-nowrap text-(--mainColor)/60 font-medium">

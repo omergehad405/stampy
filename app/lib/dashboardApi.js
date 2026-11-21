@@ -155,3 +155,32 @@ export async function apiAwardCustomerStamp({ customerId, stampsCount = 1, note 
   if (!res.ok) throw new Error(data.message || "Failed to award stamp.");
   return data;
 }
+
+/**
+ * Fulfill/confirm a reward redemption by barcode/QR code
+ */
+export async function apiFulfillRewardRedemption({ code }) {
+  const res = await fetch(`${CAFE_BASE}/fulfill-redemption`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to fulfill reward redemption.");
+  return data;
+}
+
+/**
+ * Fetch real activity history log for the staff cafe
+ */
+export async function apiGetCafeActivities() {
+  const res = await fetch(`${CAFE_BASE}/activities`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to fetch activities.");
+  return data.data?.activities || [];
+}

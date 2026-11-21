@@ -14,6 +14,7 @@ import {
   apiUpdateCafeProfile,
   apiGetCafeCustomers,
   apiUpdateCustomerStamps,
+  apiGetCafeActivities,
 } from "@/app/lib/dashboardApi";
 
 export const INITIAL_CUSTOMERS = [
@@ -285,7 +286,9 @@ export const useDashboardStore = create((set, get) => ({
   rewards: [],
   isLoadingRewards: false,
   rewardsError: null,
-  activities: INITIAL_DASHBOARD_ACTIVITIES,
+  activities: [],
+  isLoadingActivities: false,
+  activitiesLoaded: false,
   staffMembers: DEFAULT_STAFF_MEMBERS,
 
   // Settings
@@ -735,6 +738,19 @@ export const useDashboardStore = create((set, get) => ({
     } catch (err) {
       console.warn("[Dashboard Store] Failed to fetch customers:", err.message);
       set({ isLoadingCustomers: false });
+      return { success: false, error: err.message };
+    }
+  },
+
+  fetchActivities: async () => {
+    set({ isLoadingActivities: true });
+    try {
+      const activities = await apiGetCafeActivities();
+      set({ activities, isLoadingActivities: false, activitiesLoaded: true });
+      return { success: true, activities };
+    } catch (err) {
+      console.warn("[Dashboard Store] Failed to fetch activities:", err.message);
+      set({ isLoadingActivities: false });
       return { success: false, error: err.message };
     }
   },
