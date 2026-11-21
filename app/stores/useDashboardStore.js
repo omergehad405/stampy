@@ -15,6 +15,10 @@ import {
   apiGetCafeCustomers,
   apiUpdateCustomerStamps,
   apiGetCafeActivities,
+  apiGetCafeStaff,
+  apiCreateCafeStaff,
+  apiUpdateCafeStaff,
+  apiDeleteCafeStaff,
 } from "@/app/lib/dashboardApi";
 
 export const INITIAL_CUSTOMERS = [
@@ -660,7 +664,69 @@ export const useDashboardStore = create((set, get) => ({
   },
 
   // === STAFF MANAGEMENT ===
-  createStaff: (staffData) => {
+  fetchStaff: async () => {
+    try {
+      const staffList = await apiGetCafeStaff();
+      if (Array.isArray(staffList)) {
+        set({
+          staffMembers: staffList.map((s) => ({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            phone: s.phone || "",
+            role: s.roleLabel || s.role,
+            roleKey: s.roleKey,
+            status: s.isActive ? "active" : "inactive",
+            joinedDate: s.createdAt ? new Date(s.createdAt).toISOString().split("T")[0] : "Recently",
+            avatar:
+              s.avatar ||
+              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+            canManageStaff: s.roleKey === "owner",
+            canEditCafe: s.roleKey === "owner" || s.roleKey === "manager",
+            canManageRewards: s.roleKey !== "barista",
+          })),
+        });
+      }
+    } catch (e) {
+      console.warn("[Dashboard Store] Could not fetch server staff list:", e.message);
+    }
+  },
+
+  createStaff: async (staffData) => {
+    try {
+      const res = await apiCreateCafeStaff({
+        name: staffData.name,
+        email: staffData.email,
+        password: staffData.password || "Password123!",
+        role: staffData.roleKey === "manager" ? "cafeManager" : "cafeBarista",
+        phone: staffData.phone,
+      });
+
+      if (res.success && res.data) {
+        const s = res.data;
+        const newStaff = {
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          phone: s.phone || "",
+          role: s.roleLabel || s.role,
+          roleKey: s.roleKey,
+          status: s.isActive ? "active" : "inactive",
+          joinedDate: new Date().toISOString().split("T")[0],
+          avatar:
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+          canManageStaff: s.roleKey === "owner",
+          canEditCafe: s.roleKey === "owner" || s.roleKey === "manager",
+          canManageRewards: s.roleKey !== "barista",
+        };
+        const { staffMembers } = get();
+        set({ staffMembers: [newStaff, ...staffMembers] });
+        return { success: true, staff: newStaff };
+      }
+    } catch (err) {
+      console.warn("[Dashboard Store] createStaff server error, using local fallback:", err.message);
+    }
+
     const { staffMembers } = get();
     const newStaff = {
       id: `staff-${Date.now()}`,
@@ -674,11 +740,23 @@ export const useDashboardStore = create((set, get) => ({
       canManageRewards: staffData.roleKey !== "barista",
       ...staffData,
     };
-    set({ staffMembers: [...staffMembers, newStaff] });
+    set({ staffMembers: [newStaff, ...staffMembers] });
     return { success: true, staff: newStaff };
   },
 
-  updateStaff: (staffId, updatedData) => {
+  updateStaff: async (staffId, updatedData) => {
+    try {
+      await apiUpdateCafeStaff(staffId, {
+        name: updatedData.name,
+        phone: updatedData.phone,
+        role: updatedData.roleKey === "manager" ? "cafeManager" : updatedData.roleKey === "barista" ? "cafeBarista" : undefined,
+        isActive: updatedData.status === "active",
+        password: updatedData.password || undefined,
+      });
+    } catch (e) {
+      console.warn("[Dashboard Store] updateStaff server error, using local fallback:", e.message);
+    }
+
     const { staffMembers } = get();
     set({
       staffMembers: staffMembers.map((s) =>
@@ -688,7 +766,13 @@ export const useDashboardStore = create((set, get) => ({
     return { success: true };
   },
 
-  deleteStaff: (staffId) => {
+  deleteStaff: async (staffId) => {
+    try {
+      await apiDeleteCafeStaff(staffId);
+    } catch (e) {
+      console.warn("[Dashboard Store] deleteStaff server error, using local fallback:", e.message);
+    }
+
     const { staffMembers } = get();
     set({
       staffMembers: staffMembers.filter((s) => s.id !== staffId),
@@ -696,13 +780,21 @@ export const useDashboardStore = create((set, get) => ({
     return { success: true };
   },
 
-  toggleStaffStatus: (staffId) => {
+  toggleStaffStatus: async (staffId) => {
     const { staffMembers } = get();
+    const staff = staffMembers.find((s) => s.id === staffId);
+    if (!staff) return;
+
+    const nextStatus = staff.status === "active" ? "inactive" : "active";
+    try {
+      await apiUpdateCafeStaff(staffId, { isActive: nextStatus === "active" });
+    } catch (e) {
+      console.warn("[Dashboard Store] toggleStaffStatus server error:", e.message);
+    }
+
     set({
       staffMembers: staffMembers.map((s) =>
-        s.id === staffId
-          ? { ...s, status: s.status === "active" ? "inactive" : "active" }
-          : s
+        s.id === staffId ? { ...s, status: nextStatus } : s
       ),
     });
   },

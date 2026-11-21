@@ -184,3 +184,52 @@ export async function apiGetCafeActivities() {
   if (!res.ok) throw new Error(data.message || "Failed to fetch activities.");
   return data.data?.activities || [];
 }
+
+/**
+ * Staff management API endpoints
+ */
+export async function apiGetCafeStaff() {
+  const res = await fetch(`${CAFE_BASE}/staff`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to fetch staff members.");
+  return data.data || [];
+}
+
+export async function apiCreateCafeStaff(staffData) {
+  const res = await fetch(`${CAFE_BASE}/staff`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(staffData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to create staff member.");
+  return data;
+}
+
+export async function apiUpdateCafeStaff(id, updates) {
+  const res = await fetch(`${CAFE_BASE}/staff/${id}`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(updates),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update staff member.");
+  return data;
+}
+
+export async function apiDeleteCafeStaff(id) {
+  const res = await fetch(`${CAFE_BASE}/staff/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to delete staff member.");
+  return data;
+}

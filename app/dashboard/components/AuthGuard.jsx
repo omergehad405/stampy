@@ -4,18 +4,58 @@ import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
 import { getAuthToken } from "@/app/lib/apiClient";
+import { toast } from "react-toastify";
 
 const emptySubscribe = () => () => {};
 
 /**
- * AuthGuardContent enforces strict authentication protection on the Cafe Dashboard site.
- * If the user is unauthenticated or the session/token has expired, it blocks all page
- * content from rendering and immediately redirects to /dashboard/login.
+ * Role → permitted route prefixes.
+ * owner  : full access
+ * manager: everything except users and settings
+ * barista: only scan and activity
+ */
+const ROLE_PERMITTED = {
+  owner: [
+    "/dashboard/scan",
+    "/dashboard/customers",
+    "/dashboard/rewards",
+    "/dashboard/profile",
+    "/dashboard/users",
+    "/dashboard/activity",
+    "/dashboard/settings",
+    "/dashboard",           // root overview — keep last so prefix check works correctly
+  ],
+  manager: [
+    "/dashboard/scan",
+    "/dashboard/customers",
+    "/dashboard/rewards",
+    "/dashboard/profile",
+    "/dashboard/activity",
+    "/dashboard",
+  ],
+  barista: [
+    "/dashboard/scan",
+    "/dashboard/activity",
+  ],
+};
+
+/** Returns true when pathname is covered by the role's permitted list */
+function isPermitted(roleKey, pathname) {
+  const list = ROLE_PERMITTED[roleKey] ?? ROLE_PERMITTED.barista;
+  // exact match first, then check for deeper sub-paths (/dashboard/scan/...)
+  return list.some((allowed) => pathname === allowed || pathname.startsWith(allowed + "/"));
+}
+
+/**
+ * AuthGuardContent enforces strict authentication + role-based route protection
+ * on the Cafe Dashboard.  Unauthenticated users are redirected to /dashboard/login;
+ * authenticated users who try to access a route their role cannot see are redirected
+ * to their default landing page with an error toast.
  */
 function AuthGuardContent({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, checkAuth } = useDashboardAuthStore();
+  const { isAuthenticated, currentUser, checkAuth } = useDashboardAuthStore();
   const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [isChecking, setIsChecking] = useState(true);
 
@@ -53,6 +93,25 @@ function AuthGuardContent({ children }) {
       }
 
       if (isMounted) {
+        // 3. Role-based route guard
+        const user = res.user ?? useDashboardAuthStore.getState().currentUser;
+        const roleKey = user?.roleKey ?? "barista";
+        const defaultRoute = roleKey === "barista" ? "/dashboard/scan" : "/dashboard";
+
+        // Baristas landing on root overview → silently redirect, no toast
+        if (roleKey === "barista" && pathname === "/dashboard") {
+          router.replace("/dashboard/scan");
+          setIsChecking(false);
+          return;
+        }
+
+        if (!isPermitted(roleKey, pathname)) {
+          toast.error("Access Restricted: Your role does not have permission for this page.");
+          router.replace(defaultRoute);
+          setIsChecking(false);
+          return;
+        }
+
         setIsChecking(false);
       }
     }

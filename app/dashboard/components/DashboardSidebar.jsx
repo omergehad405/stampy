@@ -31,12 +31,22 @@ export default function DashboardSidebar({ isOpen, onClose }) {
     router.push("/dashboard/login");
   };
 
+  const role = currentUser?.backendRole || currentUser?.role;
+  const roleKey =
+    currentUser?.roleKey ||
+    (role === "cafeOwner" || role === "admin"
+      ? "owner"
+      : role === "cafeManager"
+      ? "manager"
+      : "barista");
+
   const navItems = [
     {
       label: "Overview",
       href: "/dashboard",
       icon: LuLayoutDashboard,
       isActive: pathname === "/dashboard",
+      roles: ["owner", "manager"],
     },
     {
       label: "Scan & Visits",
@@ -45,44 +55,56 @@ export default function DashboardSidebar({ isOpen, onClose }) {
       isActive: pathname === "/dashboard/scan",
       badge: "Scanner",
       highlight: true,
+      roles: ["owner", "manager", "barista"],
     },
     {
       label: "Customers",
       href: "/dashboard/customers",
       icon: LuUsers,
       isActive: pathname.startsWith("/dashboard/customers"),
+      roles: ["owner", "manager"],
     },
     {
       label: "Rewards",
       href: "/dashboard/rewards",
       icon: LuGift,
       isActive: pathname.startsWith("/dashboard/rewards"),
+      roles: ["owner", "manager"],
     },
     {
       label: "Cafe Profile",
       href: "/dashboard/profile",
       icon: LuStore,
       isActive: pathname.startsWith("/dashboard/profile"),
+      roles: ["owner", "manager"],
     },
     {
       label: "Users & Staff",
       href: "/dashboard/users",
       icon: LuUserCheck,
       isActive: pathname.startsWith("/dashboard/users"),
+      roles: ["owner"], // Only Cafe Owner can manage staff & accounts
     },
     {
       label: "Activity History",
       href: "/dashboard/activity",
       icon: LuHistory,
       isActive: pathname.startsWith("/dashboard/activity"),
+      roles: ["owner", "manager", "barista"],
     },
     {
       label: "Settings",
       href: "/dashboard/settings",
       icon: LuSettings,
       isActive: pathname.startsWith("/dashboard/settings"),
+      roles: ["owner"], // Only Cafe Owner can alter core settings
     },
   ];
+
+  // Filter navigation items strictly according to the staff member's role
+  const visibleNavItems = navItems.filter(
+    (item) => !item.roles || item.roles.includes(roleKey)
+  );
 
   return (
     <>
@@ -161,9 +183,9 @@ export default function DashboardSidebar({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links (Filtered strictly by Role) */}
           <nav className="flex flex-col gap-1 px-3 py-2" aria-label="Dashboard Navigation">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -222,10 +244,24 @@ export default function DashboardSidebar({ isOpen, onClose }) {
               />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-xs font-bold text-(--mainColor)">
-                  {currentUser?.name || "Elena Rostova"}
+                  {currentUser?.name || "Staff Member"}
                 </div>
-                <div className="truncate text-[10px] font-medium text-(--mainColor)/60">
-                  {currentUser?.role || "Manager"}
+                <div className="mt-0.5 flex items-center gap-1.5">
+                  <span
+                    className={`inline-block rounded-md px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider ${
+                      roleKey === "owner"
+                        ? "bg-amber-100 text-amber-900 border border-amber-300"
+                        : roleKey === "manager"
+                        ? "bg-blue-100 text-blue-900 border border-blue-300"
+                        : "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                    }`}
+                  >
+                    {roleKey === "owner"
+                      ? "Owner"
+                      : roleKey === "manager"
+                      ? "Manager"
+                      : "Barista"}
+                  </span>
                 </div>
               </div>
             </div>
