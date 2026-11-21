@@ -74,6 +74,25 @@ function LoginPageContent() {
     }
   }, [isAuthenticated, user]);
 
+  const [mode, setMode] = useState("signup"); // "signup" or "login"
+  const [accountType, setAccountType] = useState("customer"); // "customer" or "cafeOwner"
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [form, setForm] = useState({
+    fullName: "",
+    countryCode: "+1",
+    phone: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setErrorMessage("");
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
