@@ -7,6 +7,12 @@ import { LuStore, LuSparkles } from "react-icons/lu";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import { getAuthToken } from "@/app/lib/apiClient";
 
+import MyCafesHeader from "./components/MyCafesHeader";
+import MyCafesOverview from "./components/MyCafesOverview";
+import MyCafesEmptyState from "./components/MyCafesEmptyState";
+import JoinedCafesGrid from "./components/JoinedCafesGrid";
+import SuggestedCafesSection from "./components/SuggestedCafesSection";
+
 const emptySubscribe = () => () => { };
 
 function useIsClient() {
