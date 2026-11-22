@@ -24,7 +24,6 @@ import {
 } from "react-icons/lu";
 import HeroPhoneMockup from "./components/HeroPhoneMockup";
 import FaqAccordion from "./components/FaqAccordion";
-import PricingPlansList from "./pricing/PricingPlansList";
 import {
   HERO_CONTENT,
   PROBLEMS_CONTENT,
@@ -34,7 +33,6 @@ import {
   ONLINE_MENU_CONTENT,
   EXPOSURE_CONTENT,
   PLATFORM_NOTE,
-  DEFAULT_PLANS,
 } from "./content";
 
 export const metadata = {
@@ -468,40 +466,6 @@ export default function MarketingHomePage() {
         </div>
       </section>
 
-      {/* 9. PRICING PREVIEW SECTION */}
-      <section
-        id="pricing"
-        aria-labelledby="pricing-preview-heading"
-        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 scroll-mt-24"
-      >
-        <div className="mx-auto max-w-2xl text-center space-y-3 mb-12 sm:mb-16">
-          <span className="text-xs font-bold uppercase tracking-wider text-(--secondColor)">
-            Transparent Egyptian Pricing
-          </span>
-          <h2
-            id="pricing-preview-heading"
-            className="text-2xl font-extrabold text-(--mainColor) sm:text-3xl lg:text-4xl"
-          >
-            Start free, scale as regulars grow
-          </h2>
-          <p className="text-sm leading-relaxed text-(--mainColor)/75">
-            Customers always use Notch for free. Cafes choose the tier that fits their monthly volume.
-          </p>
-        </div>
-
-        <PricingPlansList isPreview={true} maxFeatures={4} />
-
-        <div className="mt-10 text-center">
-          <Link
-            href="/pricing"
-            className="inline-flex items-center gap-2 text-sm font-bold text-(--mainColor) hover:text-(--secondColor) transition"
-          >
-            <span>See detailed tier comparison table</span>
-            <LuArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
-
       {/* 10. FAQ ACCORDION SECTION */}
       <section
         id="faq"
@@ -516,10 +480,10 @@ export default function MarketingHomePage() {
             id="faq-heading"
             className="text-2xl font-extrabold text-(--mainColor) sm:text-3xl lg:text-4xl"
           >
-            Questions & Answers for Egypt
+            Questions & Answers
           </h2>
           <p className="text-sm leading-relaxed text-(--mainColor)/75">
-            Clear answers for coffee lovers and Egyptian cafe owners.
+            Clear answers for coffee lovers and cafe owners.
           </p>
         </div>
 

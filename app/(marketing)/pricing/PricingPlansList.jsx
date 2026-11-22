@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { LuCheck, LuX, LuSparkles, LuArrowRight } from "react-icons/lu";
-import { DEFAULT_PLANS } from "../content";
 import { API_BASE } from "@/app/lib/apiClient";
 
+// In-memory module cache to ensure 0ms latency on page revisits
+let memoryCachedPlans = null;
+
 const FEATURE_LABELS = {
-  digital_menu: "Digital online menu showcase",
+  digital_menu: "Digital online menu showcase (Coming soon)",
   activity_history: "Live visit activity log",
   multi_staff: "Multi-staff barista accounts",
   promotional_campaigns: "Free exposure on Discover (Featured Cafe)",
@@ -27,6 +29,79 @@ function hasFeature(plan, keyword) {
   );
 }
 
+function PricingSkeleton({ showComparison = false }) {
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 items-stretch">
+        {[1, 2, 3].map((idx) => (
+          <div
+            key={idx}
+            className={`relative flex flex-col justify-between rounded-3xl p-6 sm:p-8 animate-pulse ${
+              idx === 2
+                ? "border-2 border-(--mainColor)/20 bg-(--mainColor)/5 lg:-translate-y-2 shadow-sm"
+                : "border border-(--mainColor)/10 bg-(--bgColor)"
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="h-6 w-28 rounded-lg bg-(--mainColor)/15" />
+                {idx === 2 && (
+                  <div className="h-5 w-24 rounded-full bg-(--secondColor)/30" />
+                )}
+              </div>
+
+              <div className="mt-3 space-y-1.5 min-h-[40px]">
+                <div className="h-3.5 w-full rounded bg-(--mainColor)/10" />
+                <div className="h-3.5 w-4/5 rounded bg-(--mainColor)/10" />
+              </div>
+
+              <div className="mt-6 flex items-baseline gap-2 border-b border-(--mainColor)/10 pb-6">
+                <div className="h-10 w-32 rounded-lg bg-(--mainColor)/15" />
+                <div className="h-4 w-12 rounded bg-(--mainColor)/10" />
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <div className="h-3 w-28 rounded bg-(--mainColor)/15" />
+                <div className="space-y-2.5">
+                  {[1, 2, 3, 4, 5].map((item) => (
+                    <div key={item} className="flex items-center gap-2.5">
+                      <div className="h-4 w-4 shrink-0 rounded-full bg-(--mainColor)/15" />
+                      <div
+                        className="h-3.5 rounded bg-(--mainColor)/10"
+                        style={{ width: `${60 + (item * 7) % 35}%` }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4">
+              <div className="h-12 w-full rounded-xl bg-(--mainColor)/15" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showComparison && (
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mt-16 sm:mt-24">
+          <div className="rounded-3xl border border-(--mainColor)/15 bg-(--mainColor)/5 p-6 sm:p-10 animate-pulse">
+            <div className="h-7 w-64 mx-auto bg-(--mainColor)/15 rounded-md mb-8" />
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5, 6].map((row) => (
+                <div
+                  key={row}
+                  className="h-10 w-full rounded-xl bg-(--mainColor)/10"
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
 export function DetailedTierComparisonTable({ plans }) {
   const comparisonRows = [
     {
@@ -39,18 +114,18 @@ export function DetailedTierComparisonTable({ plans }) {
       getValue: (p) =>
         p.isUnlimitedCustomers || p.maxCustomers >= 1000
           ? "Unlimited"
-          : `${p.maxCustomers}`,
+          : `${p.maxCustomers} regulars`,
     },
     {
       feature: "Barista & Staff Workstations",
-      getValue: (p) => (p.maxStaff >= 20 ? "Unlimited" : `${p.maxStaff}`),
+      getValue: (p) => (p.maxStaff >= 20 ? "Unlimited" : `${p.maxStaff} staff`),
     },
     {
       feature: "Active Reward Offerings",
       getValue: (p) =>
         p.isUnlimitedRewards || p.maxRewards >= 50
           ? "Unlimited"
-          : `${p.maxRewards} tiers`,
+          : `${p.maxRewards} rewards`,
     },
     {
       feature: "Repeat-Customer Rewards (Digital Stamps)",
@@ -70,7 +145,8 @@ export function DetailedTierComparisonTable({ plans }) {
     },
     {
       feature: "Searchable Customer Directory",
-      getValue: (p) => p.maxCustomers > 50 || p.isUnlimitedCustomers,
+      getValue: (p) =>
+        p.isUnlimitedCustomers || p.maxCustomers > 50 ? true : "Basic",
     },
     {
       feature: "Free Exposure on Discover (New Customers)",
@@ -80,7 +156,11 @@ export function DetailedTierComparisonTable({ plans }) {
           hasFeature(p, "discover") ||
           hasFeature(p, "exposure");
         if (!hasExposure && p.price === 0) return false;
-        return p.isPopular ? "Featured" : p.price > 500 ? "Priority Placement" : "Included";
+        return p.isPopular
+          ? "Featured"
+          : p.price > 500
+          ? "Priority Placement"
+          : "Included";
       },
     },
     {
@@ -187,8 +267,8 @@ export default function PricingPlansList({
   maxFeatures = 5,
   showComparison = false,
 }) {
-  const [plans, setPlans] = useState(DEFAULT_PLANS);
-  const [isLiveLoaded, setIsLiveLoaded] = useState(false);
+  const [plans, setPlans] = useState(() => memoryCachedPlans || []);
+  const [isLoading, setIsLoading] = useState(() => !memoryCachedPlans);
 
   useEffect(() => {
     let isCancelled = false;
@@ -196,7 +276,10 @@ export default function PricingPlansList({
     async function loadLivePlans() {
       try {
         const res = await fetch(`${API_BASE}/api/plans`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          setIsLoading(false);
+          return;
+        }
         const json = await res.json();
         if (
           !isCancelled &&
@@ -205,26 +288,18 @@ export default function PricingPlansList({
           json.data.plans.length > 0
         ) {
           const liveList = json.data.plans.map((p) => {
-            const matchingDefault = DEFAULT_PLANS.find(
-              (dp) => dp.name.toLowerCase() === p.name.toLowerCase()
-            );
-
-            // Format features
             let featuresList = [];
             if (Array.isArray(p.features) && p.features.length > 0) {
               featuresList = p.features.map(formatFeature);
-            } else if (matchingDefault) {
-              featuresList = matchingDefault.features;
             }
 
             return {
-              id: p.id || p._id,
+              id: p.id || p._id || p.name,
               name: p.name,
-              description: p.description || matchingDefault?.description || "",
-              price: p.price ?? matchingDefault?.price ?? 0,
-              currency: p.currency || matchingDefault?.currency || "EGP",
-              billingPeriod:
-                p.billingPeriod || matchingDefault?.billingPeriod || "month",
+              description: p.description || "",
+              price: p.price ?? 0,
+              currency: p.currency || "EGP",
+              billingPeriod: p.billingPeriod || "month",
               isPopular: Boolean(p.isPopular),
               maxCustomers: p.maxCustomers,
               maxStaff: p.maxStaff,
@@ -233,32 +308,39 @@ export default function PricingPlansList({
               isUnlimitedRewards: p.isUnlimitedRewards,
               features: featuresList,
               cta:
-                matchingDefault?.cta ||
-                (p.price === 0
+                p.price === 0
                   ? "Start Free"
                   : p.isPopular
                   ? "Apply for Growth"
-                  : "Talk to Our Team"),
-              ctaHref:
-                matchingDefault?.ctaHref ||
-                `/contact?plan=${encodeURIComponent(p.name)}`,
+                  : "Talk to Our Team",
+              ctaHref: `/contact?plan=${encodeURIComponent(p.name)}`,
             };
           });
 
+          memoryCachedPlans = liveList;
           setPlans(liveList);
-          setIsLiveLoaded(true);
+          setIsLoading(false);
+        } else {
+          setIsLoading(false);
         }
       } catch (err) {
         console.warn("[PricingPlansList] Error fetching live /api/plans:", err.message);
+        setIsLoading(false);
       }
     }
 
-    loadLivePlans();
+    if (!memoryCachedPlans) {
+      loadLivePlans();
+    }
 
     return () => {
       isCancelled = true;
     };
   }, []);
+
+  if (isLoading || plans.length === 0) {
+    return <PricingSkeleton showComparison={showComparison} />;
+  }
 
   return (
     <>
@@ -291,11 +373,6 @@ export default function PricingPlansList({
                   <h2 className="text-xl font-extrabold text-(--mainColor)">
                     {plan.name}
                   </h2>
-                  {isLiveLoaded && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full">
-                      Live
-                    </span>
-                  )}
                 </div>
 
                 <p className="mt-1.5 text-xs text-(--mainColor)/70 leading-relaxed min-h-[40px]">
@@ -344,7 +421,7 @@ export default function PricingPlansList({
         })}
       </div>
 
-      {/* Detailed Tier Comparison Table (Rendered with the real plans) */}
+      {/* Detailed Tier Comparison Table */}
       {showComparison && <DetailedTierComparisonTable plans={plans} />}
     </>
   );

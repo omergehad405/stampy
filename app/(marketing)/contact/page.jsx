@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { LuMail, LuCircleCheck, LuArrowRight } from "react-icons/lu";
 import { toast } from "react-toastify";
-import { CONTACT_PAGE_CONTENT, DEFAULT_PLANS } from "../content";
+import { CONTACT_PAGE_CONTENT } from "../content";
 import { API_BASE } from "@/app/lib/apiClient";
 
 function ContactForm() {
@@ -14,6 +14,32 @@ function ContactForm() {
 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [planOptions, setPlanOptions] = useState([
+    { name: "Starter", label: "Starter (Free)" },
+    { name: "Growth", label: "Growth (Most Popular)" },
+    { name: "Pro Unlimited", label: "Pro Unlimited" },
+  ]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    fetch(`${API_BASE}/api/plans`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (!isCancelled && res.success && Array.isArray(res.data?.plans) && res.data.plans.length > 0) {
+          setPlanOptions(
+            res.data.plans.map((p) => ({
+              name: p.name,
+              label: `${p.name} (${p.price === 0 ? "Free" : `${p.price} ${p.currency || "EGP"}/${p.billingPeriod || "mo"}`})`,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     cafeName: "",
@@ -213,9 +239,9 @@ function ContactForm() {
                 onChange={handleChange}
                 className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--bgColor) px-3.5 text-sm text-(--mainColor) outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
               >
-                {DEFAULT_PLANS.map((p) => (
-                  <option key={p.id || p.name} value={p.name}>
-                    {p.name} ({p.price} {p.currency || "EGP"}/{p.billingPeriod})
+                {planOptions.map((p) => (
+                  <option key={p.name} value={p.name}>
+                    {p.label}
                   </option>
                 ))}
               </select>
