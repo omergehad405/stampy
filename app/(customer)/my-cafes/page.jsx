@@ -1,18 +1,46 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { LuStore, LuSparkles } from "react-icons/lu";
 
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
+import { getAuthToken } from "@/app/lib/apiClient";
 
-import MyCafesHeader from "./components/MyCafesHeader";
-import MyCafesOverview from "./components/MyCafesOverview";
-import MyCafesEmptyState from "./components/MyCafesEmptyState";
-import JoinedCafesGrid from "./components/JoinedCafesGrid";
-import SuggestedCafesSection from "./components/SuggestedCafesSection";
+const emptySubscribe = () => () => { };
+
+function useIsClient() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
 
 export default function MyCafesPage() {
-  const { getJoinedCafes, leaveCafe } = useLoyaltyStore();
+  const router = useRouter();
+  const isMounted = useIsClient();
+  const { isAuthenticated, getJoinedCafes, leaveCafe } = useLoyaltyStore();
+
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, router]);
+
+  const isAuthorized = Boolean(
+    typeof window !== "undefined" && (getAuthToken() || isAuthenticated)
+  );
+
+  if (!isMounted || !isAuthorized) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-3 border-(--mainColor)/20 border-t-(--mainColor)" />
+      </div>
+    );
+  }
+
   const joinedCafes = getJoinedCafes();
 
   return (

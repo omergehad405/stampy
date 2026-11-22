@@ -58,7 +58,7 @@ export default function DashboardLoginPage() {
           </div>
           <div className="mt-4 flex items-center justify-center gap-2">
             <h2 className="text-2xl font-bold tracking-tight text-(--bgColor)">
-              Stampy Cafe Portal
+              Notch Cafe Portal
             </h2>
             <span className="rounded-md bg-(--secondColor) px-2 py-0.5 text-xs font-bold text-[#3B2418]">
               Staff

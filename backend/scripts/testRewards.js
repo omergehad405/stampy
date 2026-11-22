@@ -65,7 +65,7 @@ function extractCookie(headers) {
 
 async function runTests() {
   console.log("\n==============================================");
-  console.log("   STAMPY CAFE REWARDS AUTOMATION TEST SUITE");
+  console.log("   Notch CAFE REWARDS AUTOMATION TEST SUITE");
   console.log("==============================================\n");
 
   await connectDB();
@@ -85,7 +85,7 @@ async function runTests() {
 
   try {
     // 1. Ensure test owner exists
-    const testEmail = "test_reward_owner@stampy.io";
+    const testEmail = "test_reward_owner@Stampy.io";
     let owner = await User.findOne({ email: testEmail });
     if (!owner) {
       owner = await User.create({

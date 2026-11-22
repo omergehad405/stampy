@@ -35,11 +35,11 @@ function mockReqRes(body = {}, params = {}, headers = {}) {
 }
 
 async function runTests() {
-  console.log("=== Testing Stampy Forgot & Reset Password Flow ===");
+  console.log("=== Testing Notch Forgot & Reset Password Flow ===");
 
   await connectDB();
 
-  const testEmail = `test_reset_${Date.now()}@stampy.app`;
+  const testEmail = `test_reset_${Date.now()}@Stampy.app`;
   const initialPassword = "InitialPassword123!";
   const newPassword = "NewSecretPassword2026!";
 
@@ -66,7 +66,7 @@ async function runTests() {
     // 3. Test forgotPassword with non-existent email
     console.log("\n3. Testing forgotPassword with non-existent email...");
     {
-      const { req, res } = mockReqRes({ email: "nonexistent_stampy_user@nowhere.com" });
+      const { req, res } = mockReqRes({ email: "nonexistent_Stampy_user@nowhere.com" });
       await forgotPassword(req, res);
       console.assert(res.statusCode === 404, `Expected 404, got ${res.statusCode}`);
       console.log(" Correctly returned 404 for non-existent user:", res.data.message);

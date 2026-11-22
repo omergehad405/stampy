@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
+import { getAuthToken } from "@/app/lib/apiClient";
 import { getAllRegisteredCafes, getCafeBySlug } from "../cafe/data/cafesCatalog";
 
 import HomeSkeleton from "./components/HomeSkeleton";
@@ -13,12 +15,12 @@ import ActiveLoyaltyCards from "./components/ActiveLoyaltyCards";
 import DiscoverCafesSection from "./components/DiscoverCafesSection";
 import RecentActivityTimeline from "./components/RecentActivityTimeline";
 import AvailableRewardsSection from "./components/AvailableRewardsSection";
-import HowStampyWorks from "./components/HowStampyWorks";
+import HowNotchWorks from "./components/HowNotchWorks";
 
 import RedeemConfirmationModal from "../cafe/[slug]/rewards/components/RedeemConfirmationModal";
 import RedemptionQrModal from "../cafe/[slug]/rewards/components/RedemptionQrModal";
 
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => { };
 
 function useIsClient() {
   return useSyncExternalStore(
@@ -29,6 +31,7 @@ function useIsClient() {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const isMounted = useIsClient();
 
   // Redemption interactive modals state
@@ -39,6 +42,7 @@ export default function HomePage() {
   // Loyalty store state & actions
   const {
     user,
+    isAuthenticated,
     memberships,
     getJoinedCafes,
     isCafeJoined,
@@ -48,10 +52,19 @@ export default function HomePage() {
     fetchCurrentUser,
   } = useLoyaltyStore();
 
-  // Load real authenticated customer profile & stats on mount
+  // Check auth and redirect to /login if unauthenticated
   useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    const token = getAuthToken();
+    if (!token && !isAuthenticated) {
+      router.replace("/login");
+      return;
+    }
+    fetchCurrentUser().then((res) => {
+      if (res && res.unauthenticated) {
+        router.replace("/login");
+      }
+    });
+  }, [fetchCurrentUser, isAuthenticated, router]);
 
   // Joined Cafes
   const joinedCafes = useMemo(() => {
@@ -183,8 +196,12 @@ export default function HomePage() {
     setActiveQrCafeSlug(null);
   };
 
-  // Render Skeleton before client hydration
-  if (!isMounted) {
+  // Render Skeleton before client hydration or if not authenticated (redirecting to /login)
+  const isAuthorized = Boolean(
+    typeof window !== "undefined" && (getAuthToken() || isAuthenticated)
+  );
+
+  if (!isMounted || !isAuthorized) {
     return <HomeSkeleton />;
   }
 
@@ -196,7 +213,7 @@ export default function HomePage() {
       <WelcomeHeader user={user} />
 
       {/* Conditional: New customer onboarding guide */}
-      {isNewCustomer && <HowStampyWorks />}
+      {isNewCustomer && <HowNotchWorks />}
 
       {/* Section 2: Loyalty Overview Statistics (Sourced directly from Backend User Data) */}
       <LoyaltyOverviewStats

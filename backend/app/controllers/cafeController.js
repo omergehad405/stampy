@@ -722,12 +722,12 @@ const getMyMemberships = async (req, res) => {
         staffName: a.staffName || "Staff",
         date: a.createdAt
           ? new Date(a.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
           : "Recently",
         createdAt: a.createdAt,
       });
@@ -750,12 +750,12 @@ const getMyMemberships = async (req, res) => {
           staffName: "Self",
           date: r.createdAt
             ? new Date(r.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
             : "Recently",
           createdAt: r.createdAt,
         });
@@ -848,8 +848,8 @@ const getCafeCustomers = async (req, res) => {
       .map((c) => {
         const u = c.userId;
         const memberCode = u.qrCode
-          ? (u.qrCode.length > 12 ? `STAMPY-${u.qrCode.slice(0, 8).toUpperCase()}` : u.qrCode)
-          : `STAMPY-${u._id.toString().slice(-4).toUpperCase()}`;
+          ? (u.qrCode.length > 12 ? `Notch-${u.qrCode.slice(0, 8).toUpperCase()}` : u.qrCode)
+          : `Notch-${u._id.toString().slice(-4).toUpperCase()}`;
 
         return {
           id: u._id.toString(),
@@ -1048,19 +1048,19 @@ const scanCustomer = async (req, res) => {
             }),
             expiresAt: redemption.expiresAt
               ? new Date(redemption.expiresAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
               : null,
             usedAt: redemption.usedAt
               ? new Date(redemption.usedAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
               : null,
             verifiedBy: redemption.verifiedBy,
             isValid,
@@ -1069,15 +1069,15 @@ const scanCustomer = async (req, res) => {
           },
           customer: customer
             ? {
-                id: customer._id.toString(),
-                name: customer.name,
-                email: customer.email,
-                avatar: customer.avatar || "",
-                phone: customer.phone || "",
-              }
+              id: customer._id.toString(),
+              name: customer.name,
+              email: customer.email,
+              avatar: customer.avatar || "",
+              phone: customer.phone || "",
+            }
             : {
-                name: redemption.customerName || "Customer",
-              },
+              name: redemption.customerName || "Customer",
+            },
           cafe: {
             id: staffCafe._id.toString(),
             name: staffCafe.name,
@@ -1132,17 +1132,17 @@ const scanCustomer = async (req, res) => {
 
     const formattedJoinedDate = userMembership?.joinedAt
       ? new Date(userMembership.joinedAt).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
       : customer.createdAt
-      ? new Date(customer.createdAt).toLocaleDateString("en-US", {
+        ? new Date(customer.createdAt).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
         })
-      : "Recently";
+        : "Recently";
 
     return res.status(200).json({
       success: true,
@@ -1432,7 +1432,7 @@ const redeemReward = async (req, res) => {
 
     // 4. Generate unique single-use redemption code
     const randomHex = crypto.randomBytes(3).toString("hex").toUpperCase();
-    const code = `STAMPY-RDM-${randomHex}`;
+    const code = `Notch-RDM-${randomHex}`;
 
     // 5. Deduct stamps
     userMembership.stamps = userMembership.stamps - requiredStamps;
@@ -1551,10 +1551,10 @@ const getMyRedemptions = async (req, res) => {
       branch: r.branch,
       expiresAt: r.expiresAt
         ? new Date(r.expiresAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
         : null,
       createdAt: r.createdAt,
       formattedDate: new Date(r.createdAt).toLocaleDateString("en-US", {
@@ -1564,12 +1564,12 @@ const getMyRedemptions = async (req, res) => {
       }),
       usedAt: r.usedAt
         ? new Date(r.usedAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
         : null,
       verifiedBy: r.verifiedBy,
     }));
@@ -1635,9 +1635,8 @@ const fulfillRewardRedemption = async (req, res) => {
     if (redemption.status === "used") {
       return res.status(400).json({
         success: false,
-        message: `This reward voucher was already fulfilled on ${
-          redemption.usedAt ? new Date(redemption.usedAt).toLocaleDateString() : "previously"
-        }.`,
+        message: `This reward voucher was already fulfilled on ${redemption.usedAt ? new Date(redemption.usedAt).toLocaleDateString() : "previously"
+          }.`,
       });
     }
 
@@ -1688,9 +1687,8 @@ const fulfillRewardRedemption = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `🎉 Reward fulfilled! Verified ${redemption.rewardName} for ${
-        redemption.customerId?.name || "Customer"
-      }.`,
+      message: `🎉 Reward fulfilled! Verified ${redemption.rewardName} for ${redemption.customerId?.name || "Customer"
+        }.`,
       data: {
         redemption,
       },
@@ -1772,8 +1770,8 @@ const getCafeStaff = async (req, res) => {
         s.role === "cafeOwner"
           ? "Owner / Administrator"
           : s.role === "cafeManager"
-          ? "Shift Manager"
-          : "Barista",
+            ? "Shift Manager"
+            : "Barista",
       isActive: s.isActive ?? true,
       avatar: s.avatar || "",
       createdAt: s.createdAt,
@@ -1930,14 +1928,14 @@ const updateCafeStaff = async (req, res) => {
           staff.role === "cafeOwner"
             ? "owner"
             : staff.role === "cafeManager"
-            ? "manager"
-            : "barista",
+              ? "manager"
+              : "barista",
         roleLabel:
           staff.role === "cafeOwner"
             ? "Owner / Administrator"
             : staff.role === "cafeManager"
-            ? "Shift Manager"
-            : "Barista",
+              ? "Shift Manager"
+              : "Barista",
         isActive: staff.isActive,
         createdAt: staff.createdAt,
       },
@@ -2061,12 +2059,12 @@ const getCustomerActivities = async (req, res) => {
         staffName: a.staffName || "Staff",
         date: a.createdAt
           ? new Date(a.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
           : "Recently",
         createdAt: a.createdAt,
       });
@@ -2090,12 +2088,12 @@ const getCustomerActivities = async (req, res) => {
           staffName: "Self",
           date: r.createdAt
             ? new Date(r.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
             : "Recently",
           createdAt: r.createdAt,
         });

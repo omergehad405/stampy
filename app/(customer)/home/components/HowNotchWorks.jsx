@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { LuStore, LuQrCode, LuSparkles, LuArrowDown } from "react-icons/lu";
 
-export default function HowStampyWorks() {
+export default function HowNotchWorks() {
   const steps = [
     {
       step: "01",
@@ -18,7 +18,7 @@ export default function HowStampyWorks() {
       step: "02",
       title: "Show Your QR Code",
       description:
-        "When paying at checkout, present your personal Stampy QR code to the barista to collect your stamp.",
+        "When paying at checkout, present your personal Notch QR code to the barista to collect your stamp.",
       icon: LuQrCode,
       iconBg: "bg-(--bgColor)/15 text-(--bgColor)",
     },
@@ -33,12 +33,12 @@ export default function HowStampyWorks() {
   ];
 
   return (
-    <section aria-label="How Stampy Works" className="space-y-4">
+    <section aria-label="How Notch Works" className="space-y-4">
       <div className="rounded-3xl p-6 sm:p-8 bg-(--mainColor) text-(--bgColor) border border-(--bgColor)/15 shadow-sm">
         <div className="max-w-xl">
           <span className="text-xs font-bold uppercase tracking-wider text-(--secondColor) flex items-center gap-1.5">
             <LuSparkles className="w-3.5 h-3.5" />
-            <span>New to Stampy?</span>
+            <span>New to Notch?</span>
           </span>
           <h2 className="text-xl sm:text-2xl font-extrabold text-(--bgColor) tracking-tight mt-1">
             How Your Digital Loyalty Journey Works

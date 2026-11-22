@@ -37,23 +37,23 @@ export default function DashboardPlanLimitBanner() {
       limits.billingPeriod === "week"
         ? "Weekly"
         : limits.billingPeriod === "year"
-        ? "Yearly"
-        : "Monthly";
+          ? "Yearly"
+          : "Monthly";
 
     const formattedExpiry = !isNaN(expiryDate.getTime())
       ? expiryDate.toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        })
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
       : "soon";
 
     const formattedJoined = limits.joiningDate
       ? new Date(limits.joiningDate).toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        })
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
       : null;
 
     if (diffDays < 0 || limits.subscriptionStatus === "past_due") {
@@ -82,11 +82,9 @@ export default function DashboardPlanLimitBanner() {
         priority: 1,
         title: countdownTitle,
         daysLeft: diffDays,
-        message: `Your ${limits.planName} (${periodLabel} plan${
-          formattedJoined ? `, joined ${formattedJoined}` : ""
-        }) will end on ${formattedExpiry}. There ${
-          diffDays === 1 ? "is 1 day" : `are ${diffDays} days`
-        } remaining for this subscription period. Please renew or upgrade to keep your benefits active.`,
+        message: `Your ${limits.planName} (${periodLabel} plan${formattedJoined ? `, joined ${formattedJoined}` : ""
+          }) will end on ${formattedExpiry}. There ${diffDays === 1 ? "is 1 day" : `are ${diffDays} days`
+          } remaining for this subscription period. Please renew or upgrade to keep your benefits active.`,
       });
     }
   }
@@ -148,17 +146,17 @@ export default function DashboardPlanLimitBanner() {
 
   const bannerTheme = isDanger
     ? {
-        border: "border-rose-500/40 bg-rose-500/10",
-        iconBg: "bg-rose-500",
-        tagBg: "bg-rose-500/20 text-rose-950",
-      }
+      border: "border-rose-500/40 bg-rose-500/10",
+      iconBg: "bg-rose-500",
+      tagBg: "bg-rose-500/20 text-rose-950",
+    }
     : isUrgent
-    ? {
+      ? {
         border: "border-amber-600/40 bg-amber-500/15",
         iconBg: "bg-amber-600",
         tagBg: "bg-amber-600/20 text-amber-950",
       }
-    : {
+      : {
         border: "border-amber-500/30 bg-amber-500/10",
         iconBg: "bg-amber-500",
         tagBg: "bg-amber-500/20 text-amber-900",
@@ -280,8 +278,8 @@ export default function DashboardPlanLimitBanner() {
                       {limits.billingPeriod === "week"
                         ? "Weekly"
                         : limits.billingPeriod === "year"
-                        ? "Yearly"
-                        : "Monthly"}
+                          ? "Yearly"
+                          : "Monthly"}
                     </span>
                   </div>
                   <div>
@@ -289,10 +287,10 @@ export default function DashboardPlanLimitBanner() {
                     <span className="font-bold">
                       {limits.subscriptionExpiry
                         ? new Date(limits.subscriptionExpiry).toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "Active"}{" "}
                       {typeof limits.daysRemaining === "number" && (
                         <span
@@ -326,7 +324,7 @@ export default function DashboardPlanLimitBanner() {
                 Close
               </button>
               <a
-                href={`mailto:support@stampy.app?subject=Upgrade Plan Request for ${encodeURIComponent(cafe.name || "Cafe")}&body=Hello Stampy Team,%0D%0A%0D%0AI would like to upgrade our cafe subscription plan to unlock higher limits and additional features.`}
+                href={`mailto:support@notch.app?subject=Upgrade Plan Request for ${encodeURIComponent(cafe.name || "Cafe")}&body=Hello Notch Team,%0D%0A%0D%0AI would like to upgrade our cafe subscription plan to unlock higher limits and additional features.`}
                 className="rounded-xl bg-(--secondColor) px-4 py-2 font-bold text-xs text-[#3B2418] hover:opacity-95 transition"
               >
                 Contact Support to Upgrade

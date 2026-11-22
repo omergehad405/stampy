@@ -17,7 +17,7 @@ import QRCodeImage from "@/app/components/ui/QRCodeImage";
 function RedemptionQRCodeGraphic({ code, className = "w-44 h-44" }) {
   return (
     <QRCodeImage
-      value={code || "STAMPY-REWARD"}
+      value={code || "Notch-REWARD"}
       size={200}
       className={className}
       alt={`Redemption QR Code for ${code}`}

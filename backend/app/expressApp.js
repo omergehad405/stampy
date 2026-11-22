@@ -58,7 +58,7 @@ function createExpressApp() {
   app.get("/api/health", (req, res) => {
     res.status(200).json({
       success: true,
-      message: "Stampy API is healthy (Hostinger Unified Engine)",
+      message: "Notch API is healthy (Hostinger Unified Engine)",
       timestamp: new Date().toISOString(),
     });
   });

@@ -88,7 +88,7 @@ function ResetPasswordContent() {
             <span className="grid h-9 w-9 place-items-center rounded-full bg-[#d3e0e8] text-[#3b2418]">
               <LuCoffee className="h-5 w-5" />
             </span>
-            <span className="text-xs font-bold tracking-wider text-[#3b2418]">STAMPY LOYALTY</span>
+            <span className="text-xs font-bold tracking-wider text-[#3b2418]">Notch LOYALTY</span>
           </div>
 
           {!token ? (
@@ -136,7 +136,7 @@ function ResetPasswordContent() {
               </h1>
 
               <p className="mt-2 text-xs sm:text-sm leading-relaxed text-[#3b2418]/75">
-                Choose a new secure password for your Stampy loyalty account.
+                Choose a new secure password for your Notch loyalty account.
               </p>
 
               {/* 15 Minutes Expiration Warning Notice */}

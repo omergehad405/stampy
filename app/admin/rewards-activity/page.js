@@ -108,7 +108,7 @@ export default function AdminRewardsActivityPage() {
       {/* Page Header */}
       <AdminPageHeader
         title="Rewards & Activity"
-        description="Comprehensive audit of all stamps rewarded, rewards redeemed, and loyalty transactions across Stampy."
+        description="Comprehensive audit of all stamps rewarded, rewards redeemed, and loyalty transactions across Notch."
         breadcrumbs={[{ label: "Rewards & Activity" }]}
       />
 
@@ -287,13 +287,12 @@ export default function AdminRewardsActivityPage() {
                     </td>
                     <td className="px-5 py-3.5">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px] ${
-                          act.type === "redemption"
-                            ? "bg-purple-100 text-purple-800"
-                            : act.type === "join"
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px] ${act.type === "redemption"
+                          ? "bg-purple-100 text-purple-800"
+                          : act.type === "join"
                             ? "bg-blue-100 text-blue-800"
                             : "bg-emerald-100 text-emerald-800"
-                        }`}
+                          }`}
                       >
                         {act.title}
                       </span>
@@ -304,8 +303,8 @@ export default function AdminRewardsActivityPage() {
                           act.stampsDelta > 0
                             ? "text-emerald-700"
                             : act.stampsDelta < 0
-                            ? "text-rose-700"
-                            : "text-(--mainColor)"
+                              ? "text-rose-700"
+                              : "text-(--mainColor)"
                         }
                       >
                         {act.stampsDelta > 0 ? `+${act.stampsDelta}` : act.stampsDelta}

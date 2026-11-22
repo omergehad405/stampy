@@ -20,8 +20,8 @@ export default function AdminProfilePage() {
   const { currentAdmin, updateProfile } = useAdminAuthStore();
 
   const [profileForm, setProfileForm] = useState({
-    name: currentAdmin?.name || "Stampy Admin",
-    email: currentAdmin?.email || "stampy2026@gmail.com",
+    name: currentAdmin?.name || "Notch Admin",
+    email: currentAdmin?.email || "Stampy2026@gmail.com",
     avatar:
       currentAdmin?.avatar ||
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
@@ -30,8 +30,8 @@ export default function AdminProfilePage() {
   React.useEffect(() => {
     if (currentAdmin) {
       setProfileForm({
-        name: currentAdmin.name || "Stampy Admin",
-        email: currentAdmin.email || "stampy2026@gmail.com",
+        name: currentAdmin.name || "Notch Admin",
+        email: currentAdmin.email || "Stampy2026@gmail.com",
         avatar:
           currentAdmin.avatar ||
           "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
@@ -95,10 +95,10 @@ export default function AdminProfilePage() {
             </div>
 
             <h3 className="mt-4 font-bold text-base text-(--mainColor)">
-              {currentAdmin?.name || "Stampy Admin"}
+              {currentAdmin?.name || "Notch Admin"}
             </h3>
             <span className="text-xs text-(--mainColor)/60 block mt-0.5">
-              {currentAdmin?.email || "stampy2026@gmail.com"}
+              {currentAdmin?.email || "Stampy2026@gmail.com"}
             </span>
 
             <div className="mt-3 inline-block">
@@ -130,7 +130,7 @@ export default function AdminProfilePage() {
               <span>Multi-Admin Architecture Ready</span>
             </div>
             <p className="text-[11px] leading-relaxed text-amber-800">
-              The Stampy architecture supports role-based access control (RBAC). Additional platform admin accounts can be provisioned via security scripts without disrupting existing cafe owners.
+              The Notch architecture supports role-based access control (RBAC). Additional platform admin accounts can be provisioned via security scripts without disrupting existing cafe owners.
             </p>
           </div>
         </div>

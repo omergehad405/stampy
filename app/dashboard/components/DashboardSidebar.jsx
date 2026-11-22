@@ -136,7 +136,7 @@ export default function DashboardSidebar({ isOpen, onClose }) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold tracking-tight text-(--bgColor) text-lg leading-tight">
-                    Stampy
+                    Notch
                   </span>
                   <span className="rounded-md bg-(--secondColor) px-1.5 py-0.5 text-[10px] font-bold text-[#3B2418] uppercase">
                     Portal
@@ -192,19 +192,19 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                   href={item.href}
                   onClick={onClose}
                   className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${item.isActive
-                      ? "bg-(--secondColor) text-[#3B2418] font-bold shadow-xs"
-                      : item.highlight
-                        ? "bg-(--secondColor)/20 text-(--secondColor) hover:bg-(--secondColor)/30"
-                        : "text-(--bgColor)/80 hover:bg-(--bgColor)/10 hover:text-(--bgColor)"
+                    ? "bg-(--secondColor) text-[#3B2418] font-bold shadow-xs"
+                    : item.highlight
+                      ? "bg-(--secondColor)/20 text-(--secondColor) hover:bg-(--secondColor)/30"
+                      : "text-(--bgColor)/80 hover:bg-(--bgColor)/10 hover:text-(--bgColor)"
                     }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon
                       className={`h-4.5 w-4.5 transition-transform duration-150 group-hover:scale-105 ${item.isActive
-                          ? "text-[#3B2418]"
-                          : item.highlight
-                            ? "text-(--secondColor)"
-                            : "text-(--bgColor)/70"
+                        ? "text-[#3B2418]"
+                        : item.highlight
+                          ? "text-(--secondColor)"
+                          : "text-(--bgColor)/70"
                         }`}
                     />
                     <span>{item.label}</span>
@@ -213,8 +213,8 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                   {item.badge && (
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.isActive
-                          ? "bg-(--mainColor) text-(--secondColor)"
-                          : "bg-(--secondColor) text-[#3B2418]"
+                        ? "bg-(--mainColor) text-(--secondColor)"
+                        : "bg-(--secondColor) text-[#3B2418]"
                         }`}
                     >
                       {item.badge}
@@ -245,10 +245,10 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span
                     className={`inline-block rounded-md px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider ${roleKey === "owner"
-                        ? "bg-amber-400/20 text-amber-200 border border-amber-400/40"
-                        : roleKey === "manager"
-                          ? "bg-blue-400/20 text-blue-200 border border-blue-400/40"
-                          : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/40"
+                      ? "bg-amber-400/20 text-amber-200 border border-amber-400/40"
+                      : roleKey === "manager"
+                        ? "bg-blue-400/20 text-blue-200 border border-blue-400/40"
+                        : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/40"
                       }`}
                   >
                     {roleKey === "owner"

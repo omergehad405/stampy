@@ -217,20 +217,20 @@ export default function AdminSubscriptionsPage() {
       );
       const updated = exists
         ? prev.features.filter(
+          (f) =>
+            f !== featId &&
+            f.toLowerCase() !== featId.toLowerCase() &&
+            (!labelLower || f.toLowerCase() !== labelLower)
+        )
+        : [
+          ...prev.features.filter(
             (f) =>
               f !== featId &&
               f.toLowerCase() !== featId.toLowerCase() &&
               (!labelLower || f.toLowerCase() !== labelLower)
-          )
-        : [
-            ...prev.features.filter(
-              (f) =>
-                f !== featId &&
-                f.toLowerCase() !== featId.toLowerCase() &&
-                (!labelLower || f.toLowerCase() !== labelLower)
-            ),
-            featId,
-          ];
+          ),
+          featId,
+        ];
 
       const newFormData = {
         ...prev,
@@ -265,15 +265,15 @@ export default function AdminSubscriptionsPage() {
     const resolvedMaxRewards = isUnlimRew
       ? null
       : !isNaN(rawRewards) && rawRewards >= 1
-      ? rawRewards
-      : 3;
+        ? rawRewards
+        : 3;
 
     const rawCustomers = Number(formData.maxCustomers);
     const resolvedMaxCustomers = isUnlimCust
       ? null
       : !isNaN(rawCustomers) && rawCustomers >= 1
-      ? rawCustomers
-      : 50;
+        ? rawCustomers
+        : 50;
 
     setIsSubmitting(true);
 
@@ -420,7 +420,7 @@ export default function AdminSubscriptionsPage() {
       <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 text-xs text-blue-900 flex items-start gap-3">
         <LuTag className="h-5 w-5 shrink-0 text-blue-700 mt-0.5" />
         <div className="leading-relaxed">
-          <span className="font-bold">Monetization Ready Architecture:</span> Plans configured here establish business entitlements (customer caps, reward limits, analytics tiering) across Stampy. Each plan validates against our platform feature catalog.
+          <span className="font-bold">Monetization Ready Architecture:</span> Plans configured here establish business entitlements (customer caps, reward limits, analytics tiering) across Notch. Each plan validates against our platform feature catalog.
         </div>
       </div>
 
@@ -457,11 +457,10 @@ export default function AdminSubscriptionsPage() {
             return (
               <div
                 key={planKey}
-                className={`flex flex-col justify-between rounded-3xl border p-6 shadow-sm transition hover:shadow-md ${
-                  plan.isPopular
-                    ? "border-(--mainColor) bg-[#faf6ed] ring-2 ring-(--mainColor)/15"
-                    : "border-[#e3d7c0] bg-[#faf6ed]"
-                }`}
+                className={`flex flex-col justify-between rounded-3xl border p-6 shadow-sm transition hover:shadow-md ${plan.isPopular
+                  ? "border-(--mainColor) bg-[#faf6ed] ring-2 ring-(--mainColor)/15"
+                  : "border-[#e3d7c0] bg-[#faf6ed]"
+                  }`}
               >
                 <div>
                   {/* Header Badge */}
@@ -504,7 +503,7 @@ export default function AdminSubscriptionsPage() {
                         <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
                         <span>
                           {plan.isUnlimitedCustomers ||
-                          plan.features?.includes("unlimited_customers")
+                            plan.features?.includes("unlimited_customers")
                             ? "Unlimited customers"
                             : `Up to ${plan.maxCustomers || 50} customers`}
                         </span>
@@ -515,7 +514,7 @@ export default function AdminSubscriptionsPage() {
                         <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
                         <span>
                           {plan.isUnlimitedRewards ||
-                          plan.features?.includes("unlimited_rewards")
+                            plan.features?.includes("unlimited_rewards")
                             ? "Unlimited rewards"
                             : `Up to ${plan.maxRewards || 3} reward tiers`}
                         </span>
@@ -524,13 +523,13 @@ export default function AdminSubscriptionsPage() {
                       {/* Max Staff if multi-staff */}
                       {(plan.features?.includes("multi_staff") ||
                         plan.features?.includes("Multi-staff Accounts")) && (
-                        <div className="flex items-center gap-2 text-(--mainColor)/80">
-                          <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
-                          <span>
-                            Multi-staff: Up to {plan.maxStaff || 3} team accounts
-                          </span>
-                        </div>
-                      )}
+                          <div className="flex items-center gap-2 text-(--mainColor)/80">
+                            <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
+                            <span>
+                              Multi-staff: Up to {plan.maxStaff || 3} team accounts
+                            </span>
+                          </div>
+                        )}
 
                       {/* Other features */}
                       {(plan.features || [])
@@ -579,11 +578,10 @@ export default function AdminSubscriptionsPage() {
                     </button>
                     <button
                       onClick={() => handleToggleStatus(plan)}
-                      className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
-                        plan.isActive
-                          ? "bg-rose-100 text-rose-800 hover:bg-rose-200"
-                          : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                      }`}
+                      className={`rounded-xl px-3 py-2 text-xs font-bold transition ${plan.isActive
+                        ? "bg-rose-100 text-rose-800 hover:bg-rose-200"
+                        : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                        }`}
                     >
                       {plan.isActive ? "Deactivate" : "Activate"}
                     </button>
@@ -830,33 +828,29 @@ export default function AdminSubscriptionsPage() {
                         type="button"
                         key={feat.id}
                         onClick={() => toggleFeatureSelection(feat.id)}
-                        className={`flex items-start gap-2 rounded-xl p-2.5 text-left text-xs transition border cursor-pointer ${
-                          isSelected
-                            ? "border-(--mainColor) bg-(--mainColor) text-(--secondColor)"
-                            : "border-[#dacdb9] bg-[#faf6ed] text-(--mainColor)/80 hover:border-(--mainColor)/50"
-                        }`}
+                        className={`flex items-start gap-2 rounded-xl p-2.5 text-left text-xs transition border cursor-pointer ${isSelected
+                          ? "border-(--mainColor) bg-(--mainColor) text-(--secondColor)"
+                          : "border-[#dacdb9] bg-[#faf6ed] text-(--mainColor)/80 hover:border-(--mainColor)/50"
+                          }`}
                       >
                         <div
-                          className={`h-4 w-4 rounded flex items-center justify-center shrink-0 border mt-0.5 ${
-                            isSelected
-                              ? "bg-(--secondColor) border-(--secondColor) text-(--mainColor)"
-                              : "border-[#dacdb9] bg-white"
-                          }`}
+                          className={`h-4 w-4 rounded flex items-center justify-center shrink-0 border mt-0.5 ${isSelected
+                            ? "bg-(--secondColor) border-(--secondColor) text-(--mainColor)"
+                            : "border-[#dacdb9] bg-white"
+                            }`}
                         >
                           {isSelected && <LuCheck className="h-3 w-3 stroke-[3]" />}
                         </div>
                         <div className="min-w-0">
                           <span
-                            className={`block font-bold truncate ${
-                              isSelected ? "text-(--secondColor)" : "text-(--mainColor)"
-                            }`}
+                            className={`block font-bold truncate ${isSelected ? "text-(--secondColor)" : "text-(--mainColor)"
+                              }`}
                           >
                             {feat.label}
                           </span>
                           <span
-                            className={`block text-[10px] line-clamp-2 ${
-                              isSelected ? "text-(--secondColor)/80" : "text-(--mainColor)/60"
-                            }`}
+                            className={`block text-[10px] line-clamp-2 ${isSelected ? "text-(--secondColor)/80" : "text-(--mainColor)/60"
+                              }`}
                           >
                             {feat.desc}
                           </span>

@@ -170,8 +170,8 @@ export default function DashboardScanPage() {
   // Find rewards this customer can redeem
   const availableRewards = activeCustomer
     ? rewards.filter(
-        (r) => r.isActive && activeCustomer.stamps >= r.stampsRequired
-      )
+      (r) => r.isActive && activeCustomer.stamps >= r.stampsRequired
+    )
     : [];
 
   // Primary Scan Verification handler (checks if user joined this cafe & opens centered popup)
@@ -551,10 +551,10 @@ export default function DashboardScanPage() {
               <strong className="text-rose-300">
                 {limits?.subscriptionExpiry
                   ? new Date(limits.subscriptionExpiry).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })
                   : "recently"}
               </strong>
               . Customer QR code scanning and loyalty visits are temporarily locked until you renew or upgrade your plan.
@@ -571,7 +571,7 @@ export default function DashboardScanPage() {
             </Link>
 
             <a
-              href={`mailto:support@stampy.app?subject=Renew Subscription for ${encodeURIComponent(cafe?.name || "Cafe")}&body=Hello Stampy Team,%0D%0A%0D%0AOur subscription period has ended and we would like to renew or upgrade our plan to resume customer scanning.`}
+              href={`mailto:support@notch.app?subject=Renew Subscription for ${encodeURIComponent(cafe?.name || "Cafe")}&body=Hello Notch Team,%0D%0A%0D%0AOur subscription period has ended and we would like to renew or upgrade our plan to resume customer scanning.`}
               className="inline-flex items-center gap-1.5 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] hover:opacity-95 active:scale-95 transition shadow-xs cursor-pointer"
             >
               <span>Renew / Upgrade Subscription</span>
@@ -581,407 +581,403 @@ export default function DashboardScanPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left Column: QR Scanner & Lookup (5 cols) */}
-        <div className="space-y-5 lg:col-span-5">
-          {/* Scanner Card */}
-          <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) shadow-xs">
-            <div className="flex items-center justify-between border-b border-(--bgColor)/15 px-5 py-3.5">
-              <div className="flex items-center gap-2">
-                <LuQrCode className="h-4 w-4 text-(--secondColor)" />
-                <h2 className="font-bold text-xs uppercase tracking-wider text-(--bgColor)">
-                  QR Viewfinder
-                </h2>
-              </div>
-              <div className="flex items-center gap-2">
-                {isCameraActive && (
+          {/* Left Column: QR Scanner & Lookup (5 cols) */}
+          <div className="space-y-5 lg:col-span-5">
+            {/* Scanner Card */}
+            <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) shadow-xs">
+              <div className="flex items-center justify-between border-b border-(--bgColor)/15 px-5 py-3.5">
+                <div className="flex items-center gap-2">
+                  <LuQrCode className="h-4 w-4 text-(--secondColor)" />
+                  <h2 className="font-bold text-xs uppercase tracking-wider text-(--bgColor)">
+                    QR Viewfinder
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isCameraActive && (
+                    <button
+                      type="button"
+                      onClick={switchCameraFacing}
+                      className="flex items-center gap-1 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2 py-1 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 cursor-pointer"
+                      title="Switch camera (front/back)"
+                    >
+                      <LuRefreshCw className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Flip</span>
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={switchCameraFacing}
-                    className="flex items-center gap-1 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2 py-1 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 cursor-pointer"
-                    title="Switch camera (front/back)"
-                  >
-                    <LuRefreshCw className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Flip</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={toggleCamera}
-                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
-                    isCameraActive
+                    onClick={toggleCamera}
+                    className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${isCameraActive
                       ? "bg-rose-500/20 text-rose-200 border border-rose-500/30 hover:bg-rose-500/30"
                       : "bg-(--secondColor) text-[#3B2418] hover:bg-(--secondColor)/90"
-                  }`}
-                >
-                  {isCameraActive ? (
-                    <>
-                      <LuCameraOff className="h-3.5 w-3.5" />
-                      <span>Stop Camera</span>
-                    </>
-                  ) : (
-                    <>
-                      <LuCamera className="h-3.5 w-3.5" />
-                      <span>Start Camera</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Viewfinder Viewport */}
-            <div className="relative flex aspect-square w-full flex-col items-center justify-center bg-[#2a1a12] p-6 text-center text-(--bgColor) overflow-hidden">
-              {/* Actual HTML5 Video element streaming the camera */}
-              <video
-                ref={videoRef}
-                playsInline
-                autoPlay
-                muted
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-                  isCameraActive ? "opacity-100" : "opacity-0 pointer-events-none"
-                }`}
-              />
-
-              {isCameraActive ? (
-                <>
-                  {/* Darkened overlay with centered scanning reticle */}
-                  <div className="relative z-10 flex h-52 w-52 items-center justify-center rounded-2xl border-2 border-(--secondColor) bg-black/25 shadow-2xl backdrop-blur-[1px]">
-                    {/* Animated scanning laser */}
-                    <div className="absolute inset-x-2 top-0 h-0.5 bg-gradient-to-r from-transparent via-(--secondColor) to-transparent animate-pulse shadow-[0_0_12px_#8EC5FF]" />
-                    <span className="absolute bottom-3 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-(--secondColor)">
-                      Align Customer QR
-                    </span>
-                  </div>
-                  <div className="relative z-10 mt-4 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-(--bgColor)/90 backdrop-blur-xs">
-                    Live camera stream active
-                  </div>
-                </>
-              ) : cameraError ? (
-                <div className="relative z-10 flex flex-col items-center px-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-900/60 text-rose-300">
-                    <LuTriangleAlert className="h-7 w-7" />
-                  </div>
-                  <h3 className="mt-3 text-sm font-bold text-(--bgColor)">
-                    Camera Unavailable
-                  </h3>
-                  <p className="mt-1 text-xs text-rose-200/90 leading-relaxed max-w-xs">
-                    {cameraError}
-                  </p>
-                  <button
-                    onClick={() => startCamera()}
-                    className="mt-4 rounded-xl bg-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/30 cursor-pointer"
+                      }`}
                   >
-                    Try Again
-                  </button>
-                </div>
-              ) : (
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-(--secondColor)">
-                    <LuCamera className="h-8 w-8" />
-                  </div>
-                  <h3 className="mt-3 text-sm font-bold text-(--bgColor)">
-                    Camera Standby
-                  </h3>
-                  <p className="mt-1 max-w-xs text-xs text-(--bgColor)/60">
-                    Click &ldquo;Start Camera&rdquo; above to stream live video, or enter customer QR code below.
-                  </p>
-                  <button
-                    onClick={() => startCamera()}
-                    className="mt-4 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-sm transition hover:bg-(--secondColor)/90 cursor-pointer"
-                  >
-                    Activate Phone / Web Camera
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Fallback Manual Code / ID Lookup */}
-            <div className="p-4 border-t border-(--bgColor)/15">
-              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                Scan Code / Customer Identifier Entry
-              </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    value={codeInput}
-                    onChange={(e) => setCodeInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleIdentifyCustomer()}
-                    placeholder="Scan QR or enter customer code..."
-                    disabled={isScanningQuery}
-                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 pl-9 pr-3 text-xs font-semibold text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
-                  />
-                  <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--bgColor)/50" />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleIdentifyCustomer()}
-                  disabled={isScanningQuery || !codeInput.trim()}
-                  className="rounded-xl bg-(--secondColor) px-4 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
-                >
-                  {isScanningQuery ? (
-                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#3B2418]/30 border-t-[#3B2418]" />
-                  ) : (
-                    <LuStamp className="h-3.5 w-3.5" />
-                  )}
-                  <span>Scan</span>
-                </button>
-              </div>
-
-              {/* Recent Enrolled Customers */}
-              {customers.length > 0 && (
-                <div className="mt-3">
-                  <span className="text-[10px] font-bold text-(--bgColor)/60 uppercase tracking-wider">
-                    Recent Enrolled Customers:
-                  </span>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {customers.slice(0, 4).map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => handleIdentifyCustomer(c.code || c.id)}
-                        className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition cursor-pointer ${
-                          selectedCustomerId === c.id
-                            ? "border-(--secondColor) bg-(--secondColor) text-[#3B2418]"
-                            : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor) hover:bg-(--bgColor)/20"
-                        }`}
-                      >
-                        {c.name.split(" ")[0]} ({c.stamps}/10)
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Customer Details & Actions (7 cols) */}
-        <div className="space-y-5 lg:col-span-7">
-          {activeCustomer ? (
-            <div className="space-y-5">
-              {/* Customer Profile Card */}
-              <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-5 shadow-xs">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-(--bgColor)/15 pb-4">
-                  <div className="flex items-center gap-3.5">
-                    {activeCustomer.avatar ? (
-                      <img
-                        src={activeCustomer.avatar}
-                        alt={activeCustomer.name}
-                        className="h-14 w-14 rounded-2xl object-cover border-2 border-(--secondColor) shadow-2xs"
-                      />
+                    {isCameraActive ? (
+                      <>
+                        <LuCameraOff className="h-3.5 w-3.5" />
+                        <span>Stop Camera</span>
+                      </>
                     ) : (
-                      <div className="h-14 w-14 rounded-2xl bg-(--secondColor) text-[#3B2418] flex items-center justify-center font-bold text-lg border-2 border-(--secondColor)">
-                        {activeCustomer.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </div>
+                      <>
+                        <LuCamera className="h-3.5 w-3.5" />
+                        <span>Start Camera</span>
+                      </>
                     )}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-bold text-(--bgColor)">
-                          {activeCustomer.name}
-                        </h2>
-                        <span className="rounded-md bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 text-[10px] font-bold uppercase">
-                          {activeCustomer.status || "Active Member"}
-                        </span>
-                      </div>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-(--bgColor)/70">
-                        <span className="font-mono font-semibold text-(--secondColor)">{activeCustomer.code || "MEMBER"}</span>
-                        <span>•</span>
-                        <span>{activeCustomer.email}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setSelectedCustomerId(null);
-                      setActionSuccessData(null);
-                    }}
-                    className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-1.5 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 self-start sm:self-auto cursor-pointer"
-                  >
-                    <LuRefreshCw className="h-3.5 w-3.5" />
-                    <span>Scan Next</span>
                   </button>
                 </div>
+              </div>
 
-                {/* Stamp Balance & Visual Slots */}
-                <div className="mt-5 rounded-2xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-(--bgColor)/70">
-                        Current Card Progress
-                      </span>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-extrabold text-(--secondColor)">
-                          {activeCustomer.stamps}
-                        </span>
-                        <span className="text-sm font-semibold text-(--bgColor)/60">
-                          / {settings.stampTarget} stamps
-                        </span>
-                      </div>
-                    </div>
+              {/* Viewfinder Viewport */}
+              <div className="relative flex aspect-square w-full flex-col items-center justify-center bg-[#2a1a12] p-6 text-center text-(--bgColor) overflow-hidden">
+                {/* Actual HTML5 Video element streaming the camera */}
+                <video
+                  ref={videoRef}
+                  playsInline
+                  autoPlay
+                  muted
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${isCameraActive ? "opacity-100" : "opacity-0 pointer-events-none"
+                    }`}
+                />
 
-                    <div className="text-right">
-                      <span className="text-xs font-semibold text-(--bgColor)/70">
-                        Lifetime Stamps: <strong className="text-(--bgColor)">{activeCustomer.lifetimeStamps}</strong>
+                {isCameraActive ? (
+                  <>
+                    {/* Darkened overlay with centered scanning reticle */}
+                    <div className="relative z-10 flex h-52 w-52 items-center justify-center rounded-2xl border-2 border-(--secondColor) bg-black/25 shadow-2xl backdrop-blur-[1px]">
+                      {/* Animated scanning laser */}
+                      <div className="absolute inset-x-2 top-0 h-0.5 bg-gradient-to-r from-transparent via-(--secondColor) to-transparent animate-pulse shadow-[0_0_12px_#8EC5FF]" />
+                      <span className="absolute bottom-3 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-(--secondColor)">
+                        Align Customer QR
                       </span>
-                      <div className="text-xs text-(--bgColor)/70">
-                        Total Visits: <strong className="text-(--bgColor)">{activeCustomer.totalVisits}</strong>
-                      </div>
                     </div>
+                    <div className="relative z-10 mt-4 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-(--bgColor)/90 backdrop-blur-xs">
+                      Live camera stream active
+                    </div>
+                  </>
+                ) : cameraError ? (
+                  <div className="relative z-10 flex flex-col items-center px-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-900/60 text-rose-300">
+                      <LuTriangleAlert className="h-7 w-7" />
+                    </div>
+                    <h3 className="mt-3 text-sm font-bold text-(--bgColor)">
+                      Camera Unavailable
+                    </h3>
+                    <p className="mt-1 text-xs text-rose-200/90 leading-relaxed max-w-xs">
+                      {cameraError}
+                    </p>
+                    <button
+                      onClick={() => startCamera()}
+                      className="mt-4 rounded-xl bg-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/30 cursor-pointer"
+                    >
+                      Try Again
+                    </button>
                   </div>
-
-                  {/* Stamp grid slots */}
-                  <div className="mt-4 grid grid-cols-5 sm:grid-cols-10 gap-2">
-                    {Array.from({ length: settings.stampTarget }).map((_, idx) => {
-                      const isStamped = idx < activeCustomer.stamps;
-                      return (
-                        <div
-                          key={idx}
-                          className={`aspect-square rounded-xl flex items-center justify-center border transition-all ${
-                            isStamped
-                              ? "bg-(--secondColor) text-[#3B2418] border-(--secondColor) shadow-xs"
-                              : "bg-(--bgColor)/5 border-(--bgColor)/15 text-(--bgColor)/30"
-                          }`}
-                        >
-                          <LuCoffee className="h-4 w-4" />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Action Feedback Notification */}
-                {actionSuccessData && (
-                  <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-400/20 p-3 text-xs text-emerald-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <LuCircleCheck className="h-5 w-5 text-emerald-300 shrink-0" />
-                      <span>{actionSuccessData.message}</span>
+                ) : (
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-(--secondColor)">
+                      <LuCamera className="h-8 w-8" />
                     </div>
-                    {actionSuccessData.unlockedReward && (
-                      <span className="rounded-md bg-emerald-300/30 text-emerald-200 border border-emerald-300/40 px-2 py-0.5 font-bold uppercase text-[10px]">
-                        Reward Unlocked!
-                      </span>
-                    )}
+                    <h3 className="mt-3 text-sm font-bold text-(--bgColor)">
+                      Camera Standby
+                    </h3>
+                    <p className="mt-1 max-w-xs text-xs text-(--bgColor)/60">
+                      Click &ldquo;Start Camera&rdquo; above to stream live video, or enter customer QR code below.
+                    </p>
+                    <button
+                      onClick={() => startCamera()}
+                      className="mt-4 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-sm transition hover:bg-(--secondColor)/90 cursor-pointer"
+                    >
+                      Activate Phone / Web Camera
+                    </button>
                   </div>
                 )}
+              </div>
 
-                {/* Stamp Action Controls */}
-                <div className="mt-5 space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                      Order / Item Note (Optional)
-                    </label>
+              {/* Fallback Manual Code / ID Lookup */}
+              <div className="p-4 border-t border-(--bgColor)/15">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
+                  Scan Code / Customer Identifier Entry
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
                     <input
                       type="text"
-                      value={visitNote}
-                      onChange={(e) => setVisitNote(e.target.value)}
-                      placeholder="e.g. Flat white & croissant"
-                      className="w-full h-9 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
+                      value={codeInput}
+                      onChange={(e) => setCodeInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleIdentifyCustomer()}
+                      placeholder="Scan QR or enter customer code..."
+                      disabled={isScanningQuery}
+                      className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 pl-9 pr-3 text-xs font-semibold text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                     />
+                    <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--bgColor)/50" />
                   </div>
-                </div>
-
-                <div className="mt-5 flex justify-end">
                   <button
                     type="button"
-                    onClick={handleRecordVisit}
-                    disabled={hasVisitedToday && !allowDailyOverride}
-                    className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] shadow-sm transition hover:bg-(--secondColor)/90 disabled:opacity-50 cursor-pointer"
+                    onClick={() => handleIdentifyCustomer()}
+                    disabled={isScanningQuery || !codeInput.trim()}
+                    className="rounded-xl bg-(--secondColor) px-4 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
                   >
-                    <LuCircleCheck className="h-4 w-4" />
-                    <span>
-                      {hasVisitedToday && !allowDailyOverride
-                        ? "Already Visited Today (1 Stamp/Day)"
-                        : "Confirm Visit & Credit 1 Stamp"}
-                    </span>
+                    {isScanningQuery ? (
+                      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#3B2418]/30 border-t-[#3B2418]" />
+                    ) : (
+                      <LuStamp className="h-3.5 w-3.5" />
+                    )}
+                    <span>Scan</span>
                   </button>
                 </div>
-              </div>
 
-              {/* Action Box: Available Rewards Redemption */}
-              <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-5 shadow-xs">
-                <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
-                  <div className="flex items-center gap-2">
-                    <LuGift className="h-4 w-4 text-(--secondColor)" />
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-(--bgColor)">
-                      Eligible Rewards for Redemption
-                    </h3>
-                  </div>
-                  <span className="text-xs font-bold text-(--secondColor)">
-                    {availableRewards.length} Unlocked
-                  </span>
-                </div>
-
-                <div className="mt-4 space-y-2.5">
-                  {availableRewards.length > 0 ? (
-                    availableRewards.map((reward) => (
-                      <div
-                        key={reward.id}
-                        className="flex items-center justify-between rounded-xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-3 transition hover:border-(--secondColor)/50"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-(--secondColor) text-[#3B2418]">
-                            <LuGift className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-xs text-(--bgColor)">
-                                {reward.name}
-                              </h4>
-                              <span className="rounded bg-(--secondColor)/20 border border-(--secondColor)/30 px-1.5 py-0.5 text-[10px] font-bold text-(--secondColor)">
-                                {reward.stampsRequired} Stamps
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-(--bgColor)/70 max-w-sm line-clamp-1">
-                              {reward.description}
-                            </p>
-                          </div>
-                        </div>
-
+                {/* Recent Enrolled Customers */}
+                {customers.length > 0 && (
+                  <div className="mt-3">
+                    <span className="text-[10px] font-bold text-(--bgColor)/60 uppercase tracking-wider">
+                      Recent Enrolled Customers:
+                    </span>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {customers.slice(0, 4).map((c) => (
                         <button
+                          key={c.id}
                           type="button"
-                          onClick={() => setRewardToRedeem(reward)}
-                          className="rounded-xl bg-(--secondColor) px-3.5 py-1.5 text-xs font-bold text-[#3B2418] shadow-2xs transition hover:bg-(--secondColor)/90 cursor-pointer"
+                          onClick={() => handleIdentifyCustomer(c.code || c.id)}
+                          className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition cursor-pointer ${selectedCustomerId === c.id
+                            ? "border-(--secondColor) bg-(--secondColor) text-[#3B2418]"
+                            : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor) hover:bg-(--bgColor)/20"
+                            }`}
                         >
-                          Redeem Now
+                          {c.name.split(" ")[0]} ({c.stamps}/10)
                         </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Customer Details & Actions (7 cols) */}
+          <div className="space-y-5 lg:col-span-7">
+            {activeCustomer ? (
+              <div className="space-y-5">
+                {/* Customer Profile Card */}
+                <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-5 shadow-xs">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-(--bgColor)/15 pb-4">
+                    <div className="flex items-center gap-3.5">
+                      {activeCustomer.avatar ? (
+                        <img
+                          src={activeCustomer.avatar}
+                          alt={activeCustomer.name}
+                          className="h-14 w-14 rounded-2xl object-cover border-2 border-(--secondColor) shadow-2xs"
+                        />
+                      ) : (
+                        <div className="h-14 w-14 rounded-2xl bg-(--secondColor) text-[#3B2418] flex items-center justify-center font-bold text-lg border-2 border-(--secondColor)">
+                          {activeCustomer.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-lg font-bold text-(--bgColor)">
+                            {activeCustomer.name}
+                          </h2>
+                          <span className="rounded-md bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 text-[10px] font-bold uppercase">
+                            {activeCustomer.status || "Active Member"}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-(--bgColor)/70">
+                          <span className="font-mono font-semibold text-(--secondColor)">{activeCustomer.code || "MEMBER"}</span>
+                          <span>•</span>
+                          <span>{activeCustomer.email}</span>
+                        </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-(--bgColor)/20 p-4 text-center">
-                      <LuSparkles className="mx-auto h-6 w-6 text-(--bgColor)/40" />
-                      <p className="mt-1 text-xs font-semibold text-(--bgColor)/70">
-                        No rewards unlocked yet.
-                      </p>
-                      <p className="text-[11px] text-(--bgColor)/50">
-                        Customer needs {Math.max(0, 5 - (activeCustomer.stamps || 0))} more stamp(s) to unlock the first reward.
-                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedCustomerId(null);
+                        setActionSuccessData(null);
+                      }}
+                      className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-1.5 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 self-start sm:self-auto cursor-pointer"
+                    >
+                      <LuRefreshCw className="h-3.5 w-3.5" />
+                      <span>Scan Next</span>
+                    </button>
+                  </div>
+
+                  {/* Stamp Balance & Visual Slots */}
+                  <div className="mt-5 rounded-2xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-(--bgColor)/70">
+                          Current Card Progress
+                        </span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-extrabold text-(--secondColor)">
+                            {activeCustomer.stamps}
+                          </span>
+                          <span className="text-sm font-semibold text-(--bgColor)/60">
+                            / {settings.stampTarget} stamps
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-xs font-semibold text-(--bgColor)/70">
+                          Lifetime Stamps: <strong className="text-(--bgColor)">{activeCustomer.lifetimeStamps}</strong>
+                        </span>
+                        <div className="text-xs text-(--bgColor)/70">
+                          Total Visits: <strong className="text-(--bgColor)">{activeCustomer.totalVisits}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stamp grid slots */}
+                    <div className="mt-4 grid grid-cols-5 sm:grid-cols-10 gap-2">
+                      {Array.from({ length: settings.stampTarget }).map((_, idx) => {
+                        const isStamped = idx < activeCustomer.stamps;
+                        return (
+                          <div
+                            key={idx}
+                            className={`aspect-square rounded-xl flex items-center justify-center border transition-all ${isStamped
+                              ? "bg-(--secondColor) text-[#3B2418] border-(--secondColor) shadow-xs"
+                              : "bg-(--bgColor)/5 border-(--bgColor)/15 text-(--bgColor)/30"
+                              }`}
+                          >
+                            <LuCoffee className="h-4 w-4" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Action Feedback Notification */}
+                  {actionSuccessData && (
+                    <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-400/20 p-3 text-xs text-emerald-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <LuCircleCheck className="h-5 w-5 text-emerald-300 shrink-0" />
+                        <span>{actionSuccessData.message}</span>
+                      </div>
+                      {actionSuccessData.unlockedReward && (
+                        <span className="rounded-md bg-emerald-300/30 text-emerald-200 border border-emerald-300/40 px-2 py-0.5 font-bold uppercase text-[10px]">
+                          Reward Unlocked!
+                        </span>
+                      )}
                     </div>
                   )}
+
+                  {/* Stamp Action Controls */}
+                  <div className="mt-5 space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
+                        Order / Item Note (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={visitNote}
+                        onChange={(e) => setVisitNote(e.target.value)}
+                        placeholder="e.g. Flat white & croissant"
+                        className="w-full h-9 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleRecordVisit}
+                      disabled={hasVisitedToday && !allowDailyOverride}
+                      className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] shadow-sm transition hover:bg-(--secondColor)/90 disabled:opacity-50 cursor-pointer"
+                    >
+                      <LuCircleCheck className="h-4 w-4" />
+                      <span>
+                        {hasVisitedToday && !allowDailyOverride
+                          ? "Already Visited Today (1 Stamp/Day)"
+                          : "Confirm Visit & Credit 1 Stamp"}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Box: Available Rewards Redemption */}
+                <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-5 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
+                    <div className="flex items-center gap-2">
+                      <LuGift className="h-4 w-4 text-(--secondColor)" />
+                      <h3 className="font-bold text-xs uppercase tracking-wider text-(--bgColor)">
+                        Eligible Rewards for Redemption
+                      </h3>
+                    </div>
+                    <span className="text-xs font-bold text-(--secondColor)">
+                      {availableRewards.length} Unlocked
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-2.5">
+                    {availableRewards.length > 0 ? (
+                      availableRewards.map((reward) => (
+                        <div
+                          key={reward.id}
+                          className="flex items-center justify-between rounded-xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-3 transition hover:border-(--secondColor)/50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-(--secondColor) text-[#3B2418]">
+                              <LuGift className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-bold text-xs text-(--bgColor)">
+                                  {reward.name}
+                                </h4>
+                                <span className="rounded bg-(--secondColor)/20 border border-(--secondColor)/30 px-1.5 py-0.5 text-[10px] font-bold text-(--secondColor)">
+                                  {reward.stampsRequired} Stamps
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-(--bgColor)/70 max-w-sm line-clamp-1">
+                                {reward.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setRewardToRedeem(reward)}
+                            className="rounded-xl bg-(--secondColor) px-3.5 py-1.5 text-xs font-bold text-[#3B2418] shadow-2xs transition hover:bg-(--secondColor)/90 cursor-pointer"
+                          >
+                            Redeem Now
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-(--bgColor)/20 p-4 text-center">
+                        <LuSparkles className="mx-auto h-6 w-6 text-(--bgColor)/40" />
+                        <p className="mt-1 text-xs font-semibold text-(--bgColor)/70">
+                          No rewards unlocked yet.
+                        </p>
+                        <p className="text-[11px] text-(--bgColor)/50">
+                          Customer needs {Math.max(0, 5 - (activeCustomer.stamps || 0))} more stamp(s) to unlock the first reward.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            /* Empty state when no customer is scanned */
-            <div className="flex h-96 flex-col items-center justify-center rounded-2xl sm:rounded-3xl border-2 border-dashed border-(--bgColor)/20 bg-(--mainColor) text-(--bgColor) p-8 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-(--bgColor)/10 text-(--secondColor)">
-                <LuQrCode className="h-8 w-8" />
+            ) : (
+              /* Empty state when no customer is scanned */
+              <div className="flex h-96 flex-col items-center justify-center rounded-2xl sm:rounded-3xl border-2 border-dashed border-(--bgColor)/20 bg-(--mainColor) text-(--bgColor) p-8 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-(--bgColor)/10 text-(--secondColor)">
+                  <LuQrCode className="h-8 w-8" />
+                </div>
+                <h3 className="mt-4 text-base font-bold text-(--bgColor)">
+                  No Customer Scanned Yet
+                </h3>
+                <p className="mt-1.5 max-w-sm text-xs text-(--bgColor)/70">
+                  Point the camera at a customer&apos;s Notch QR card, or enter their code to verify membership and issue stamps.
+                </p>
               </div>
-              <h3 className="mt-4 text-base font-bold text-(--bgColor)">
-                No Customer Scanned Yet
-              </h3>
-              <p className="mt-1.5 max-w-sm text-xs text-(--bgColor)/70">
-                Point the camera at a customer&apos;s Stampy QR card, or enter their code to verify membership and issue stamps.
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       {/* ========================================================================= */}
@@ -1118,7 +1114,7 @@ export default function DashboardScanPage() {
                       <span>Not a member of this café yet</span>
                     </div>
                     <p className="text-xs text-amber-100/80 leading-relaxed">
-                      {scanModal.customer.name} has a Stampy account, but has not yet joined{" "}
+                      {scanModal.customer.name} has a Notch account, but has not yet joined{" "}
                       <strong>{scanModal.cafe?.name || "your café"}</strong>. You can enroll them right now and credit their first stamp!
                     </p>
                   </div>

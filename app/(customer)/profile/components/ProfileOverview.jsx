@@ -34,7 +34,7 @@ export default function ProfileOverview({ user, initials, onEdit }) {
                 {displayName}
               </h1>
               <p className="text-xs sm:text-sm opacity-80 mt-0.5">
-                Stampy Member ID:{" "}
+                Notch Member ID:{" "}
                 <span className="font-mono font-semibold tracking-wider">
                   {memberCode}
                 </span>

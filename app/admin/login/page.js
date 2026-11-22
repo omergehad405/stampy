@@ -49,7 +49,7 @@ export default function AdminLoginPage() {
           </div>
           <div className="mt-4 flex items-center justify-center gap-2">
             <h2 className="text-2xl font-bold tracking-tight text-(--mainColor)">
-              Stampy Admin
+              Notch Admin
             </h2>
             <span className="rounded-md bg-(--secondColor)/30 px-2 py-0.5 text-xs font-bold text-(--mainColor)">
               Super Admin
@@ -140,7 +140,7 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-       
+
 
         {/* Navigation Links */}
         <div className="flex flex-col items-center gap-2 pt-1">
@@ -161,7 +161,7 @@ export default function AdminLoginPage() {
         {/* Security Notice */}
         <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-center text-[11px] text-amber-800 leading-relaxed">
           <LuShield className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />
-          This portal is restricted to authorized Stampy platform administrators only.
+          This portal is restricted to authorized Notch platform administrators only.
         </div>
       </div>
     </div>

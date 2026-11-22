@@ -1,6 +1,6 @@
 /**
  * Client-side Authentication API helper
- * Integrates with Stampy Backend Authentication
+ * Integrates with Notch Backend Authentication
  */
 
 import { API_BASE, getAuthHeaders, setAuthToken, removeAuthToken } from "./apiClient";

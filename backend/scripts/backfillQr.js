@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const crypto = require("crypto");
 require("dotenv").config();
 
-const uri = process.env.MONGO_URI || "mongodb://localhost:27017/stampy";
+const uri = process.env.MONGO_URI || "mongodb://localhost:27017/notch";
 
 async function run() {
   await mongoose.connect(uri);

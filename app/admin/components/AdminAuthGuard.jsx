@@ -6,7 +6,7 @@ import { useAdminAuthStore } from "@/app/stores/useAdminAuthStore";
 import { useAdminStore } from "@/app/stores/useAdminStore";
 import { getAuthToken } from "@/app/lib/apiClient";
 
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => { };
 
 export default function AdminAuthGuard({ children }) {
   const pathname = usePathname();
@@ -80,7 +80,7 @@ export default function AdminAuthGuard({ children }) {
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-3 border-(--mainColor)/20 border-t-(--mainColor)" />
           <span className="text-xs font-semibold tracking-wider text-(--mainColor)/70 uppercase">
-            Loading Stampy Admin...
+            Loading Notch Admin...
           </span>
         </div>
       </div>

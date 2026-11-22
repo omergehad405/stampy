@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 export default function ToastProvider() {
   return (
     <>
-      {/* Override react-toastify defaults to match Stampy brand */}
+      {/* Override react-toastify defaults to match Notch brand */}
       <style>{`
         :root {
           --toastify-color-light: var(--bgColor, #f2ebda);

@@ -68,7 +68,7 @@ export default function DashboardCafeProfilePage() {
     if (!img || !img.src) return;
     const link = document.createElement("a");
     link.href = img.src;
-    link.download = `${cafeSlug || "cafe"}-stampy-qr.png`;
+    link.download = `${cafeSlug || "cafe"}-Notch-qr.png`;
     link.click();
   }, [cafeSlug]);
 
@@ -113,14 +113,14 @@ export default function DashboardCafeProfilePage() {
       schedule: cafe.openingHours?.schedule
         ? cafe.openingHours.schedule.map((s) => ({ ...s }))
         : [
-            { day: "Monday", open: "07:30", close: "19:00", isClosed: false },
-            { day: "Tuesday", open: "07:30", close: "19:00", isClosed: false },
-            { day: "Wednesday", open: "07:30", close: "19:00", isClosed: false },
-            { day: "Thursday", open: "07:30", close: "20:00", isClosed: false },
-            { day: "Friday", open: "07:30", close: "21:00", isClosed: false },
-            { day: "Saturday", open: "08:30", close: "21:00", isClosed: false },
-            { day: "Sunday", open: "08:30", close: "18:00", isClosed: false },
-          ],
+          { day: "Monday", open: "07:30", close: "19:00", isClosed: false },
+          { day: "Tuesday", open: "07:30", close: "19:00", isClosed: false },
+          { day: "Wednesday", open: "07:30", close: "19:00", isClosed: false },
+          { day: "Thursday", open: "07:30", close: "20:00", isClosed: false },
+          { day: "Friday", open: "07:30", close: "21:00", isClosed: false },
+          { day: "Saturday", open: "08:30", close: "21:00", isClosed: false },
+          { day: "Sunday", open: "08:30", close: "18:00", isClosed: false },
+        ],
     },
 
     // Contact
@@ -291,7 +291,7 @@ export default function DashboardCafeProfilePage() {
     <div className="space-y-6">
       <DashboardPageHeader
         title="Cafe Profile Management"
-        description="Edit the public information, opening hours, story, and digital menu shown to customers on the Stampy app."
+        description="Edit the public information, opening hours, story, and digital menu shown to customers on the Notch app."
         breadcrumbs={[{ label: "Cafe Profile" }]}
         actions={
           <div className="flex items-center gap-2">
@@ -322,11 +322,10 @@ export default function DashboardCafeProfilePage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition ${
-              activeTab === tab.key
-                ? "bg-(--mainColor) text-(--secondColor) shadow-xs"
-                : "text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-            }`}
+            className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition ${activeTab === tab.key
+              ? "bg-(--mainColor) text-(--secondColor) shadow-xs"
+              : "text-(--bgColor)/70 hover:bg-(--bgColor)/15"
+              }`}
           >
             {tab.label}
           </button>
@@ -415,7 +414,7 @@ export default function DashboardCafeProfilePage() {
               <div>
                 <span className="font-bold">Verified Partner Badge: Active</span>
                 <p className="text-[11px] text-emerald-800">
-                  Verification status is granted by Stampy compliance and displayed publicly on your store profile.
+                  Verification status is granted by Notch compliance and displayed publicly on your store profile.
                 </p>
               </div>
             </div>
@@ -433,11 +432,10 @@ export default function DashboardCafeProfilePage() {
                   <button
                     type="button"
                     onClick={() => setLogoMode("url")}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
-                      logoMode === "url"
-                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${logoMode === "url"
+                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
+                      }`}
                   >
                     <LuLink className="h-3.5 w-3.5" />
                     Paste URL
@@ -448,11 +446,10 @@ export default function DashboardCafeProfilePage() {
                       setLogoMode("file");
                       setTimeout(() => logoFileRef.current?.click(), 50);
                     }}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
-                      logoMode === "file"
-                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${logoMode === "file"
+                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
+                      }`}
                   >
                     <LuUpload className="h-3.5 w-3.5" />
                     Upload from Device
@@ -543,11 +540,10 @@ export default function DashboardCafeProfilePage() {
                   <button
                     type="button"
                     onClick={() => setCoverMode("url")}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
-                      coverMode === "url"
-                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${coverMode === "url"
+                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
+                      }`}
                   >
                     <LuLink className="h-3.5 w-3.5" />
                     Paste URL
@@ -558,11 +554,10 @@ export default function DashboardCafeProfilePage() {
                       setCoverMode("file");
                       setTimeout(() => coverFileRef.current?.click(), 50);
                     }}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
-                      coverMode === "file"
-                        ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${coverMode === "file"
+                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
+                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
+                      }`}
                   >
                     <LuUpload className="h-3.5 w-3.5" />
                     Upload from Device
@@ -1250,99 +1245,99 @@ export default function DashboardCafeProfilePage() {
             <PlanLockedFeature
               featureKey="digital_menu"
               featureName="Digital Menu"
-              description="The Digital Menu showcase is not included in your current subscription plan. Upgrade your plan to display categories and items on your public Stampy customer page."
+              description="The Digital Menu showcase is not included in your current subscription plan. Upgrade your plan to display categories and items on your public Notch customer page."
             />
           ) : (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
-              <div>
-                <h3 className="font-bold text-sm text-(--bgColor)">
-                  Digital Menu Items
-                </h3>
-                <p className="text-xs text-(--bgColor)/60">
-                  Manage menu items displayed in the customer menu preview.
-                </p>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
+                <div>
+                  <h3 className="font-bold text-sm text-(--bgColor)">
+                    Digital Menu Items
+                  </h3>
+                  <p className="text-xs text-(--bgColor)/60">
+                    Manage menu items displayed in the customer menu preview.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addMenuCategory}
+                  className="flex items-center gap-1.5 rounded-xl bg-(--mainColor) px-3 py-1.5 text-xs font-bold text-(--secondColor)"
+                >
+                  <LuPlus className="h-4 w-4" />
+                  <span>Add Item</span>
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={addMenuCategory}
-                className="flex items-center gap-1.5 rounded-xl bg-(--mainColor) px-3 py-1.5 text-xs font-bold text-(--secondColor)"
-              >
-                <LuPlus className="h-4 w-4" />
-                <span>Add Item</span>
-              </button>
-            </div>
-
-            <div className="space-y-3.5">
-              {profileForm.menuPreview.categories.map((cat, idx) => (
-                <div
-                  key={cat.id || idx}
-                  className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-4 text-xs space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-(--bgColor)">
-                      Item #{idx + 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeMenuCategory(cat.id)}
-                      className="text-rose-700 hover:text-rose-900 font-semibold"
-                    >
-                      <LuTrash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="block font-bold text-(--bgColor) mb-1">
-                        Item Title
-                      </label>
-                      <input
-                        type="text"
-                        value={cat.title}
-                        onChange={(e) =>
-                          updateMenuCategory(cat.id, "title", e.target.value)
-                        }
-                        placeholder="e.g. Flat White"
-                        className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
-                      />
+              <div className="space-y-3.5">
+                {profileForm.menuPreview.categories.map((cat, idx) => (
+                  <div
+                    key={cat.id || idx}
+                    className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-4 text-xs space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-(--bgColor)">
+                        Item #{idx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeMenuCategory(cat.id)}
+                        className="text-rose-700 hover:text-rose-900 font-semibold"
+                      >
+                        <LuTrash2 className="h-4 w-4" />
+                      </button>
                     </div>
 
-                    <div>
-                      <label className="block font-bold text-(--bgColor) mb-1">
-                        Item Price
-                      </label>
-                      <input
-                        type="text"
-                        value={cat.price}
-                        onChange={(e) =>
-                          updateMenuCategory(cat.id, "price", e.target.value)
-                        }
-                        placeholder="e.g. £3.50"
-                        className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="block font-bold text-(--bgColor) mb-1">
+                          Item Title
+                        </label>
+                        <input
+                          type="text"
+                          value={cat.title}
+                          onChange={(e) =>
+                            updateMenuCategory(cat.id, "title", e.target.value)
+                          }
+                          placeholder="e.g. Flat White"
+                          className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
+                        />
+                      </div>
 
-                    <div className="sm:col-span-2">
-                      <label className="block font-bold text-(--bgColor) mb-1">
-                        Item Description
-                      </label>
-                      <input
-                        type="text"
-                        value={cat.description}
-                        onChange={(e) =>
-                          updateMenuCategory(cat.id, "description", e.target.value)
-                        }
-                        placeholder="e.g. Smooth double shot with steamed milk"
-                        className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
-                      />
+                      <div>
+                        <label className="block font-bold text-(--bgColor) mb-1">
+                          Item Price
+                        </label>
+                        <input
+                          type="text"
+                          value={cat.price}
+                          onChange={(e) =>
+                            updateMenuCategory(cat.id, "price", e.target.value)
+                          }
+                          placeholder="e.g. £3.50"
+                          className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-(--bgColor) mb-1">
+                          Item Description
+                        </label>
+                        <input
+                          type="text"
+                          value={cat.description}
+                          onChange={(e) =>
+                            updateMenuCategory(cat.id, "description", e.target.value)
+                          }
+                          placeholder="e.g. Smooth double shot with steamed milk"
+                          className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
           )
         )}
         {/* TAB 8: CAFE QR CODE */}
@@ -1353,7 +1348,7 @@ export default function DashboardCafeProfilePage() {
                 Cafe Public QR Code
               </h3>
               <p className="text-xs text-(--bgColor)/60">
-                Share this QR code with customers. When scanned, it opens your cafe&apos;s public info page on Stampy.
+                Share this QR code with customers. When scanned, it opens your cafe&apos;s public info page on Notch.
               </p>
             </div>
 
@@ -1369,7 +1364,7 @@ export default function DashboardCafeProfilePage() {
                       id="dashboard-cafe-qr-img"
                       value={cafeInfoUrl}
                       size={220}
-                      alt={`${cafe?.name || "Cafe"} Stampy QR Code`}
+                      alt={`${cafe?.name || "Cafe"} Notch QR Code`}
                       darkColor="#1B120C"
                       lightColor="#FFFFFF"
                     />
@@ -1386,7 +1381,7 @@ export default function DashboardCafeProfilePage() {
                 {cafe?.name && (
                   <div className="text-center space-y-0.5">
                     <p className="text-sm font-bold text-(--bgColor)">{cafe.name}</p>
-                    <p className="text-xs text-(--bgColor)/50">Powered by Stampy</p>
+                    <p className="text-xs text-(--bgColor)/50">Powered by Notch</p>
                   </div>
                 )}
 
@@ -1465,7 +1460,7 @@ export default function DashboardCafeProfilePage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
-                      They land on your public Stampy page: opening hours, location, about, menu preview, and your loyalty program.
+                      They land on your public Notch page: opening hours, location, about, menu preview, and your loyalty program.
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />

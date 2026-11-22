@@ -14,7 +14,7 @@ const formatCustomerUser = (user) => {
     email: obj.email,
     phone: obj.phone || "",
     avatar: obj.avatar || "",
-    code: obj.qrCode || `STAMPY-${idStr.slice(-4).toUpperCase()}`,
+    code: obj.qrCode || `Notch-${idStr.slice(-4).toUpperCase()}`,
     qrCode: obj.qrCode || "",
     role: obj.role,
     status: obj.isActive ? "active" : "suspended",

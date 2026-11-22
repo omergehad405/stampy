@@ -114,7 +114,7 @@ export default function DashboardCustomersPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, email, or code (e.g. Omar, STAMPY-7842)..."
+            placeholder="Search by name, email, or code (e.g. Omar, Notch-7842)..."
             className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 pl-9 pr-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
           />
           <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--bgColor)/50" />
@@ -226,11 +226,10 @@ export default function DashboardCustomersPage() {
                     </td>
                     <td className="px-5 py-4">
                       <span
-                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
-                          cust.status === "active"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-gray-200 text-gray-700"
-                        }`}
+                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${cust.status === "active"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-gray-200 text-gray-700"
+                          }`}
                       >
                         {cust.status}
                       </span>
@@ -344,11 +343,10 @@ export default function DashboardCustomersPage() {
                   {Array.from({ length: settings.stampTarget }).map((_, idx) => (
                     <div
                       key={idx}
-                      className={`flex aspect-square items-center justify-center rounded-lg border text-xs font-bold ${
-                        idx < selectedCustomer.stamps
-                          ? "border-(--secondColor) bg-(--secondColor) text-[#3B2418]"
-                          : "border-(--bgColor)/20 bg-(--bgColor)/5 text-(--bgColor)/30"
-                      }`}
+                      className={`flex aspect-square items-center justify-center rounded-lg border text-xs font-bold ${idx < selectedCustomer.stamps
+                        ? "border-(--secondColor) bg-(--secondColor) text-[#3B2418]"
+                        : "border-(--bgColor)/20 bg-(--bgColor)/5 text-(--bgColor)/30"
+                        }`}
                     >
                       <LuCoffee className="h-3.5 w-3.5" />
                     </div>
@@ -434,9 +432,8 @@ export default function DashboardCustomersPage() {
                           </div>
                         </div>
                         <span
-                          className={`font-bold ${
-                            act.stampsDelta > 0 ? "text-emerald-400" : "text-rose-400"
-                          }`}
+                          className={`font-bold ${act.stampsDelta > 0 ? "text-emerald-400" : "text-rose-400"
+                            }`}
                         >
                           {act.stampsDelta > 0 ? `+${act.stampsDelta}` : act.stampsDelta}
                         </span>

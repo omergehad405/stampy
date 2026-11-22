@@ -1,5 +1,5 @@
 /**
- * Catalog of participating cafes on the Stampy platform.
+ * Catalog of participating cafes on the Notch platform.
  * Supports multi-cafe discovery, QR routing, and individual cafe settings.
  */
 

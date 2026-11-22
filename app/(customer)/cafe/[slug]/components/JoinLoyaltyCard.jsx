@@ -12,7 +12,7 @@ export default function JoinLoyaltyCard({ cafe, isJoining, onJoin }) {
             Start earning stamps with {cafe.name}
           </h3>
           <p className="text-xs sm:text-sm text-(--bgColor)/75 mt-1 max-w-lg">
-            Join with your existing Stampy account in one tap. Every visit earns you a stamp towards free specialty coffee, pastries, and exclusive discounts.
+            Join with your existing Notch account in one tap. Every visit earns you a stamp towards free specialty coffee, pastries, and exclusive discounts.
           </p>
         </div>
 

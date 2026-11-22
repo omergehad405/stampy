@@ -17,7 +17,7 @@ export default function LogoutConfirmModal({ onClose, onConfirm }) {
       >
         <h3 className="text-xl font-bold">Log Out?</h3>
         <p className="text-xs opacity-75 mt-2">
-          Are you sure you want to log out of your Stampy customer account?
+          Are you sure you want to log out of your Notch customer account?
         </p>
 
         <div className="mt-6 flex items-center justify-center gap-3">

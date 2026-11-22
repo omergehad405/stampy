@@ -111,7 +111,7 @@ export default function PlanLockedFeature({
                 Close
               </button>
               <a
-                href={`mailto:support@stampy.app?subject=Upgrade Plan for ${encodeURIComponent(cafe.name || "Cafe")} to unlock ${encodeURIComponent(featureName)}&body=Hello Stampy Team,%0D%0A%0D%0AI would like to upgrade our cafe plan to unlock ${encodeURIComponent(featureName)}.`}
+                href={`mailto:support@notch.app?subject=Upgrade Plan for ${encodeURIComponent(cafe.name || "Cafe")} to unlock ${encodeURIComponent(featureName)}&body=Hello Notch Team,%0D%0A%0D%0AI would like to upgrade our cafe plan to unlock ${encodeURIComponent(featureName)}.`}
                 className="rounded-xl bg-(--secondColor) px-4 py-2 font-bold text-xs text-[#3B2418] hover:opacity-95 transition"
               >
                 Contact to Upgrade

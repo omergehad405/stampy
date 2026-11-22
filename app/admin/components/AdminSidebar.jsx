@@ -133,7 +133,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold tracking-tight text-(--mainColor) text-lg leading-tight">
-                    Stampy
+                    Notch
                   </span>
                   <span className="rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 uppercase">
                     Admin
@@ -176,15 +176,15 @@ export default function AdminSidebar({ isOpen, onClose }) {
                       href={item.href}
                       onClick={onClose}
                       className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${active
-                          ? "bg-(--mainColor) text-(--bgColor) shadow-xs"
-                          : "text-(--mainColor)/80 hover:bg-[#eee3d1] hover:text-(--mainColor)"
+                        ? "bg-(--mainColor) text-(--bgColor) shadow-xs"
+                        : "text-(--mainColor)/80 hover:bg-[#eee3d1] hover:text-(--mainColor)"
                         }`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon
                           className={`h-4.5 w-4.5 transition-transform duration-150 group-hover:scale-105 ${active
-                              ? "text-(--secondColor)"
-                              : "text-(--mainColor)/70"
+                            ? "text-(--secondColor)"
+                            : "text-(--mainColor)/70"
                             }`}
                         />
                         <span>{item.label}</span>
@@ -214,7 +214,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
               />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-xs font-bold text-(--mainColor)">
-                  {currentAdmin?.name || "Stampy Admin"}
+                  {currentAdmin?.name || "Notch Admin"}
                 </div>
                 <div className="truncate text-[10px] font-medium text-(--mainColor)/60">
                   {currentAdmin?.role || "Super Admin"}

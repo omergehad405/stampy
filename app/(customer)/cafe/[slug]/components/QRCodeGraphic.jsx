@@ -13,7 +13,7 @@ export default function QRCodeGraphic({
       value={value}
       size={size}
       className={className}
-      alt="Stampy QR Code"
+      alt="Notch QR Code"
       darkColor="#1B120C"
       lightColor="#FFFFFF"
     />

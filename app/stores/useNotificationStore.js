@@ -45,7 +45,7 @@ export const useNotificationStore = create(
         })),
     }),
     {
-      name: "stampy_notifications_store",
+      name: "Notch_notifications_store",
     }
   )
 );

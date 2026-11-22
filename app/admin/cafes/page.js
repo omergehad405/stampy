@@ -285,7 +285,7 @@ export default function AdminCafesPage() {
       {/* Page Header */}
       <AdminPageHeader
         title="Cafe Management"
-        description="Monitor, approve, configure, or suspend participating cafes on the Stampy platform."
+        description="Monitor, approve, configure, or suspend participating cafes on the Notch platform."
         breadcrumbs={[{ label: "Cafes" }]}
         actions={
           <button

@@ -70,7 +70,7 @@ function generateResetPasswordHtml({ name, resetUrl, minutes = 15 }) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Stampy Password</title>
+  <title>Reset Your Notch Password</title>
   <style>
     body {
       margin: 0;
@@ -193,7 +193,7 @@ function generateResetPasswordHtml({ name, resetUrl, minutes = 15 }) {
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <div class="header-logo">☕ STAMPY</div>
+        <div class="header-logo">☕ Notch</div>
         <div class="header-tagline">Digital Loyalty & Rewards</div>
       </div>
       
@@ -201,7 +201,7 @@ function generateResetPasswordHtml({ name, resetUrl, minutes = 15 }) {
         <h2 class="greeting">Hello ${name ? name : "there"},</h2>
         
         <p class="body-text">
-          We received a request to reset the password for your Stampy account. 
+          We received a request to reset the password for your Notch account. 
           Click the button below to choose a new password:
         </p>
         
@@ -231,7 +231,7 @@ function generateResetPasswordHtml({ name, resetUrl, minutes = 15 }) {
       </div>
 
       <div class="footer">
-        &copy; ${new Date().getFullYear()} Stampy Loyalty System. All rights reserved.
+        &copy; ${new Date().getFullYear()} Notch Loyalty System. All rights reserved.
       </div>
     </div>
   </div>
@@ -253,29 +253,29 @@ async function sendPasswordResetEmail({ email, name, resetUrl }) {
   const fromAddress =
     process.env.EMAIL_FROM ||
     process.env.SMTP_FROM ||
-    '"Stampy Support" <no-reply@stampy.app>';
+    '"Notch Support" <no-reply@notch.app>';
 
   const mailOptions = {
     from: fromAddress,
     to: email,
-    subject: "Stampy - Password Reset Request (Valid for 15 minutes)",
-    text: `Hello ${name || "there"},\n\nYou requested a password reset for your Stampy account.\n\nPlease reset your password using the link below:\n${resetUrl}\n\nIMPORTANT: This link will expire in 15 minutes.\n\nIf you did not request this, please ignore this email.\n\nStampy Team`,
+    subject: "Notch - Password Reset Request (Valid for 15 minutes)",
+    text: `Hello ${name || "there"},\n\nYou requested a password reset for your Notch account.\n\nPlease reset your password using the link below:\n${resetUrl}\n\nIMPORTANT: This link will expire in 15 minutes.\n\nIf you did not request this, please ignore this email.\n\nNotch Team`,
     html: generateResetPasswordHtml({ name, resetUrl, minutes: 15 }),
   };
 
   const info = await transporter.sendMail(mailOptions);
 
-  console.log(`[Stampy Mail] Password reset email dispatched to ${email}. MessageId: ${info.messageId || "stream"}`);
-  
+  console.log(`[Notch Mail] Password reset email dispatched to ${email}. MessageId: ${info.messageId || "stream"}`);
+
   // If using Ethereal, display preview URL in logs
   const previewUrl = nodemailer.getTestMessageUrl(info);
   if (previewUrl) {
-    console.log(`[Stampy Mail Ethereal Preview URL]: ${previewUrl}`);
+    console.log(`[Notch Mail Ethereal Preview URL]: ${previewUrl}`);
   }
 
   // Also log reset link in development for fast testing
   if (process.env.NODE_ENV !== "production") {
-    console.log(`[Stampy Reset Link]: ${resetUrl}`);
+    console.log(`[Notch Reset Link]: ${resetUrl}`);
   }
 
   return { info, previewUrl, resetUrl };

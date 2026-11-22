@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
             <span className="grid h-9 w-9 place-items-center rounded-full bg-[#d3e0e8] text-[#3b2418]">
               <LuCoffee className="h-5 w-5" />
             </span>
-            <span className="text-xs font-bold tracking-wider text-[#3b2418]">STAMPY LOYALTY</span>
+            <span className="text-xs font-bold tracking-wider text-[#3b2418]">Notch LOYALTY</span>
           </div>
 
           {!isSubmitted ? (

@@ -77,11 +77,11 @@ function DedicatedCafePageContent() {
     if (typeof window !== "undefined") {
       const hasWelcomeParam = searchParams?.get("welcome") === "true";
       const hasSessionFlag =
-        sessionStorage.getItem(`stampy_welcome_stamp_${slug}`) === "true";
+        sessionStorage.getItem(`Notch_welcome_stamp_${slug}`) === "true";
 
       if (hasWelcomeParam || hasSessionFlag) {
         setAnimatingStamps([1]);
-        sessionStorage.removeItem(`stampy_welcome_stamp_${slug}`);
+        sessionStorage.removeItem(`Notch_welcome_stamp_${slug}`);
       }
     }
   }, [searchParams, slug]);
@@ -132,7 +132,7 @@ function DedicatedCafePageContent() {
     if (!isAuthenticated || !token) {
       if (typeof window !== "undefined") {
         localStorage.setItem(
-          "stampy_pending_cafe_join",
+          "Notch_pending_cafe_join",
           JSON.stringify({
             cafeId: cafe?.id || cafe?._id || slug,
             slug,

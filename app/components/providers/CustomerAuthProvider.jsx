@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import { getAuthToken } from "@/app/lib/apiClient";
 
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => { };
 
 function CustomerAuthContent({ children }) {
   const pathname = usePathname();
@@ -82,7 +82,7 @@ function CustomerAuthContent({ children }) {
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-3 border-(--mainColor)/20 border-t-(--mainColor)" />
           <span className="text-xs font-semibold tracking-wider text-(--mainColor)/70 uppercase">
-            Loading Stampy...
+            Loading Notch...
           </span>
         </div>
       </div>

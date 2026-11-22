@@ -45,7 +45,7 @@ export default function CafeMenuTeaser({ menuPreview }) {
       </div>
 
       <p className="text-xs sm:text-sm text-(--bgColor)/80 max-w-xl">
-        {note || "Digital interactive menu ordering will be available directly inside Stampy soon. Here is a glance at our signature craft categories."}
+        {note || "Digital interactive menu ordering will be available directly inside Notch soon. Here is a glance at our signature craft categories."}
       </p>
 
       {/* Categories Preview Grid */}

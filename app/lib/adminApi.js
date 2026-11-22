@@ -1,6 +1,6 @@
 /**
  * Client-side Admin API helper
- * Integrates with Stampy Admin Backend Endpoints
+ * Integrates with Notch Admin Backend Endpoints
  */
 
 import { API_BASE, getAuthHeaders } from "./apiClient";

@@ -15,12 +15,12 @@ export default function EditProfileModal({ user, onClose, onSave }) {
 
   const initials = editForm.name
     ? editForm.name
-        .split(" ")
-        .filter(Boolean)
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : "SP";
 
   const handleFileChange = (e) => {
@@ -154,7 +154,7 @@ export default function EditProfileModal({ user, onClose, onSave }) {
                 </button>
 
                 <p className="text-[11px] text-[#3b2418]/65 leading-tight">
-                  Supports JPG, PNG or WEBP (up to 5MB). Photo is saved to your Stampy profile.
+                  Supports JPG, PNG or WEBP (up to 5MB). Photo is saved to your Notch profile.
                 </p>
               </div>
             </div>

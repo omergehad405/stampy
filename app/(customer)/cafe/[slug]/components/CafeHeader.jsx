@@ -37,7 +37,7 @@ export default function CafeHeader({ cafe, operatingStatus }) {
   const handleShare = async () => {
     const shareData = {
       title: name,
-      text: `${name} on Stampy - Digital Loyalty`,
+      text: `${name} on Notch - Digital Loyalty`,
       url: typeof window !== "undefined" ? window.location.href : "",
     };
 
@@ -134,7 +134,7 @@ export default function CafeHeader({ cafe, operatingStatus }) {
                 </h1>
                 {isVerified && (
                   <span
-                    title="Verified Stampy Cafe"
+                    title="Verified Notch Cafe"
                     className="inline-flex text-(--secondColor) hover:scale-110 transition-transform"
                   >
                     <LuBadgeCheck className="w-5 h-5 sm:w-6 sm:h-6 fill-(--secondColor) text-(--bgColor)" />

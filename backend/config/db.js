@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
-  const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/stampy";
+  const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/notch";
 
   try {
     const conn = await mongoose.connect(mongoUri, {

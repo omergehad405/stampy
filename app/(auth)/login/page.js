@@ -34,13 +34,13 @@ function LoginPageContent() {
     // Customer role: check if there was a pending cafe to join
     const pendingJoinRaw =
       typeof window !== "undefined"
-        ? localStorage.getItem("stampy_pending_cafe_join")
+        ? localStorage.getItem("Notch_pending_cafe_join")
         : null;
 
     if (pendingJoinRaw) {
       try {
         const pendingCafe = JSON.parse(pendingJoinRaw);
-        localStorage.removeItem("stampy_pending_cafe_join");
+        localStorage.removeItem("Notch_pending_cafe_join");
 
         if (pendingCafe?.cafeId || pendingCafe?.slug) {
           const target = pendingCafe.cafeId || pendingCafe.slug;
@@ -52,7 +52,7 @@ function LoginPageContent() {
           }
           const cafeSlug = pendingCafe.slug || pendingCafe.cafeId;
           if (typeof window !== "undefined") {
-            sessionStorage.setItem(`stampy_welcome_stamp_${cafeSlug}`, "true");
+            sessionStorage.setItem(`Notch_welcome_stamp_${cafeSlug}`, "true");
           }
           router.push(`/cafe/${cafeSlug}?welcome=true`);
           return;
@@ -139,7 +139,7 @@ function LoginPageContent() {
           toast.success(
             accountType === "cafeOwner"
               ? `Welcome, Cafe Owner ${registeredUser.name}! Your account is ready.`
-              : `Welcome to Stampy, ${registeredUser.name}! Your loyalty card is ready.`
+              : `Welcome to Notch, ${registeredUser.name}! Your loyalty card is ready.`
           );
 
           if (registeredUser.role === "user") {
@@ -190,23 +190,23 @@ function LoginPageContent() {
             <span className="grid h-9 w-9 place-items-center rounded-full bg-[#d3e0e8] text-[#3b2418]">
               <LuCoffee className="h-5 w-5" />
             </span>
-            <span className="text-xs font-bold tracking-wider text-[#3b2418]">STAMPY LOYALTY</span>
+            <span className="text-xs font-bold tracking-wider text-[#3b2418]">Notch LOYALTY</span>
           </div>
 
           <h1 className="mt-5 text-2xl font-bold text-[#3b2418] sm:text-3xl">
             {mode === "login"
               ? "Welcome Back"
               : accountType === "cafeOwner"
-              ? "Register Your Cafe"
-              : "Create Loyalty Card"}
+                ? "Register Your Cafe"
+                : "Create Loyalty Card"}
           </h1>
 
           <p className="mt-2 text-xs sm:text-sm leading-relaxed text-[#3b2418]/75">
             {mode === "login"
               ? "Sign in to access your digital loyalty card, rewards, and account settings."
               : accountType === "cafeOwner"
-              ? "Register your cafe to start issuing loyalty stamps and rewarding customers."
-              : "Join our digital loyalty program and enjoy exclusive rewards with every visit."}
+                ? "Register your cafe to start issuing loyalty stamps and rewarding customers."
+                : "Join our digital loyalty program and enjoy exclusive rewards with every visit."}
           </p>
 
           {/* Mode Switcher Tabs */}
@@ -217,11 +217,10 @@ function LoginPageContent() {
                 setMode("login");
                 setErrorMessage("");
               }}
-              className={`rounded-lg py-2 transition cursor-pointer ${
-                mode === "login"
-                  ? "bg-[#faf6ec] text-[#3b2418] shadow-xs font-bold"
-                  : "text-[#3b2418]/65 hover:text-[#3b2418]"
-              }`}
+              className={`rounded-lg py-2 transition cursor-pointer ${mode === "login"
+                ? "bg-[#faf6ec] text-[#3b2418] shadow-xs font-bold"
+                : "text-[#3b2418]/65 hover:text-[#3b2418]"
+                }`}
             >
               Sign In
             </button>
@@ -231,11 +230,10 @@ function LoginPageContent() {
                 setMode("signup");
                 setErrorMessage("");
               }}
-              className={`rounded-lg py-2 transition cursor-pointer ${
-                mode === "signup"
-                  ? "bg-[#faf6ec] text-[#3b2418] shadow-xs font-bold"
-                  : "text-[#3b2418]/65 hover:text-[#3b2418]"
-              }`}
+              className={`rounded-lg py-2 transition cursor-pointer ${mode === "signup"
+                ? "bg-[#faf6ec] text-[#3b2418] shadow-xs font-bold"
+                : "text-[#3b2418]/65 hover:text-[#3b2418]"
+                }`}
             >
               Sign Up
             </button>
@@ -247,11 +245,10 @@ function LoginPageContent() {
               <button
                 type="button"
                 onClick={() => setAccountType("customer")}
-                className={`flex-1 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                  accountType === "customer"
-                    ? "bg-[#8ec5ff] text-[#3b2418] font-bold shadow-xs"
-                    : "text-[#3b2418]/70 hover:text-[#3b2418]"
-                }`}
+                className={`flex-1 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${accountType === "customer"
+                  ? "bg-[#8ec5ff] text-[#3b2418] font-bold shadow-xs"
+                  : "text-[#3b2418]/70 hover:text-[#3b2418]"
+                  }`}
               >
                 <LuUserCheck className="h-3.5 w-3.5" />
                 <span>Customer</span>
@@ -259,11 +256,10 @@ function LoginPageContent() {
               <button
                 type="button"
                 onClick={() => setAccountType("cafeOwner")}
-                className={`flex-1 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                  accountType === "cafeOwner"
-                    ? "bg-[#8ec5ff] text-[#3b2418] font-bold shadow-xs"
-                    : "text-[#3b2418]/70 hover:text-[#3b2418]"
-                }`}
+                className={`flex-1 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${accountType === "cafeOwner"
+                  ? "bg-[#8ec5ff] text-[#3b2418] font-bold shadow-xs"
+                  : "text-[#3b2418]/70 hover:text-[#3b2418]"
+                  }`}
               >
                 <LuCoffee className="h-3.5 w-3.5" />
                 <span>Cafe Owner</span>
@@ -457,7 +453,7 @@ function LoginPageContent() {
               </p>
             ) : (
               <p className="text-xs text-[#3b2418]/75">
-                Already registered with Stampy?{" "}
+                Already registered with Notch?{" "}
                 <button
                   type="button"
                   onClick={() => {

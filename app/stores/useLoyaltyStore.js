@@ -8,7 +8,7 @@ import { useNotificationStore } from "./useNotificationStore";
 
 export const EMPTY_USER = {
   id: "",
-  name: "Stampy Patron",
+  name: "",
   email: "",
   phone: "",
   memberCode: "",
@@ -67,9 +67,9 @@ export const useLoyaltyStore = create(
 
             const formattedDate = u.createdAt
               ? new Date(u.createdAt).toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })
+                month: "long",
+                year: "numeric",
+              })
               : "Recently";
 
             const updatedUser = {
@@ -112,15 +112,15 @@ export const useLoyaltyStore = create(
                       Array.isArray(c.history) && c.history.length > 0
                         ? c.history
                         : get().memberships[slug]?.history || [
-                            {
-                              id: `act-joined-${slug}`,
-                              type: "join",
-                              title: "Joined Loyalty Program",
-                              date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
-                              description: `Enrolled in ${c.name || slug}`,
-                              stampsDelta: 0,
-                            },
-                          ],
+                          {
+                            id: `act-joined-${slug}`,
+                            type: "join",
+                            title: "Joined Loyalty Program",
+                            date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
+                            description: `Enrolled in ${c.name || slug}`,
+                            stampsDelta: 0,
+                          },
+                        ],
                     redemptions: Array.isArray(c.redemptions)
                       ? c.redemptions
                       : get().memberships[slug]?.redemptions || [],
@@ -169,9 +169,9 @@ export const useLoyaltyStore = create(
 
         const formattedDate = u.createdAt
           ? new Date(u.createdAt).toLocaleDateString("en-US", {
-              month: "long",
-              year: "numeric",
-            })
+            month: "long",
+            year: "numeric",
+          })
           : "Recently";
 
         const updatedUser = {
@@ -213,15 +213,15 @@ export const useLoyaltyStore = create(
                   Array.isArray(c.history) && c.history.length > 0
                     ? c.history
                     : get().memberships[slug]?.history || [
-                        {
-                          id: `act-joined-${slug}`,
-                          type: "join",
-                          title: "Joined Loyalty Program",
-                          date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
-                          description: `Enrolled in ${c.name || slug}`,
-                          stampsDelta: 0,
-                        },
-                      ],
+                      {
+                        id: `act-joined-${slug}`,
+                        type: "join",
+                        title: "Joined Loyalty Program",
+                        date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
+                        description: `Enrolled in ${c.name || slug}`,
+                        stampsDelta: 0,
+                      },
+                    ],
                 redemptions: Array.isArray(c.redemptions)
                   ? c.redemptions
                   : get().memberships[slug]?.redemptions || [],
@@ -656,13 +656,13 @@ export const useLoyaltyStore = create(
           const updatedRedemptions = (membership.redemptions || []).map((item) =>
             item.id === redemptionId
               ? {
-                  ...item,
-                  status: "used",
-                  usedAt: new Date().toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-                }
+                ...item,
+                status: "used",
+                usedAt: new Date().toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              }
               : item
           );
 
@@ -708,9 +708,9 @@ export const useLoyaltyStore = create(
 
             const formattedDate = u.createdAt
               ? new Date(u.createdAt).toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })
+                month: "long",
+                year: "numeric",
+              })
               : "Recently";
 
             set((state) => ({
@@ -742,7 +742,7 @@ export const useLoyaltyStore = create(
       },
     }),
     {
-      name: "stampy_loyalty_store",
+      name: "Notch_loyalty_store",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

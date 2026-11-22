@@ -47,9 +47,9 @@ export const INITIAL_ANNOUNCEMENTS = [];
 // ─── Platform Settings ────────────────────────────────────────────────────
 
 const INITIAL_SETTINGS = {
-  platformName: "Stampy",
+  platformName: "Notch",
   platformTagline: "Digital Loyalty Cards for Modern Cafes",
-  platformEmail: "support@stampy.app",
+  platformEmail: "support@notch.app",
   logoUrl: "",
   allowPublicCafeRegistration: true,
   allowPublicCustomerRegistration: true,
@@ -276,12 +276,12 @@ export const useAdminStore = create((set, get) => ({
       cafes: cafes.map((c) =>
         c.id === cafeId || c._id === cafeId
           ? {
-              ...c,
-              subscriptionPlanId: planId,
-              subscriptionStatus: "active",
-              subscriptionStart: new Date().toISOString().split("T")[0],
-              subscriptionExpiry: null,
-            }
+            ...c,
+            subscriptionPlanId: planId,
+            subscriptionStatus: "active",
+            subscriptionStart: new Date().toISOString().split("T")[0],
+            subscriptionExpiry: null,
+          }
           : c
       ),
       auditLog: [newAuditEntry, ...auditLog],
@@ -334,10 +334,10 @@ export const useAdminStore = create((set, get) => ({
       customers: customers.map((c) =>
         c.id === customerId
           ? {
-              ...c,
-              status: newStatus,
-              isActive: newStatus === "active",
-            }
+            ...c,
+            status: newStatus,
+            isActive: newStatus === "active",
+          }
           : c
       ),
       auditLog: [newAuditEntry, ...auditLog],

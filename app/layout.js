@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Stampy - Digital Loyalty Card",
+  title: "Notch - Digital Loyalty Card",
   description: "Digital loyalty cards for cafes",
 };
 

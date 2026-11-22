@@ -68,7 +68,7 @@ export default function SplashScreen() {
           {/* Logo motion video */}
           <video
             key="splash-video"
-            src="/logo_motion.mp4"
+            src="/notch_logo_animation.mp4"
             autoPlay
             muted
             playsInline

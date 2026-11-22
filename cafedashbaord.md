@@ -1,8 +1,8 @@
-# Stampy – Cafe Dashboard Implementation
+# Notch – Cafe Dashboard Implementation
 
 The customer-facing website is now completed, including its pages, navigation, routing, and cafe profile experience.
 
-We are now moving to the next major part of Stampy: **the Cafe Dashboard**.
+We are now moving to the next major part of Notch: **the Cafe Dashboard**.
 
 Your task is to design and implement a complete, professional dashboard that allows cafe owners and their employees to manage their cafe's loyalty program.
 
@@ -19,7 +19,7 @@ Before making any changes:
 Create a dedicated dashboard layout with:
 
 **Left Sidebar**
-- Stampy logo.
+- Notch logo.
 - Cafe name and logo.
 - Navigation links.
 - Active navigation state.
@@ -60,7 +60,7 @@ This page is responsible for the daily loyalty operations.
 
 Include:
 - QR code scanner interface.
-- Ability to identify a customer through their Stampy QR code.
+- Ability to identify a customer through their Notch QR code.
 - Customer information after successful scanning.
 - Current stamp card progress.
 - Ability to add stamps.
@@ -250,7 +250,7 @@ Do not expose passwords or store them as plain text. Use the existing authentica
 
 ## 4. Design System
 
-Maintain consistency with Stampy's existing visual identity.
+Maintain consistency with Notch's existing visual identity.
 
 Use the established project colors:
 
@@ -272,7 +272,7 @@ Design direction:
 
 Use the existing project's design conventions and libraries.
 
-The dashboard should feel like part of the same Stampy product, but its layout should be optimized for desktop management rather than the customer-facing mobile experience.
+The dashboard should feel like part of the same Notch product, but its layout should be optimized for desktop management rather than the customer-facing mobile experience.
 
 Ensure full responsiveness for tablets and mobile devices.
 
@@ -322,7 +322,7 @@ Before finishing:
 
 ## Final Objective
 
-The goal is to create a complete Cafe Management Dashboard for Stampy.
+The goal is to create a complete Cafe Management Dashboard for Notch.
 
 A cafe owner should be able to log in, manage their cafe profile, manage customers and rewards, monitor loyalty activity, scan customer QR codes, and manage their employees from one centralized dashboard.
 

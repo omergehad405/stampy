@@ -18,7 +18,7 @@ export default function ProfileHeader() {
           </div>
           <div className="min-w-0">
             <h2 className="text-sm lg:text-base font-bold leading-tight text-(--mainColor) truncate">
-              Stampy Account
+              Notch Account
             </h2>
             <p className="text-[11px] sm:text-xs font-medium opacity-70 truncate">
               Customer Profile

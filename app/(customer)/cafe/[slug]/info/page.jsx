@@ -37,7 +37,7 @@ function DedicatedCafeInfoContent() {
     if (!isAuthenticated || !token) {
       if (typeof window !== "undefined") {
         localStorage.setItem(
-          "stampy_pending_cafe_join",
+          "Notch_pending_cafe_join",
           JSON.stringify({
             cafeId: cafe?.id || cafe?._id || slug,
             slug,
@@ -56,7 +56,7 @@ function DedicatedCafeInfoContent() {
       const res = await joinCafe(cafe?.id || cafe?._id || slug);
       if (res?.success) {
         if (typeof window !== "undefined") {
-          sessionStorage.setItem(`stampy_welcome_stamp_${slug}`, "true");
+          sessionStorage.setItem(`Notch_welcome_stamp_${slug}`, "true");
         }
         toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`);
         router.push(`/cafe/${slug}?welcome=true`);
@@ -141,7 +141,7 @@ function DedicatedCafeInfoContent() {
             <p className="flex items-center justify-center gap-1.5">
               <LuCoffee className="w-3.5 h-3.5 text-(--mainColor)/40" />
               <span>
-                {cafe?.name || "This cafe"} on Stampy Digital Loyalty
+                {cafe?.name || "This cafe"} on Notch Digital Loyalty
               </span>
             </p>
             <p className="mt-1 text-[11px] opacity-75">

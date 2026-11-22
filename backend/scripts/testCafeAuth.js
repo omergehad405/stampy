@@ -168,7 +168,7 @@ async function runCafeAuthTests() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: {
-        email: "stampy2026@gmail.com",
+        email: "Stampy2026@gmail.com",
         password: "Stampy2026#",
       },
     });

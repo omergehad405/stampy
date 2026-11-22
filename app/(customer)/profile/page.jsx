@@ -22,7 +22,7 @@ export default function CustomerProfilePage() {
   const { user, updateUserProfile, fetchCurrentUser, logout, isAuthenticated } = useLoyaltyStore();
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("stampy_auth_token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("Notch_auth_token") : null;
     if (!token && !isAuthenticated) {
       router.replace("/login");
       return;
@@ -60,18 +60,18 @@ export default function CustomerProfilePage() {
       console.warn("Logout error:", e);
     }
     logout();
-    toast("You have logged out of your Stampy account.", { type: "info" });
+    toast("You have logged out of your Notch account.", { type: "info" });
     window.location.href = "/login";
   };
 
   const initials = user?.name
     ? user.name
-        .split(" ")
-        .filter(Boolean)
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : "SP";
 
   return (

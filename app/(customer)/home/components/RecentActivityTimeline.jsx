@@ -108,7 +108,7 @@ export default function RecentActivityTimeline({ activities }) {
                     </p>
                     <div className="flex items-center gap-1.5 text-[11px] text-(--bgColor)/75 mt-0.5 truncate">
                       <span className="font-medium text-(--bgColor) truncate">
-                        {act.cafeName || act.description?.split("•")[0]?.trim() || "Stampy Café"}
+                        {act.cafeName || act.description?.split("•")[0]?.trim() || "Notch Café"}
                       </span>
                       <span>•</span>
                       <span className="shrink-0">{act.date}</span>

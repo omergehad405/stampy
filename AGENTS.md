@@ -1,17 +1,17 @@
-# AGENTS.md --- Stampy
+# AGENTS.md --- Notch
 
-Project-level instructions for AI coding agents working on **Stampy**, a
+Project-level instructions for AI coding agents working on **Notch**, a
 QR-based digital loyalty-card platform.
 
 ## 1. Product context
 
-Stampy helps cafés and other participating businesses run a digital
+Notch helps cafés and other participating businesses run a digital
 stamp/visit loyalty program.
 
 ### Core customer journey
 
 1.  A customer registers once and gets a persistent customer account.
-2.  Stampy provides that customer with a unique QR code associated with
+2.  Notch provides that customer with a unique QR code associated with
     their loyalty card.
 3.  The customer presents the QR code when visiting a participating
     café.

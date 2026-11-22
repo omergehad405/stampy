@@ -8,8 +8,8 @@ const User = require("../app/models/User");
  * Injects the platform super admin account directly into MongoDB
  */
 const seedAdmin = async () => {
-  const adminName = process.env.ADMIN_NAME || "Stampy Admin";
-  const adminEmail = (process.env.ADMIN_EMAIL || "stampy2026@gmail.com").trim().toLowerCase();
+  const adminName = process.env.ADMIN_NAME || "Notch Admin";
+  const adminEmail = (process.env.ADMIN_EMAIL || "Stampy2026@gmail.com").trim().toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD || "Stampy2026#";
 
   try {

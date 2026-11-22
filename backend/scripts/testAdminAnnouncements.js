@@ -33,7 +33,7 @@ async function runTests() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     },
-    { email: "stampy2026@gmail.com", password: "Stampy2026#" }
+    { email: "Stampy2026@gmail.com", password: "Stampy2026#" }
   );
 
   console.log("1. Admin Login:", loginRes.status === 200 ? "PASS" : "FAIL");

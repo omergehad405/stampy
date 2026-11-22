@@ -53,7 +53,7 @@ export default function AdminHeader({ onToggleSidebar }) {
           />
           <div className="hidden xl:flex flex-col text-left">
             <span className="text-xs font-bold text-(--mainColor) leading-tight">
-              {currentAdmin?.name || "Stampy Admin"}
+              {currentAdmin?.name || "Notch Admin"}
             </span>
             <span className="text-[10px] text-rose-700 font-bold uppercase tracking-wider">
               {currentAdmin?.role || "Super Admin"}

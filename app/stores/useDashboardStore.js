@@ -679,7 +679,7 @@ export const useDashboardStore = create((set, get) => ({
     const { customers, settings } = get();
     const newCustomer = {
       id: `cust-${Math.floor(1000 + Math.random() * 9000)}`,
-      code: `STAMPY-${Math.floor(1000 + Math.random() * 9000)}`,
+      code: `Notch-${Math.floor(1000 + Math.random() * 9000)}`,
       registeredDate: new Date().toISOString().split("T")[0],
       status: "active",
       stamps: settings.welcomeBonusStamp ? 1 : 0,

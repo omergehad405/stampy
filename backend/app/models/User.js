@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
           "cafeManager",
           "cafeBarista",
         ],
-        message: "{VALUE} is not a valid Stampy role",
+        message: "{VALUE} is not a valid Notch role",
       },
       default: "user",
       required: true,

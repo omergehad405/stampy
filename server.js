@@ -20,13 +20,13 @@ async function startServer() {
     });
 
     expressApp.listen(PORT, () => {
-      console.log(`\n[Stampy] ✅ Unified Server running on port ${PORT}`);
-      console.log(`[Stampy]    Mode: ${dev ? "Development" : "Production"}`);
-      console.log(`[Stampy]    API  → http://localhost:${PORT}/api`);
-      console.log(`[Stampy]    App  → http://localhost:${PORT}/\n`);
+      console.log(`\n[Notch] ✅ Unified Server running on port ${PORT}`);
+      console.log(`[Notch]    Mode: ${dev ? "Development" : "Production"}`);
+      console.log(`[Notch]    API  → http://localhost:${PORT}/api`);
+      console.log(`[Notch]    App  → http://localhost:${PORT}/\n`);
     });
   } catch (error) {
-    console.error("[Stampy Fatal Error]:", error);
+    console.error("[Notch Fatal Error]:", error);
     process.exit(1);
   }
 }

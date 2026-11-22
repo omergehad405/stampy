@@ -52,7 +52,7 @@ async function request(method, path, body = null, headers = {}) {
 }
 
 async function runTests() {
-  console.log("=== STARTING STAMPY AUTHENTICATION TEST SUITE ===\n");
+  console.log("=== STARTING Notch AUTHENTICATION TEST SUITE ===\n");
   let passed = 0;
   let failed = 0;
 
@@ -266,7 +266,7 @@ async function runTests() {
 
     // 19. Admin Seed Verification & Login
     const adminLoginRes = await request("POST", "/api/auth/login", {
-      email: "stampy2026@gmail.com",
+      email: "Stampy2026@gmail.com",
       password: "Stampy2026#",
     });
     assert(adminLoginRes.status === 200, "19.1 Admin account can log in");

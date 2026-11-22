@@ -12,7 +12,7 @@ export default function CafeNotFound() {
       </div>
       <h2 className="text-xl font-bold">Cafe Not Found</h2>
       <p className="text-xs opacity-75 mt-1.5">
-        The cafe identifier you scanned is not registered on Stampy.
+        The cafe identifier you scanned is not registered on Notch.
       </p>
       <Link
         href="/my-cafes"

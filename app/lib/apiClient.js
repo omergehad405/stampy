@@ -1,5 +1,5 @@
 /**
- * Central API client configuration for Stampy.
+ * Central API client configuration for Notch.
  *
  * All client-side fetch helpers import `API_BASE` and auth token utilities
  * from here so backend connectivity and session persistence work seamlessly
@@ -9,7 +9,7 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "";
 
-const TOKEN_KEY = "stampy_auth_token";
+const TOKEN_KEY = "Notch_auth_token";
 
 /**
  * Retrieve saved JWT token from localStorage (browser-only)
