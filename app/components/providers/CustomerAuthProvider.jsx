@@ -42,7 +42,7 @@ function CustomerAuthContent({ children }) {
 
     // 1. If not authenticated and no token, redirect to login
     if (!token && !isAuthenticated) {
-      router.replace("/login");
+      router.replace("/login?as=customer");
       return;
     }
 
@@ -58,7 +58,7 @@ function CustomerAuthContent({ children }) {
 
       if (!res?.success) {
         setIsReady(false);
-        router.replace("/login");
+        router.replace("/login?as=customer");
         return;
       }
 

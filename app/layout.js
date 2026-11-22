@@ -4,7 +4,6 @@ import "./globals.css";
 import Navbar from "./components/layout/Navbar";
 import { ThemeProvider } from "./components/providers/ThemeProvider";
 import ToastProvider from "./components/providers/ToastProvider";
-import SplashScreen from "./components/ui/SplashScreen";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +32,6 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
       >
         <ThemeProvider>
-          <SplashScreen />
           <main className="flex-1 pb-32 md:pb-28">{children}</main>
           <Suspense fallback={null}>
             <Navbar />

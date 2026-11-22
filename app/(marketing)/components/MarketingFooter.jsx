@@ -1,0 +1,135 @@
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { FaInstagram, FaXTwitter, FaLinkedinIn } from "react-icons/fa6";
+import { LuCoffee, LuHeart } from "react-icons/lu";
+import { BRAND, FOOTER_LINKS } from "../content";
+
+export default function MarketingFooter() {
+  const socialIcons = {
+    instagram: FaInstagram,
+    x: FaXTwitter,
+    linkedin: FaLinkedinIn,
+  };
+
+  return (
+    <footer className="relative mt-20 border-t border-(--mainColor)/15 bg-(--mainColor)/5 text-(--mainColor) transition-colors">
+      {/* Visual Perforation Motif (Punch card dotted line) */}
+      <div className="absolute top-0 left-0 right-0 -translate-y-1/2 flex justify-between px-6 pointer-events-none select-none overflow-hidden">
+        <span className="h-4 w-4 rounded-full bg-(--bgColor) border border-(--mainColor)/15 -ms-2" />
+        <div className="flex-1 border-b-2 border-dashed border-(--mainColor)/20 my-auto mx-4" />
+        <span className="h-4 w-4 rounded-full bg-(--bgColor) border border-(--mainColor)/15 -me-2" />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 pt-14 pb-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-5 lg:gap-12">
+          {/* Brand Info & Mission */}
+          <div className="md:col-span-2 space-y-4">
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <div className="relative flex h-9 w-9 items-center justify-center rounded-xl p-1">
+                <Image
+                  src="/logo.png"
+                  alt={BRAND.name}
+                  width={28}
+                  height={28}
+                  className="object-contain rounded-lg"
+                />
+              </div>
+              <span className="text-lg font-extrabold tracking-tight text-(--mainColor)">
+                {BRAND.name}
+              </span>
+            </Link>
+
+            <p className="max-w-sm text-xs sm:text-sm leading-relaxed text-(--mainColor)/75">
+              {BRAND.description}
+            </p>
+
+            <div className="flex items-center gap-2.5 pt-2">
+              {FOOTER_LINKS.socials.map((soc) => {
+                const IconComponent = socialIcons[soc.icon] || LuCoffee;
+                return (
+                  <a
+                    key={soc.name}
+                    href={soc.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={soc.name}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-(--mainColor)/15 text-(--mainColor)/75 transition hover:border-(--mainColor) hover:bg-(--mainColor) hover:text-(--bgColor)"
+                  >
+                    <IconComponent className="h-4 w-4" />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Column: Product */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-(--mainColor)">
+              Platform
+            </h3>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              {FOOTER_LINKS.product.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    href={item.href}
+                    className="text-(--mainColor)/70 transition hover:text-(--mainColor) hover:underline"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column: Community & Cafe Owners */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-(--mainColor)">
+              Community
+            </h3>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              {FOOTER_LINKS.community.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    href={item.href}
+                    className="text-(--mainColor)/70 transition hover:text-(--mainColor) hover:underline"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column: Legal & Trust */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-(--mainColor)">
+              Legal & Safety
+            </h3>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              {FOOTER_LINKS.legal.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    href={item.href}
+                    className="text-(--mainColor)/70 transition hover:text-(--mainColor) hover:underline"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-(--mainColor)/10 pt-6 text-xs text-(--mainColor)/60 sm:flex-row">
+          <p>
+            &copy; {BRAND.copyrightYear} {BRAND.name}. All rights reserved. Built for independent cafes.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

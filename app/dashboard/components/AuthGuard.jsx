@@ -64,7 +64,7 @@ export default function AuthGuard({ children }) {
 
     // 1. If not authenticated and no token, redirect cleanly via Next.js router
     if (!token && !isAuthenticated) {
-      router.replace("/dashboard/login");
+      router.replace("/login?as=cafe");
       return;
     }
 
@@ -80,7 +80,7 @@ export default function AuthGuard({ children }) {
 
       if (!res?.success) {
         setIsReady(false);
-        router.replace("/dashboard/login");
+        router.replace("/login?as=cafe");
         return;
       }
 

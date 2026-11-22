@@ -1,3 +1,10 @@
+import SplashScreen from "@/app/components/ui/SplashScreen";
+
 export default function CustomerLayout({ children }) {
-  return <>{children}</>;
+  return (
+    <>
+      <SplashScreen />
+      {children}
+    </>
+  );
 }

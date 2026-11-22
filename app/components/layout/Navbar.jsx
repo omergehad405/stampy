@@ -7,8 +7,15 @@ import { LuCoffee, LuGift, LuStore, LuHouse, LuCompass, LuUser } from "react-ico
 export default function Navbar() {
   const pathname = usePathname();
 
-  // If on login, auth screens, cafe dashboard, or admin dashboard, hide customer navbar
+  // If on marketing, login, auth screens, cafe dashboard, or admin dashboard, hide customer navbar
   if (
+    pathname === "/" ||
+    pathname === "/pricing" ||
+    pathname === "/how-it-works" ||
+    pathname === "/features" ||
+    pathname === "/contact" ||
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/forgot-password" ||
@@ -83,9 +90,9 @@ export default function Navbar() {
   const globalNavItems = [
     {
       label: "Home",
-      href: "/",
+      href: "/home",
       icon: LuHouse,
-      isActive: pathname === "/" || pathname === "/home",
+      isActive: pathname === "/home",
     },
     {
       label: "Cafes",
