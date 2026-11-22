@@ -115,9 +115,8 @@ export default function AdminSidebar({ isOpen, onClose }) {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-[#e3d7c0] bg-[#faf6ed] text-(--mainColor) transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-[#e3d7c0] bg-[#faf6ed] text-(--mainColor) transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Top Section */}
         <div className="flex flex-col min-h-0 flex-1">
@@ -128,8 +127,8 @@ export default function AdminSidebar({ isOpen, onClose }) {
               className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
               onClick={onClose}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-(--mainColor) text-(--secondColor) shadow-xs">
-                <LuShield className="h-5 w-5" />
+              <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl  flex items-center justify-center text-(--bgColor) shadow-sm shrink-0">
+                <img src="/logo.png" alt="" className="rounded-xl" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
@@ -176,19 +175,17 @@ export default function AdminSidebar({ isOpen, onClose }) {
                       key={item.href}
                       href={item.href}
                       onClick={onClose}
-                      className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
-                        active
+                      className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${active
                           ? "bg-(--mainColor) text-(--bgColor) shadow-xs"
                           : "text-(--mainColor)/80 hover:bg-[#eee3d1] hover:text-(--mainColor)"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon
-                          className={`h-4.5 w-4.5 transition-transform duration-150 group-hover:scale-105 ${
-                            active
+                          className={`h-4.5 w-4.5 transition-transform duration-150 group-hover:scale-105 ${active
                               ? "text-(--secondColor)"
                               : "text-(--mainColor)/70"
-                          }`}
+                            }`}
                         />
                         <span>{item.label}</span>
                       </div>

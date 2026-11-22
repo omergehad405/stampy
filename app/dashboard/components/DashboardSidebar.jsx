@@ -37,8 +37,8 @@ export default function DashboardSidebar({ isOpen, onClose }) {
     (role === "cafeOwner" || role === "admin"
       ? "owner"
       : role === "cafeManager"
-      ? "manager"
-      : "barista");
+        ? "manager"
+        : "barista");
 
   const navItems = [
     {
@@ -118,9 +118,8 @@ export default function DashboardSidebar({ isOpen, onClose }) {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Top Section */}
         <div className="flex flex-col">
@@ -131,8 +130,8 @@ export default function DashboardSidebar({ isOpen, onClose }) {
               className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
               onClick={onClose}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-(--secondColor) text-[#3B2418] shadow-xs">
-                <LuCoffee className="h-5 w-5" />
+              <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl  flex items-center justify-center text-(--bgColor) shadow-sm shrink-0">
+                <img src="/logo.png" alt="" className="rounded-xl" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
@@ -192,34 +191,31 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
-                    item.isActive
+                  className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${item.isActive
                       ? "bg-(--secondColor) text-[#3B2418] font-bold shadow-xs"
                       : item.highlight
-                      ? "bg-(--secondColor)/20 text-(--secondColor) hover:bg-(--secondColor)/30"
-                      : "text-(--bgColor)/80 hover:bg-(--bgColor)/10 hover:text-(--bgColor)"
-                  }`}
+                        ? "bg-(--secondColor)/20 text-(--secondColor) hover:bg-(--secondColor)/30"
+                        : "text-(--bgColor)/80 hover:bg-(--bgColor)/10 hover:text-(--bgColor)"
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon
-                      className={`h-4.5 w-4.5 transition-transform duration-150 group-hover:scale-105 ${
-                        item.isActive
+                      className={`h-4.5 w-4.5 transition-transform duration-150 group-hover:scale-105 ${item.isActive
                           ? "text-[#3B2418]"
                           : item.highlight
-                          ? "text-(--secondColor)"
-                          : "text-(--bgColor)/70"
-                      }`}
+                            ? "text-(--secondColor)"
+                            : "text-(--bgColor)/70"
+                        }`}
                     />
                     <span>{item.label}</span>
                   </div>
 
                   {item.badge && (
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                        item.isActive
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.isActive
                           ? "bg-(--mainColor) text-(--secondColor)"
                           : "bg-(--secondColor) text-[#3B2418]"
-                      }`}
+                        }`}
                     >
                       {item.badge}
                     </span>
@@ -248,19 +244,18 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span
-                    className={`inline-block rounded-md px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider ${
-                      roleKey === "owner"
+                    className={`inline-block rounded-md px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider ${roleKey === "owner"
                         ? "bg-amber-400/20 text-amber-200 border border-amber-400/40"
                         : roleKey === "manager"
-                        ? "bg-blue-400/20 text-blue-200 border border-blue-400/40"
-                        : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/40"
-                    }`}
+                          ? "bg-blue-400/20 text-blue-200 border border-blue-400/40"
+                          : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/40"
+                      }`}
                   >
                     {roleKey === "owner"
                       ? "Owner"
                       : roleKey === "manager"
-                      ? "Manager"
-                      : "Barista"}
+                        ? "Manager"
+                        : "Barista"}
                   </span>
                 </div>
               </div>

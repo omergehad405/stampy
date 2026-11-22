@@ -29,11 +29,12 @@ import {
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
+import PlanLockedFeature from "../components/PlanLockedFeature";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import QRCodeImage from "@/app/components/ui/QRCodeImage";
 
 export default function DashboardCafeProfilePage() {
-  const { cafe, updateCafeProfile } = useDashboardStore();
+  const { cafe, updateCafeProfile, hasFeature } = useDashboardStore();
 
   const [activeTab, setActiveTab] = useState("basic"); // 'basic' | 'about' | 'location' | 'hours' | 'contact' | 'social' | 'menu' | 'qr'
   const [isSaving, setIsSaving] = useState(false);
@@ -1245,6 +1246,13 @@ export default function DashboardCafeProfilePage() {
 
         {/* TAB 7: DIGITAL MENU */}
         {activeTab === "menu" && (
+          !hasFeature("digital_menu") ? (
+            <PlanLockedFeature
+              featureKey="digital_menu"
+              featureName="Digital Menu"
+              description="The Digital Menu showcase is not included in your current subscription plan. Upgrade your plan to display categories and items on your public Stampy customer page."
+            />
+          ) : (
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
               <div>
@@ -1335,6 +1343,7 @@ export default function DashboardCafeProfilePage() {
               ))}
             </div>
           </div>
+          )
         )}
         {/* TAB 8: CAFE QR CODE */}
         {activeTab === "qr" && (

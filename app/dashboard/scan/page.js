@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   LuQrCode,
   LuCamera,
@@ -20,6 +21,9 @@ import {
   LuCircleAlert,
   LuX,
   LuCheck,
+  LuLock,
+  LuArrowUpRight,
+  LuArrowLeft,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
@@ -41,8 +45,13 @@ export default function DashboardScanPage() {
     fetchCustomers,
     recordVisitAndStamps,
     redeemCustomerReward,
+    getPlanLimits,
+    cafe,
   } = useDashboardStore();
   const { currentUser } = useDashboardAuthStore();
+
+  const limits = getPlanLimits ? getPlanLimits() : null;
+  const isExpired = Boolean(limits?.isExpired);
 
   // Scanner UI & Camera states
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -521,7 +530,57 @@ export default function DashboardScanPage() {
         breadcrumbs={[{ label: "Scan & Visits" }]}
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      {isExpired ? (
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-rose-500/30 bg-(--mainColor) p-8 sm:p-14 text-center text-(--bgColor) shadow-md space-y-6 max-w-2xl mx-auto my-6">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-rose-500 text-white shadow-lg">
+            <LuLock className="h-10 w-10" />
+            <span className="absolute -top-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-(--bgColor) text-rose-600 shadow-sm">
+              <LuTriangleAlert className="h-4 w-4" />
+            </span>
+          </div>
+
+          <div className="max-w-md space-y-2">
+            <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+              Subscription Expired
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold text-(--bgColor)">
+              Scanning & Stamp Issuance Suspended
+            </h2>
+            <p className="text-xs sm:text-sm text-(--bgColor)/75 leading-relaxed">
+              Your subscription period ended on{" "}
+              <strong className="text-rose-300">
+                {limits?.subscriptionExpiry
+                  ? new Date(limits.subscriptionExpiry).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "recently"}
+              </strong>
+              . Customer QR code scanning and loyalty visits are temporarily locked until you renew or upgrade your plan.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-(--bgColor)/30 px-4 py-2.5 text-xs font-bold text-(--bgColor) hover:bg-(--bgColor)/10 transition cursor-pointer"
+            >
+              <LuArrowLeft className="h-4 w-4" />
+              <span>Back to Overview</span>
+            </Link>
+
+            <a
+              href={`mailto:support@stampy.app?subject=Renew Subscription for ${encodeURIComponent(cafe?.name || "Cafe")}&body=Hello Stampy Team,%0D%0A%0D%0AOur subscription period has ended and we would like to renew or upgrade our plan to resume customer scanning.`}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] hover:opacity-95 active:scale-95 transition shadow-xs cursor-pointer"
+            >
+              <span>Renew / Upgrade Subscription</span>
+              <LuArrowUpRight className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Left Column: QR Scanner & Lookup (5 cols) */}
         <div className="space-y-5 lg:col-span-5">
           {/* Scanner Card */}
@@ -923,6 +982,7 @@ export default function DashboardScanPage() {
           )}
         </div>
       </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 🌟 CENTERED QR VERIFICATION & STAMP AWARDING POPUP MODAL                */}

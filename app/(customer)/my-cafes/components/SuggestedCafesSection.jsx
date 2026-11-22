@@ -51,19 +51,23 @@ export default function SuggestedCafesSection() {
 
         if (isCancelled) return;
 
-        // Filter out any already joined cafes
-        const unjoined = (list || []).filter((c) => !isCafeJoined(c.slug));
-        // Pick random 3 or 4 cafes on every render/load
-        const shuffled = shuffleArray(unjoined.length > 0 ? unjoined : list);
-        const randomCount = Math.floor(Math.random() * 2) + 3; // 3 or 4
-        setSuggestedCafes(shuffled.slice(0, randomCount));
+        // Filter ONLY cafes whose plan includes promotional campaigns
+        const promoCafes = (list || []).filter((c) => {
+          if (c.hasPromotionalCampaigns) return true;
+          if (c.isPromoted) return true;
+          if (Array.isArray(c.features) && c.features.some((f) => f.toLowerCase().includes("promotional"))) return true;
+          if (Array.isArray(c.currentPlan?.features) && c.currentPlan.features.some((f) => f.toLowerCase().includes("promotional"))) return true;
+          return false;
+        });
+
+        // Filter out already joined cafes if possible, or show available promo cafes
+        const unjoined = promoCafes.filter((c) => !isCafeJoined(c.slug));
+        const finalCafes = unjoined.length > 0 ? unjoined : promoCafes;
+        setSuggestedCafes(finalCafes);
       } catch (err) {
         if (!isCancelled) {
-          console.warn("[SuggestedCafes] API fetch error, fallback:", err.message);
-          const fallback = getAllRegisteredCafes().filter((c) => !isCafeJoined(c.slug));
-          const shuffled = shuffleArray(fallback.length > 0 ? fallback : getAllRegisteredCafes());
-          const randomCount = Math.floor(Math.random() * 2) + 3; // 3 or 4
-          setSuggestedCafes(shuffled.slice(0, randomCount));
+          console.warn("[SuggestedCafes] API fetch error:", err.message);
+          setSuggestedCafes([]);
         }
       } finally {
         if (!isCancelled) {
@@ -99,8 +103,30 @@ export default function SuggestedCafesSection() {
     }
   };
 
+  // If loading finished and no cafe has promotional campaigns in their plan, render the Coming Soon section
   if (!isLoading && suggestedCafes.length === 0) {
-    return null;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-8 sm:p-10 rounded-3xl bg-(--mainColor) text-(--bgColor) border border-(--bgColor)/15 shadow-sm text-center space-y-4"
+      >
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-(--secondColor) text-[#3B2418] shadow-sm">
+          <LuSparkles className="w-7 h-7" />
+        </div>
+        <div className="max-w-md mx-auto space-y-2">
+          <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-(--secondColor) text-[#3B2418] uppercase tracking-wider">
+            Coming Soon
+          </span>
+          <h3 className="text-lg sm:text-xl font-bold text-(--bgColor)">
+            Exclusive Featured Cafés On The Way
+          </h3>
+          <p className="text-xs sm:text-sm text-(--bgColor)/75 italic leading-relaxed">
+            &ldquo;Great coffee is worth the wait. Exciting new partner cafés and limited-edition promotional loyalty campaigns will be featured here very soon!&rdquo;
+          </p>
+        </div>
+      </motion.div>
+    );
   }
 
   return (

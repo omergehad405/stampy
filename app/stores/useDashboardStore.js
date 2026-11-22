@@ -381,6 +381,7 @@ export const useDashboardStore = create((set, get) => ({
           ...(serverCafe.menuPreview || {}),
           categories: serverCafe.menuPreview?.categories || state.cafe.menuPreview?.categories || [],
         },
+        currentPlan: serverCafe.currentPlan !== undefined ? serverCafe.currentPlan : state.cafe.currentPlan,
       };
 
       return {
@@ -391,6 +392,134 @@ export const useDashboardStore = create((set, get) => ({
         },
       };
     });
+  },
+
+  hasFeature: (featureKey) => {
+    const { cafe } = get();
+    const plan = cafe?.currentPlan;
+    if (!plan) return true; // optimistic default during hydration
+    if (!Array.isArray(plan.features)) return false;
+    const target = featureKey.toLowerCase().replace(/[-_]/g, " ");
+    return plan.features.some((f) => {
+      const normalized = f.toLowerCase().replace(/[-_]/g, " ");
+      return (
+        normalized === target ||
+        normalized.includes(target) ||
+        target.includes(normalized)
+      );
+    });
+  },
+
+  getPlanLimits: () => {
+    const { cafe, customers, rewards, staffMembers } = get();
+    const plan = cafe?.currentPlan;
+
+    const joiningDate = cafe?.createdAt || cafe?.joiningDate || cafe?.subscriptionStart || null;
+    const subscriptionStart = cafe?.subscriptionStart || cafe?.createdAt || null;
+    const billingPeriod = plan?.billingPeriod || "month";
+
+    // Calculate or resolve expiry date
+    let subscriptionExpiry = cafe?.subscriptionExpiry || null;
+    if (!subscriptionExpiry && subscriptionStart) {
+      const start = new Date(subscriptionStart);
+      if (!isNaN(start.getTime())) {
+        let cycleEnd = new Date(start);
+        if (billingPeriod === "week") {
+          cycleEnd.setDate(cycleEnd.getDate() + 7);
+        } else if (billingPeriod === "year") {
+          cycleEnd.setFullYear(cycleEnd.getFullYear() + 1);
+        } else {
+          cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+        }
+        subscriptionExpiry = cycleEnd.toISOString();
+      }
+    }
+
+    let daysRemaining = null;
+    if (subscriptionExpiry) {
+      const exp = new Date(subscriptionExpiry);
+      if (!isNaN(exp.getTime())) {
+        const now = new Date();
+        const diffMs = exp.getTime() - now.getTime();
+        daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      }
+    }
+
+    const isExpiringSoon = daysRemaining !== null && daysRemaining <= 7 && daysRemaining >= 0;
+    const isExpired = (daysRemaining !== null && daysRemaining < 0) || cafe?.subscriptionStatus === "past_due";
+
+    if (!plan) {
+      return {
+        planName: "Active Plan",
+        billingPeriod,
+        joiningDate,
+        subscriptionStart,
+        subscriptionExpiry,
+        daysRemaining,
+        isExpiringSoon,
+        isExpired,
+        maxCustomers: null,
+        isUnlimitedCustomers: true,
+        maxRewards: null,
+        isUnlimitedRewards: true,
+        maxStaff: 5,
+        customersCount: customers.length,
+        rewardsCount: rewards.length,
+        staffCount: staffMembers.length,
+        isCustomersLimitReached: false,
+        isRewardsLimitReached: false,
+        isStaffLimitReached: false,
+        subscriptionStatus: cafe?.subscriptionStatus || "active",
+      };
+    }
+
+    const isUnlimitedCustomers =
+      Boolean(plan.isUnlimitedCustomers) ||
+      plan.features?.some(
+        (f) =>
+          f.toLowerCase().includes("unlimited_customers") ||
+          f.toLowerCase().includes("unlimited customers")
+      );
+    const isUnlimitedRewards =
+      Boolean(plan.isUnlimitedRewards) ||
+      plan.features?.some(
+        (f) =>
+          f.toLowerCase().includes("unlimited_rewards") ||
+          f.toLowerCase().includes("unlimited rewards")
+      );
+
+    const maxCustomers = isUnlimitedCustomers ? null : (plan.maxCustomers ?? 50);
+    const maxRewards = isUnlimitedRewards ? null : (plan.maxRewards ?? 3);
+    const maxStaff = plan.maxStaff ?? 1;
+
+    const customersCount = customers.length;
+    const rewardsCount = rewards.length;
+    const staffCount = staffMembers.length;
+
+    return {
+      planName: plan.name || "Subscription Plan",
+      billingPeriod,
+      joiningDate,
+      subscriptionStart,
+      subscriptionExpiry,
+      daysRemaining,
+      isExpiringSoon,
+      isExpired,
+      maxCustomers,
+      isUnlimitedCustomers,
+      maxRewards,
+      isUnlimitedRewards,
+      maxStaff,
+      customersCount,
+      rewardsCount,
+      staffCount,
+      isCustomersLimitReached:
+        !isUnlimitedCustomers && maxCustomers !== null && customersCount >= maxCustomers,
+      isRewardsLimitReached:
+        !isUnlimitedRewards && maxRewards !== null && rewardsCount >= maxRewards,
+      isStaffLimitReached: maxStaff !== null && staffCount >= maxStaff,
+      subscriptionStatus: cafe?.subscriptionStatus || "active",
+    };
   },
 
   updateCafeProfile: async (updatedFields) => {

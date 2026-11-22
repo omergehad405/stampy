@@ -35,7 +35,10 @@ export default function DashboardRewardsPage() {
     updateReward,
     deleteReward,
     toggleRewardStatus,
+    getPlanLimits,
   } = useDashboardStore();
+
+  const limits = getPlanLimits ? getPlanLimits() : null;
 
   const [filterActive, setFilterActive] = useState("all"); // 'all' | 'active' | 'inactive'
   const [showModal, setShowModal] = useState(false);
@@ -61,6 +64,12 @@ export default function DashboardRewardsPage() {
   }, [fetchRewards]);
 
   const openCreateModal = () => {
+    if (limits?.isRewardsLimitReached) {
+      toast.error(
+        `Reward limit reached! Your ${limits.planName} allows up to ${limits.maxRewards} active rewards. Please upgrade your plan to add more.`
+      );
+      return;
+    }
     setEditingReward(null);
     setFormData({
       title: "",
@@ -121,6 +130,13 @@ export default function DashboardRewardsPage() {
           toast.error(res.error || "Failed to update reward.");
         }
       } else {
+        if (limits?.isRewardsLimitReached) {
+          toast.error(
+            `Reward limit reached! Your ${limits.planName} allows up to ${limits.maxRewards} active rewards. Please upgrade your plan to add more.`
+          );
+          setIsSubmitting(false);
+          return;
+        }
         const res = await createReward(payload);
         if (res.success) {
           toast.success(`Reward "${payload.title}" created successfully!`);
@@ -196,10 +212,22 @@ export default function DashboardRewardsPage() {
         breadcrumbs={[{ label: "Rewards" }]}
         actions={
           <div className="flex items-center gap-2">
+            {limits && (
+              <span
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-xl border ${limits.isRewardsLimitReached
+                    ? "border-(--mainColor) bg-(--mainColor) text-(--bgColor)"
+                    : "border-(--mainColor) bg-(--mainColor) text-(--bgColor)"
+                  }`}
+              >
+                {limits.isUnlimitedRewards
+                  ? "Unlimited Rewards"
+                  : `Tier: ${rewards.length}/${limits.maxRewards} Active`}
+              </span>
+            )}
             <button
               onClick={() => fetchRewards()}
               disabled={isLoadingRewards}
-              className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-(--mainColor)/20 bg-(--bgColor)/10 px-3 py-2 text-xs font-semibold text-(--mainColor) hover:bg-(--bgColor)/20 disabled:opacity-50 cursor-pointer"
               title="Refresh rewards"
             >
               <LuRefreshCw className={`h-3.5 w-3.5 ${isLoadingRewards ? "animate-spin" : ""}`} />
@@ -224,18 +252,17 @@ export default function DashboardRewardsPage() {
               tab === "all"
                 ? (rewards || []).length
                 : tab === "active"
-                ? (rewards || []).filter((r) => r.status === "active" || (r.status !== "inactive" && r.isActive !== false)).length
-                : (rewards || []).filter((r) => r.status === "inactive" || r.isActive === false).length;
+                  ? (rewards || []).filter((r) => r.status === "active" || (r.status !== "inactive" && r.isActive !== false)).length
+                  : (rewards || []).filter((r) => r.status === "inactive" || r.isActive === false).length;
 
             return (
               <button
                 key={tab}
                 onClick={() => setFilterActive(tab)}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold capitalize transition cursor-pointer ${
-                  filterActive === tab
+                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold capitalize transition cursor-pointer ${filterActive === tab
                     ? "bg-(--secondColor) text-[#3B2418] font-bold shadow-xs"
                     : "text-(--bgColor)/75 hover:bg-(--bgColor)/10"
-                }`}
+                  }`}
               >
                 {tab === "all" ? "All Rewards" : tab} ({count})
               </button>
@@ -313,11 +340,10 @@ export default function DashboardRewardsPage() {
           return (
             <div
               key={rewardId}
-              className={`flex flex-col justify-between rounded-2xl sm:rounded-3xl border p-5 transition shadow-sm ${
-                isActive
+              className={`flex flex-col justify-between rounded-2xl sm:rounded-3xl border p-5 transition shadow-sm ${isActive
                   ? "border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) hover:shadow-md"
                   : "border-(--bgColor)/10 bg-(--mainColor)/60 text-(--bgColor)/60 opacity-75"
-              }`}
+                }`}
             >
               <div>
                 {/* Card Header */}
@@ -370,11 +396,10 @@ export default function DashboardRewardsPage() {
                   type="button"
                   disabled={isTogglingThis}
                   onClick={() => handleToggleStatus(reward)}
-                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
-                    isActive
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${isActive
                       ? "bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 hover:bg-emerald-400/30"
                       : "bg-(--bgColor)/10 text-(--bgColor)/60 border border-(--bgColor)/20 hover:bg-(--bgColor)/20"
-                  } disabled:opacity-50`}
+                    } disabled:opacity-50`}
                 >
                   {isTogglingThis ? (
                     <LuLoader className="h-3 w-3 animate-spin" />
@@ -518,11 +543,10 @@ export default function DashboardRewardsPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: "active" })}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition cursor-pointer ${
-                      formData.status === "active"
+                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition cursor-pointer ${formData.status === "active"
                         ? "border-emerald-400/40 bg-emerald-400/20 text-emerald-200 shadow-2xs font-bold"
                         : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor)/70 hover:bg-(--bgColor)/20"
-                    }`}
+                      }`}
                   >
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
                     <span>Active</span>
@@ -530,11 +554,10 @@ export default function DashboardRewardsPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: "inactive" })}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition cursor-pointer ${
-                      formData.status === "inactive"
+                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition cursor-pointer ${formData.status === "inactive"
                         ? "border-gray-400/40 bg-gray-400/20 text-gray-200 shadow-2xs font-bold"
                         : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor)/70 hover:bg-(--bgColor)/20"
-                    }`}
+                      }`}
                   >
                     <span className="h-2 w-2 rounded-full bg-gray-400" />
                     <span>Inactive</span>

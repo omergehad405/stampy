@@ -17,6 +17,7 @@ import {
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
+import PlanLockedFeature from "../components/PlanLockedFeature";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
 
@@ -46,10 +47,12 @@ export default function DashboardUsersPage() {
     updateStaff,
     deleteStaff,
     toggleStaffStatus,
+    hasFeature,
   } = useDashboardStore();
   const { currentUser } = useDashboardAuthStore();
 
   const isOwner = currentUser?.roleKey === "owner";
+  const isFeatureAllowed = hasFeature ? hasFeature("multi_staff") : true;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -163,7 +166,7 @@ export default function DashboardUsersPage() {
         description="Manage cafe team members, baristas, and dashboard access credentials."
         breadcrumbs={[{ label: "Users & Staff" }]}
         actions={
-          isOwner ? (
+          isOwner && isFeatureAllowed ? (
             <button
               onClick={handleOpenAddModal}
               className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) shadow-sm hover:opacity-95"
@@ -175,7 +178,15 @@ export default function DashboardUsersPage() {
         }
       />
 
-      {/* Non-owner restriction banner */}
+      {!isFeatureAllowed ? (
+        <PlanLockedFeature
+          featureKey="multi_staff"
+          featureName="Multi-Staff Accounts"
+          description="Multi-staff accounts are not included in your current subscription plan. Upgrade your plan to invite barista and shift manager accounts with dedicated credentials."
+        />
+      ) : (
+        <>
+          {/* Non-owner restriction banner */}
       {!isOwner && (
         <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
           <LuUserX className="h-5 w-5 shrink-0 text-amber-600" />
@@ -491,6 +502,8 @@ export default function DashboardUsersPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

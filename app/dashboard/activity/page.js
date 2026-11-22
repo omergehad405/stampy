@@ -14,10 +14,11 @@ import {
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
+import PlanLockedFeature from "../components/PlanLockedFeature";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 
 export default function DashboardActivityPage() {
-  const { activities, fetchActivities, isLoadingActivities } = useDashboardStore();
+  const { activities, fetchActivities, isLoadingActivities, hasFeature } = useDashboardStore();
 
   useEffect(() => {
     fetchActivities();
@@ -26,6 +27,8 @@ export default function DashboardActivityPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all"); // 'all' | 'stamp' | 'redemption' | 'join'
   const [staffFilter, setStaffFilter] = useState("all");
+
+  const isFeatureAllowed = hasFeature ? hasFeature("activity_history") : true;
 
   // Extract unique staff names from activity log
   const uniqueStaff = useMemo(() => {
@@ -83,17 +86,27 @@ export default function DashboardActivityPage() {
         description="Comprehensive audit trail of stamps credited, rewards redeemed, and customer visits at your counters."
         breadcrumbs={[{ label: "Activity History" }]}
         actions={
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-xs hover:opacity-95 cursor-pointer"
-          >
-            <LuDownload className="h-4 w-4" />
-            <span>Export CSV</span>
-          </button>
+          isFeatureAllowed ? (
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-xs hover:opacity-95 cursor-pointer"
+            >
+              <LuDownload className="h-4 w-4" />
+              <span>Export CSV</span>
+            </button>
+          ) : null
         }
       />
 
-      {/* Toolbar */}
+      {!isFeatureAllowed ? (
+        <PlanLockedFeature
+          featureKey="activity_history"
+          featureName="Activity History Page"
+          description="The detailed Activity History log is not included in your current subscription plan. Upgrade your plan to view complete stamp records, redemptions, staff audits, and export CSV reports."
+        />
+      ) : (
+        <>
+          {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-4 text-(--bgColor) shadow-sm">
         {/* Search */}
         <div className="relative flex-1 max-w-sm">
@@ -226,6 +239,8 @@ export default function DashboardActivityPage() {
           </table>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

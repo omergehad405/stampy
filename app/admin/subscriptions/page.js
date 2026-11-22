@@ -20,30 +20,40 @@ import AdminBadge from "../components/AdminBadge";
 import ConfirmModal from "../components/ConfirmModal";
 import { useAdminStore } from "@/app/stores/useAdminStore";
 
-const DEFAULT_FEATURES = [
-  "QR Stamp Card",
-  "Basic Analytics",
-  "Full Analytics",
-  "Advanced Analytics",
-  "1 Reward Tier",
-  "3 Reward Tiers",
-  "5 Reward Tiers",
-  "Unlimited Reward Tiers",
-  "Up to 50 Customers",
-  "Up to 250 Customers",
-  "Up to 500 Customers",
-  "Unlimited Customers",
-  "Email Support",
-  "Priority Support",
-  "24/7 Dedicated Support",
-  "Custom Branding",
-  "Multi-staff Accounts",
-  "API Access",
-  "Custom Integrations",
-  "Push Notifications",
-  "Promotional Campaigns",
-  "Automated Retention",
+const FEATURE_CONFIG = [
+  {
+    id: "digital_menu",
+    label: "Digital Menu",
+    desc: "Public menu items & pricing preview",
+  },
+  {
+    id: "activity_history",
+    label: "Activity History Page",
+    desc: "Real-time timeline of customer visits and redemptions",
+  },
+  {
+    id: "multi_staff",
+    label: "Multi-staff Accounts",
+    desc: "Multiple barista/manager logins with distinct permissions",
+  },
+  {
+    id: "promotional_campaigns",
+    label: "Promotional Campaigns",
+    desc: "Showcase cafe in the customer Suggested Cafes section",
+  },
+  {
+    id: "unlimited_customers",
+    label: "Unlimited Customers",
+    desc: "No cap on registered customer loyalty cards",
+  },
+  {
+    id: "unlimited_rewards",
+    label: "Unlimited Rewards",
+    desc: "No limit on active reward tiers",
+  },
 ];
+
+const DEFAULT_FEATURES = FEATURE_CONFIG.map((f) => f.id);
 
 export default function AdminSubscriptionsPage() {
   const {
@@ -84,9 +94,11 @@ export default function AdminSubscriptionsPage() {
     description: "",
     price: 0,
     billingPeriod: "month",
-    maxCustomers: "",
+    maxCustomers: "50",
+    maxRewards: "3",
+    maxStaff: "3",
     isPopular: false,
-    features: ["QR Stamp Card", "Basic Analytics"],
+    features: ["digital_menu", "activity_history"],
   });
 
   // Assign Plan Modal
@@ -97,11 +109,6 @@ export default function AdminSubscriptionsPage() {
     isSubmitting: false,
   });
 
-  const featureOptions =
-    availableFeatures && availableFeatures.length > 0
-      ? availableFeatures
-      : DEFAULT_FEATURES;
-
   const handleOpenCreate = () => {
     setEditingPlan(null);
     setFormData({
@@ -109,36 +116,135 @@ export default function AdminSubscriptionsPage() {
       description: "",
       price: 0,
       billingPeriod: "month",
-      maxCustomers: "",
+      maxCustomers: "50",
+      maxRewards: "3",
+      maxStaff: "3",
       isPopular: false,
-      features: ["QR Stamp Card", "Basic Analytics"],
+      features: ["digital_menu", "activity_history"],
     });
     setIsCreateModalOpen(true);
   };
 
   const handleOpenEdit = (plan) => {
     setEditingPlan(plan);
+    const rawFeatures = Array.isArray(plan.features) ? plan.features : [];
+
+    // Map raw/legacy features to current canonical IDs and filter out obsolete ones
+    const mappedFeatures = rawFeatures
+      .map((f) => {
+        const lower = (f || "").toLowerCase().trim();
+        if (
+          lower === "digital_menu" ||
+          lower.includes("digital menu") ||
+          lower.includes("menu")
+        )
+          return "digital_menu";
+        if (
+          lower === "activity_history" ||
+          lower.includes("activity")
+        )
+          return "activity_history";
+        if (
+          lower === "multi_staff" ||
+          lower.includes("staff")
+        )
+          return "multi_staff";
+        if (
+          lower === "promotional_campaigns" ||
+          lower.includes("promotional")
+        )
+          return "promotional_campaigns";
+        if (
+          lower === "unlimited_customers" ||
+          (lower.includes("unlimited") && lower.includes("customer"))
+        )
+          return "unlimited_customers";
+        if (
+          lower === "unlimited_rewards" ||
+          (lower.includes("unlimited") && lower.includes("reward"))
+        )
+          return "unlimited_rewards";
+        return null;
+      })
+      .filter(Boolean);
+
+    const cleanFeatures = Array.from(new Set(mappedFeatures));
+
+    const isUnlimCust =
+      Boolean(plan.isUnlimitedCustomers) ||
+      cleanFeatures.includes("unlimited_customers");
+    const isUnlimRew =
+      Boolean(plan.isUnlimitedRewards) ||
+      cleanFeatures.includes("unlimited_rewards");
+
+    if (isUnlimCust && !cleanFeatures.includes("unlimited_customers")) {
+      cleanFeatures.push("unlimited_customers");
+    }
+    if (isUnlimRew && !cleanFeatures.includes("unlimited_rewards")) {
+      cleanFeatures.push("unlimited_rewards");
+    }
+
     setFormData({
       name: plan.name,
       description: plan.description,
       price: plan.price,
       billingPeriod: plan.billingPeriod || "month",
-      maxCustomers: plan.maxCustomers || "",
+      maxCustomers:
+        plan.maxCustomers !== null && plan.maxCustomers !== undefined
+          ? String(plan.maxCustomers)
+          : "50",
+      maxRewards:
+        plan.maxRewards !== null && plan.maxRewards !== undefined
+          ? String(plan.maxRewards)
+          : "3",
+      maxStaff: plan.maxStaff ? String(plan.maxStaff) : "3",
       isPopular: Boolean(plan.isPopular),
-      features: Array.isArray(plan.features) ? [...plan.features] : [],
+      features: cleanFeatures,
     });
     setIsCreateModalOpen(true);
   };
 
-  const toggleFeatureSelection = (feat) => {
+  const toggleFeatureSelection = (featId) => {
+    const config = FEATURE_CONFIG.find((f) => f.id === featId);
+    const labelLower = config ? config.label.toLowerCase() : "";
+
     setFormData((prev) => {
-      const exists = prev.features.includes(feat);
-      return {
+      const exists = prev.features.some(
+        (f) =>
+          f === featId ||
+          (f && f.toLowerCase() === featId.toLowerCase()) ||
+          (labelLower && f && f.toLowerCase() === labelLower)
+      );
+      const updated = exists
+        ? prev.features.filter(
+            (f) =>
+              f !== featId &&
+              f.toLowerCase() !== featId.toLowerCase() &&
+              (!labelLower || f.toLowerCase() !== labelLower)
+          )
+        : [
+            ...prev.features.filter(
+              (f) =>
+                f !== featId &&
+                f.toLowerCase() !== featId.toLowerCase() &&
+                (!labelLower || f.toLowerCase() !== labelLower)
+            ),
+            featId,
+          ];
+
+      const newFormData = {
         ...prev,
-        features: exists
-          ? prev.features.filter((f) => f !== feat)
-          : [...prev.features, feat],
+        features: updated,
       };
+
+      if (featId === "unlimited_rewards" && exists && !newFormData.maxRewards) {
+        newFormData.maxRewards = "3";
+      }
+      if (featId === "unlimited_customers" && exists && !newFormData.maxCustomers) {
+        newFormData.maxCustomers = "50";
+      }
+
+      return newFormData;
     });
   };
 
@@ -151,10 +257,23 @@ export default function AdminSubscriptionsPage() {
       return;
     }
 
-    if (formData.features.length === 0) {
-      toast.error("Please select at least one feature for the plan.");
-      return;
-    }
+    const isUnlimCust = formData.features.includes("unlimited_customers");
+    const isUnlimRew = formData.features.includes("unlimited_rewards");
+    const hasMultiStaff = formData.features.includes("multi_staff");
+
+    const rawRewards = Number(formData.maxRewards);
+    const resolvedMaxRewards = isUnlimRew
+      ? null
+      : !isNaN(rawRewards) && rawRewards >= 1
+      ? rawRewards
+      : 3;
+
+    const rawCustomers = Number(formData.maxCustomers);
+    const resolvedMaxCustomers = isUnlimCust
+      ? null
+      : !isNaN(rawCustomers) && rawCustomers >= 1
+      ? rawCustomers
+      : 50;
 
     setIsSubmitting(true);
 
@@ -163,9 +282,17 @@ export default function AdminSubscriptionsPage() {
       description: formData.description.trim(),
       price: Number(formData.price),
       billingPeriod: formData.billingPeriod,
-      maxCustomers: formData.maxCustomers ? Number(formData.maxCustomers) : null,
-      isPopular: Boolean(formData.isPopular),
       features: formData.features,
+      isUnlimitedCustomers: isUnlimCust,
+      maxCustomers: resolvedMaxCustomers,
+      isUnlimitedRewards: isUnlimRew,
+      maxRewards: resolvedMaxRewards,
+      maxStaff: hasMultiStaff
+        ? formData.maxStaff
+          ? Number(formData.maxStaff)
+          : 3
+        : 1,
+      isPopular: Boolean(formData.isPopular),
     };
 
     try {
@@ -361,7 +488,7 @@ export default function AdminSubscriptionsPage() {
                     </span>
                     {plan.price > 0 && (
                       <span className="text-xs font-semibold text-(--mainColor)/60">
-                        /{plan.billingPeriod || "month"}
+                        /{plan.billingPeriod === "week" ? "week" : plan.billingPeriod === "year" ? "year" : "month"}
                       </span>
                     )}
                   </div>
@@ -369,23 +496,66 @@ export default function AdminSubscriptionsPage() {
                   {/* Features List */}
                   <div className="mt-5 space-y-2.5">
                     <span className="text-[11px] font-bold text-(--mainColor)/60 uppercase tracking-wider block">
-                      Entitlements & Features ({plan.features?.length || 0})
+                      Entitlements & Features
                     </span>
                     <div className="text-xs space-y-2 max-h-56 overflow-y-auto pr-1">
+                      {/* Max Customers */}
                       <div className="flex items-center gap-2 text-(--mainColor)/80">
                         <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
                         <span>
-                          {plan.maxCustomers
-                            ? `Up to ${plan.maxCustomers} customers`
-                            : "Unlimited customers"}
+                          {plan.isUnlimitedCustomers ||
+                          plan.features?.includes("unlimited_customers")
+                            ? "Unlimited customers"
+                            : `Up to ${plan.maxCustomers || 50} customers`}
                         </span>
                       </div>
-                      {(plan.features || []).map((feat, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-(--mainColor)/80">
+
+                      {/* Max Rewards */}
+                      <div className="flex items-center gap-2 text-(--mainColor)/80">
+                        <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
+                        <span>
+                          {plan.isUnlimitedRewards ||
+                          plan.features?.includes("unlimited_rewards")
+                            ? "Unlimited rewards"
+                            : `Up to ${plan.maxRewards || 3} reward tiers`}
+                        </span>
+                      </div>
+
+                      {/* Max Staff if multi-staff */}
+                      {(plan.features?.includes("multi_staff") ||
+                        plan.features?.includes("Multi-staff Accounts")) && (
+                        <div className="flex items-center gap-2 text-(--mainColor)/80">
                           <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
-                          <span>{feat}</span>
+                          <span>
+                            Multi-staff: Up to {plan.maxStaff || 3} team accounts
+                          </span>
                         </div>
-                      ))}
+                      )}
+
+                      {/* Other features */}
+                      {(plan.features || [])
+                        .filter(
+                          (f) =>
+                            !f.toLowerCase().includes("unlimited") &&
+                            !f.toLowerCase().includes("multi_staff") &&
+                            !f.toLowerCase().includes("multi-staff")
+                        )
+                        .map((feat, idx) => {
+                          const config = FEATURE_CONFIG.find(
+                            (fc) =>
+                              fc.id === feat ||
+                              fc.label.toLowerCase() === feat.toLowerCase()
+                          );
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center gap-2 text-(--mainColor)/80"
+                            >
+                              <LuCheck className="h-4 w-4 shrink-0 text-emerald-700" />
+                              <span>{config?.label || feat}</span>
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 </div>
@@ -524,68 +694,150 @@ export default function AdminSubscriptionsPage() {
                     onChange={(e) => setFormData({ ...formData, billingPeriod: e.target.value })}
                     className="w-full h-9 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
                   >
+                    <option value="week">Weekly</option>
                     <option value="month">Monthly</option>
                     <option value="year">Yearly</option>
                   </select>
                 </div>
               </div>
 
+              {/* Limits Configuration */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="font-semibold text-(--mainColor) block mb-1">
-                    Max Customers (blank=unlimited)
+                    Max Customers
+                    {formData.features.includes("unlimited_customers") && (
+                      <span className="ml-1 text-[10px] text-emerald-700 font-bold">
+                        (Unlimited)
+                      </span>
+                    )}
                   </label>
                   <input
                     type="number"
                     min="1"
-                    value={formData.maxCustomers}
-                    onChange={(e) => setFormData({ ...formData, maxCustomers: e.target.value })}
-                    placeholder="Unlimited"
-                    className="w-full h-9 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                    disabled={formData.features.includes("unlimited_customers")}
+                    value={
+                      formData.features.includes("unlimited_customers")
+                        ? ""
+                        : formData.maxCustomers
+                    }
+                    onChange={(e) =>
+                      setFormData({ ...formData, maxCustomers: e.target.value })
+                    }
+                    placeholder={
+                      formData.features.includes("unlimited_customers")
+                        ? "Unlimited"
+                        : "e.g. 50"
+                    }
+                    className="w-full h-9 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor) disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
-                <div className="flex items-center pt-5">
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={formData.isPopular}
-                      onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
-                      className="rounded accent-(--mainColor) h-4 w-4"
-                    />
-                    <span className="font-semibold text-(--mainColor)">Mark as Popular Tier</span>
+
+                <div>
+                  <label className="font-semibold text-(--mainColor) block mb-1">
+                    Max Rewards
+                    {formData.features.includes("unlimited_rewards") && (
+                      <span className="ml-1 text-[10px] text-emerald-700 font-bold">
+                        (Unlimited)
+                      </span>
+                    )}
                   </label>
+                  <input
+                    type="number"
+                    min="1"
+                    disabled={formData.features.includes("unlimited_rewards")}
+                    value={
+                      formData.features.includes("unlimited_rewards")
+                        ? ""
+                        : formData.maxRewards
+                    }
+                    onChange={(e) =>
+                      setFormData({ ...formData, maxRewards: e.target.value })
+                    }
+                    placeholder={
+                      formData.features.includes("unlimited_rewards")
+                        ? "Unlimited"
+                        : "e.g. 3"
+                    }
+                    className="w-full h-9 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor) disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
                 </div>
               </div>
 
-              {/* Features Enum Selection */}
+              {/* Multi-Staff accounts count (if multi_staff feature enabled) */}
+              {formData.features.includes("multi_staff") && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-3">
+                  <label className="font-semibold text-(--mainColor) block mb-1">
+                    Available Staff User Accounts <span className="text-rose-500">*</span>
+                  </label>
+                  <p className="text-[11px] text-(--mainColor)/70 mb-2">
+                    Enter how many staff / barista accounts can be created by a cafe on this plan.
+                  </p>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    required
+                    value={formData.maxStaff}
+                    onChange={(e) =>
+                      setFormData({ ...formData, maxStaff: e.target.value })
+                    }
+                    placeholder="e.g. 3"
+                    className="w-full h-9 rounded-xl border border-[#dacdb9] bg-white px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPopular}
+                    onChange={(e) =>
+                      setFormData({ ...formData, isPopular: e.target.checked })
+                    }
+                    className="rounded accent-(--mainColor) h-4 w-4"
+                  />
+                  <span className="font-semibold text-(--mainColor)">
+                    Mark as Popular Tier
+                  </span>
+                </label>
+              </div>
+
+              {/* Features Selection */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="font-semibold text-(--mainColor) block">
-                    Features Enum Catalog <span className="text-rose-500">*</span>
+                    Allowed Features in Plan <span className="text-xs font-normal text-(--mainColor)/60">(Optional)</span>
                   </label>
                   <span className="text-[11px] text-(--mainColor)/60">
                     {formData.features.length} selected
                   </span>
                 </div>
                 <p className="text-[11px] text-(--mainColor)/60 mb-2">
-                  Select the feature entitlements included in this subscription tier:
+                  Select which features are permitted under this subscription tier (optional):
                 </p>
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl border border-[#dacdb9] bg-[#f5ecdd]/60">
-                  {featureOptions.map((feat) => {
-                    const isSelected = formData.features.includes(feat);
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-2 rounded-xl border border-[#dacdb9] bg-[#f5ecdd]/60">
+                  {FEATURE_CONFIG.map((feat) => {
+                    const isSelected = formData.features.some(
+                      (f) =>
+                        f === feat.id ||
+                        (f && f.toLowerCase() === feat.id.toLowerCase()) ||
+                        (f && f.toLowerCase() === feat.label.toLowerCase())
+                    );
                     return (
                       <button
                         type="button"
-                        key={feat}
-                        onClick={() => toggleFeatureSelection(feat)}
-                        className={`flex items-center gap-2 rounded-lg p-2 text-left text-xs transition border ${
+                        key={feat.id}
+                        onClick={() => toggleFeatureSelection(feat.id)}
+                        className={`flex items-start gap-2 rounded-xl p-2.5 text-left text-xs transition border cursor-pointer ${
                           isSelected
-                            ? "border-(--mainColor) bg-(--mainColor) text-(--secondColor) font-bold"
+                            ? "border-(--mainColor) bg-(--mainColor) text-(--secondColor)"
                             : "border-[#dacdb9] bg-[#faf6ed] text-(--mainColor)/80 hover:border-(--mainColor)/50"
                         }`}
                       >
                         <div
-                          className={`h-4 w-4 rounded flex items-center justify-center shrink-0 border ${
+                          className={`h-4 w-4 rounded flex items-center justify-center shrink-0 border mt-0.5 ${
                             isSelected
                               ? "bg-(--secondColor) border-(--secondColor) text-(--mainColor)"
                               : "border-[#dacdb9] bg-white"
@@ -593,7 +845,22 @@ export default function AdminSubscriptionsPage() {
                         >
                           {isSelected && <LuCheck className="h-3 w-3 stroke-[3]" />}
                         </div>
-                        <span className="truncate">{feat}</span>
+                        <div className="min-w-0">
+                          <span
+                            className={`block font-bold truncate ${
+                              isSelected ? "text-(--secondColor)" : "text-(--mainColor)"
+                            }`}
+                          >
+                            {feat.label}
+                          </span>
+                          <span
+                            className={`block text-[10px] line-clamp-2 ${
+                              isSelected ? "text-(--secondColor)/80" : "text-(--mainColor)/60"
+                            }`}
+                          >
+                            {feat.desc}
+                          </span>
+                        </div>
                       </button>
                     );
                   })}
@@ -660,7 +927,7 @@ export default function AdminSubscriptionsPage() {
                     const pid = p.id || p._id;
                     return (
                       <option key={pid} value={pid}>
-                        {p.name} (£{p.price}/mo)
+                        {p.name} (£{p.price}/{p.billingPeriod === "week" ? "wk" : p.billingPeriod === "year" ? "yr" : "mo"})
                       </option>
                     );
                   })}

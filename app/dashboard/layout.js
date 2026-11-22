@@ -6,6 +6,7 @@ import AuthGuard from "./components/AuthGuard";
 import DashboardSidebar from "./components/DashboardSidebar";
 import DashboardHeader from "./components/DashboardHeader";
 import DashboardAnnouncementBanner from "./components/DashboardAnnouncementBanner";
+import DashboardPlanLimitBanner from "./components/DashboardPlanLimitBanner";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
 
@@ -46,6 +47,7 @@ export default function DashboardLayout({ children }) {
         <div className="flex flex-1 flex-col min-w-0">
           <DashboardHeader onToggleSidebar={() => setIsSidebarOpen(true)} />
           <DashboardAnnouncementBanner />
+          <DashboardPlanLimitBanner />
           <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">{children}</div>
           </main>
