@@ -629,7 +629,7 @@ const forgotPassword = async (req, res) => {
 
     // Determine client frontend URL
     const clientOrigin =
-      req.headers.origin || process.env.FRONTEND_URL || "http://localhost:3000";
+      req.headers.origin || process.env.FRONTEND_URL || "http://localhost:5000";
     const resetUrl = `${clientOrigin}/reset-password?token=${resetToken}`;
 
     try {

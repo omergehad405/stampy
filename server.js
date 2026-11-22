@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 const connectDB = require("./backend/config/db");
 const authRoutes = require("./backend/app/routing/authRoutes");
 const adminCafeRoutes = require("./backend/app/routing/adminCafeRoutes");
@@ -13,7 +14,10 @@ const cafeRewardRoutes = require("./backend/app/routing/cafeRewardRoutes");
 const cafeRoutes = require("./backend/app/routing/cafeRoutes");
 const dashboardCafeRoutes = require("./backend/app/routing/dashboardCafeRoutes");
 
+// Single public port — both API and Next.js frontend served here
 const PORT = parseInt(process.env.PORT, 10) || 5000;
+// Next.js dev server runs internally on this port (never exposed directly)
+const NEXT_PORT = parseInt(process.env.NEXT_PORT, 10) || 3001;
 
 async function startServer() {
   try {
@@ -74,23 +78,7 @@ async function startServer() {
       });
     });
 
-    // ── Root info endpoint ───────────────────────────────────────────────────
-    app.get("/", (req, res) => {
-      res.status(200).json({
-        success: true,
-        name: "Stampy Backend API Server",
-        status: "online",
-        port: PORT,
-        frontendUrl: "http://localhost:3000",
-        endpoints: {
-          health: "/api/health",
-          auth: "/api/auth",
-          cafes: "/api/cafes",
-          dashboard: "/api/dashboard/cafe",
-          admin: "/api/admin/cafes",
-        },
-      });
-    });
+    // ── Root — handled by Next.js via the proxy below ────────────────────────
 
     // ── API Routes ────────────────────────────────────────────────────────────
     app.use("/api/auth", authRoutes);
@@ -104,6 +92,26 @@ async function startServer() {
     app.use("/api/cafes", cafeRoutes);
     app.use("/api/dashboard/cafe", dashboardCafeRoutes);
     app.use("/api/dashboard/profile", dashboardCafeRoutes);
+
+    // ── Proxy all remaining requests → Next.js dev server ────────────────────
+    const nextProxy = createProxyMiddleware({
+      target: `http://localhost:${NEXT_PORT}`,
+      changeOrigin: true,
+      ws: true, // proxy WebSocket (HMR in dev)
+      on: {
+        error(err, req, res) {
+          console.error("[Proxy] Next.js not ready yet:", err.message);
+          if (res && typeof res.status === "function" && !res.headersSent) {
+            res.status(502).send("Frontend starting up — please refresh in a moment.");
+          } else if (res && typeof res.writeHead === "function" && !res.headersSent) {
+            res.writeHead(502, { "Content-Type": "text/plain" });
+            res.end("Frontend starting up — please refresh in a moment.");
+          }
+        },
+      },
+    });
+
+    app.use(nextProxy);
 
     // ── 404 for unmatched routes ──────────────────────────────────────────────
     app.use((req, res) => {
@@ -125,10 +133,15 @@ async function startServer() {
       });
     });
 
-    app.listen(PORT, () => {
-      console.log(`[Stampy] Backend API Server running on http://localhost:${PORT}`);
-      console.log(`[Stampy] Frontend client expected at http://localhost:3000`);
+    const server = app.listen(PORT, () => {
+      console.log(`\n[Stampy] ✅  Running on http://localhost:${PORT}`);
+      console.log(`[Stampy]    API  → http://localhost:${PORT}/api`);
+      console.log(`[Stampy]    App  → http://localhost:${PORT}/\n`);
     });
+
+    if (nextProxy.upgrade) {
+      server.on("upgrade", nextProxy.upgrade);
+    }
   } catch (error) {
     console.error("[Stampy Fatal Error]:", error);
     process.exit(1);
