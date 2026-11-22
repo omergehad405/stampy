@@ -29,11 +29,23 @@ export default function DashboardSettingsPage() {
 
   // Account form
   const [accountForm, setAccountForm] = useState({
-    name: currentUser?.name || "Elena Rostova",
-    email: currentUser?.email || "elena@coffeehouse.london",
-    phone: currentUser?.phone || "+44 7700 900111",
+    name: currentUser?.name || "",
+    email: currentUser?.email || "",
+    phone: currentUser?.phone || "",
     avatar: currentUser?.avatar || "",
   });
+
+  // Keep form in sync when currentUser loads from session
+  React.useEffect(() => {
+    if (currentUser) {
+      setAccountForm((prev) => ({
+        name: currentUser.name || prev.name,
+        email: currentUser.email || prev.email,
+        phone: currentUser.phone || prev.phone,
+        avatar: currentUser.avatar || prev.avatar,
+      }));
+    }
+  }, [currentUser]);
 
   // Security form
   const [securityForm, setSecurityForm] = useState({
@@ -69,12 +81,6 @@ export default function DashboardSettingsPage() {
     toast.success("Security credentials updated!");
   };
 
-  const handleSaveNotifications = (e) => {
-    e.preventDefault();
-    updateSettings(notifications);
-    toast.success("Notification preferences saved!");
-  };
-
   const tabs = [
     { key: "account", label: "Your Profile", icon: LuUser },
     { key: "security", label: "Password & Security", icon: LuShield },
@@ -90,17 +96,17 @@ export default function DashboardSettingsPage() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-2 shadow-2xs">
+      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-2 shadow-2xs">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition ${
+              className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition cursor-pointer ${
                 activeTab === tab.key
-                  ? "bg-(--mainColor) text-(--secondColor) shadow-xs"
-                  : "text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                  ? "bg-(--secondColor) text-[#3B2418] shadow-xs"
+                  : "text-(--bgColor)/70 hover:bg-(--bgColor)/10"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -114,20 +120,20 @@ export default function DashboardSettingsPage() {
       {activeTab === "account" && (
         <form
           onSubmit={handleSaveAccount}
-          className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-6 shadow-2xs space-y-6"
+          className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-2xs space-y-6"
         >
-          <div className="border-b border-[#ebdcc8] pb-3">
-            <h3 className="font-bold text-sm text-(--mainColor)">
+          <div className="border-b border-(--bgColor)/15 pb-3">
+            <h3 className="font-bold text-sm text-(--bgColor)">
               Your Staff Profile
             </h3>
-            <p className="text-xs text-(--mainColor)/60">
+            <p className="text-xs text-(--bgColor)/60">
               Personal identity details shown when recording visits and stamps.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Full Name
               </label>
               <input
@@ -137,12 +143,12 @@ export default function DashboardSettingsPage() {
                 onChange={(e) =>
                   setAccountForm({ ...accountForm, name: e.target.value })
                 }
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Email Address
               </label>
               <input
@@ -152,12 +158,12 @@ export default function DashboardSettingsPage() {
                 onChange={(e) =>
                   setAccountForm({ ...accountForm, email: e.target.value })
                 }
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Phone Number
               </label>
               <input
@@ -166,12 +172,12 @@ export default function DashboardSettingsPage() {
                 onChange={(e) =>
                   setAccountForm({ ...accountForm, phone: e.target.value })
                 }
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-(--mainColor) mb-2">
+              <label className="block text-xs font-bold text-(--bgColor) mb-2">
                 Avatar Image
               </label>
 
@@ -182,10 +188,10 @@ export default function DashboardSettingsPage() {
                   onClick={() => {
                     setAvatarMode("url");
                   }}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition cursor-pointer ${
                     avatarMode === "url"
-                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                      : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                      ? "bg-(--secondColor) text-[#3B2418] border-(--secondColor)"
+                      : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor)/70 hover:bg-(--bgColor)/20"
                   }`}
                 >
                   <LuLink className="h-3.5 w-3.5" />
@@ -197,10 +203,10 @@ export default function DashboardSettingsPage() {
                     setAvatarMode("file");
                     setTimeout(() => avatarFileRef.current?.click(), 50);
                   }}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition cursor-pointer ${
                     avatarMode === "file"
-                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                      : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                      ? "bg-(--secondColor) text-[#3B2418] border-(--secondColor)"
+                      : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor)/70 hover:bg-(--bgColor)/20"
                   }`}
                 >
                   <LuUpload className="h-3.5 w-3.5" />
@@ -217,7 +223,7 @@ export default function DashboardSettingsPage() {
                     setAccountForm({ ...accountForm, avatar: e.target.value })
                   }
                   placeholder="https://..."
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                 />
               )}
 
@@ -244,7 +250,7 @@ export default function DashboardSettingsPage() {
                 <button
                   type="button"
                   onClick={() => avatarFileRef.current?.click()}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#dacdb9] bg-[#f5ecdd] py-6 text-xs font-semibold text-(--mainColor)/70 hover:border-(--mainColor)/40"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-(--bgColor)/25 bg-(--bgColor)/5 py-6 text-xs font-semibold text-(--bgColor)/70 hover:border-(--secondColor)/50 cursor-pointer"
                 >
                   <LuUpload className="h-5 w-5" />
                   Click to choose an image from your device
@@ -257,7 +263,7 @@ export default function DashboardSettingsPage() {
                   <img
                     src={accountForm.avatar}
                     alt="Avatar preview"
-                    className="h-14 w-14 rounded-full object-cover border-2 border-[#dacdb9]"
+                    className="h-14 w-14 rounded-full object-cover border-2 border-(--secondColor)"
                   />
                   <button
                     type="button"
@@ -266,7 +272,7 @@ export default function DashboardSettingsPage() {
                       setAvatarMode("url");
                       if (avatarFileRef.current) avatarFileRef.current.value = "";
                     }}
-                    className="text-xs font-semibold text-rose-700 hover:underline"
+                    className="text-xs font-semibold text-rose-300 hover:text-rose-200 hover:underline cursor-pointer"
                   >
                     Remove
                   </button>
@@ -278,7 +284,7 @@ export default function DashboardSettingsPage() {
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-5 py-2 text-xs font-bold text-(--secondColor)"
+              className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 transition cursor-pointer"
             >
               <LuSave className="h-4 w-4" />
               <span>Update Profile</span>
@@ -291,20 +297,20 @@ export default function DashboardSettingsPage() {
       {activeTab === "security" && (
         <form
           onSubmit={handleSaveSecurity}
-          className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-6 shadow-2xs space-y-6"
+          className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-2xs space-y-6"
         >
-          <div className="border-b border-[#ebdcc8] pb-3">
-            <h3 className="font-bold text-sm text-(--mainColor)">
+          <div className="border-b border-(--bgColor)/15 pb-3">
+            <h3 className="font-bold text-sm text-(--bgColor)">
               Password & Security Settings
             </h3>
-            <p className="text-xs text-(--mainColor)/60">
+            <p className="text-xs text-(--bgColor)/60">
               Manage your login password and account protection.
             </p>
           </div>
 
           <div className="space-y-4 max-w-md">
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Current Password
               </label>
               <input
@@ -314,12 +320,12 @@ export default function DashboardSettingsPage() {
                   setSecurityForm({ ...securityForm, currentPassword: e.target.value })
                 }
                 placeholder="••••••••"
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 New Password
               </label>
               <input
@@ -329,12 +335,12 @@ export default function DashboardSettingsPage() {
                   setSecurityForm({ ...securityForm, newPassword: e.target.value })
                 }
                 placeholder="••••••••"
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Confirm New Password
               </label>
               <input
@@ -344,7 +350,7 @@ export default function DashboardSettingsPage() {
                   setSecurityForm({ ...securityForm, confirmPassword: e.target.value })
                 }
                 placeholder="••••••••"
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
               />
             </div>
           </div>
@@ -353,83 +359,10 @@ export default function DashboardSettingsPage() {
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-5 py-2 text-xs font-bold text-(--secondColor)"
+              className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 transition cursor-pointer"
             >
               <LuLock className="h-4 w-4" />
               <span>Update Password</span>
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* Tab 4: Notifications */}
-      {activeTab === "notifications" && (
-        <form
-          onSubmit={handleSaveNotifications}
-          className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-6 shadow-2xs space-y-6"
-        >
-          <div className="border-b border-[#ebdcc8] pb-3">
-            <h3 className="font-bold text-sm text-(--mainColor)">
-              Notification Preferences
-            </h3>
-            <p className="text-xs text-(--mainColor)/60">
-              Email digests and instant cashier alerts.
-            </p>
-          </div>
-
-          <div className="space-y-3.5">
-            <label className="flex items-start gap-3 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-3.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={notifications.emailDigests}
-                onChange={(e) =>
-                  setNotifications({
-                    ...notifications,
-                    emailDigests: e.target.checked,
-                  })
-                }
-                className="mt-0.5 rounded text-(--mainColor)"
-              />
-              <div className="text-xs">
-                <span className="font-bold text-(--mainColor)">
-                  Daily Loyalty Digest
-                </span>
-                <p className="mt-0.5 text-[11px] text-(--mainColor)/70">
-                  Receive a daily morning summary of stamps awarded, new member registrations, and top active customers.
-                </p>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-3.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={notifications.autoRewardAlert}
-                onChange={(e) =>
-                  setNotifications({
-                    ...notifications,
-                    autoRewardAlert: e.target.checked,
-                  })
-                }
-                className="mt-0.5 rounded text-(--mainColor)"
-              />
-              <div className="text-xs">
-                <span className="font-bold text-(--mainColor)">
-                  High-Tier Reward Redemption Alerts
-                </span>
-                <p className="mt-0.5 text-[11px] text-(--mainColor)/70">
-                  Send an email notification whenever a 10+ stamp reward (e.g. 20% discount or retail coffee beans) is redeemed.
-                </p>
-              </div>
-            </label>
-          </div>
-
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-5 py-2 text-xs font-bold text-(--secondColor)"
-            >
-              <LuSave className="h-4 w-4" />
-              <span>Save Preferences</span>
             </button>
           </div>
         </form>

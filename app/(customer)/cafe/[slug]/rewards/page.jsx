@@ -123,6 +123,8 @@ function DedicatedCafeRewardsContent() {
           stampsBalance={stampsBalance}
           unlockedCount={unlockedRewards.length}
           nextReward={nextReward}
+          cafe={cafe}
+          rewards={rewards}
         />
       </div>
 

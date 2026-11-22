@@ -89,9 +89,13 @@ export default function AdminSidebar({ isOpen, onClose }) {
   const router = useRouter();
   const { currentAdmin, logout } = useAdminAuthStore();
 
-  const handleLogout = () => {
-    logout();
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.warn("Logout error:", e);
+    }
+    window.location.href = "/admin/login";
   };
 
   const isActive = (href, exact = false) => {

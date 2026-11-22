@@ -16,7 +16,7 @@ export default function ProfileLogout({ onLogout }) {
       </button>
 
       <p className="text-[11px] opacity-50 text-center sm:text-right">
-        Stampy v1.2 • Digital Loyalty Multi-Cafe Platform
+        Stampy v1.0 • Digital Loyalty Multi-Cafe Platform
       </p>
     </section>
   );

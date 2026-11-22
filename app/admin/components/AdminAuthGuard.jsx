@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuthStore } from "@/app/stores/useAdminAuthStore";
 import { useAdminStore } from "@/app/stores/useAdminStore";
+import { getAuthToken } from "@/app/lib/apiClient";
 
 const emptySubscribe = () => () => {};
 
@@ -12,33 +13,44 @@ export default function AdminAuthGuard({ children }) {
   const router = useRouter();
   const { isAuthenticated, checkAuth } = useAdminAuthStore();
   const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const [isChecking, setIsChecking] = useState(true);
+  const [isReady, setIsReady] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(getAuthToken() || isAuthenticated);
+  });
 
   useEffect(() => {
-    let isMounted = true;
+    let isCancelled = false;
 
-    async function verify() {
-      if (!isClient) return;
+    if (pathname === "/admin/login") {
+      setIsReady(true);
+      return;
+    }
 
-      if (pathname === "/admin/login") {
-        if (isMounted) setIsChecking(false);
-        return;
-      }
+    if (!isClient) return;
 
+    const token = getAuthToken();
+    if (!token && !isAuthenticated) {
+      router.replace("/admin/login");
+      return;
+    }
+
+    if (isAuthenticated && token) {
+      setIsReady(true);
+    }
+
+    async function validate() {
       let authed = isAuthenticated;
       if (!authed) {
         const res = await checkAuth();
+        if (isCancelled) return;
         if (!res?.success) {
-          if (isMounted) {
-            router.push("/admin/login");
-          }
+          setIsReady(false);
+          router.replace("/admin/login");
           return;
         }
         authed = true;
       }
 
-      // Preload cafes, customers, plans, and announcements from MongoDB
-      // and wait for them so the dashboard renders with full data
       await Promise.allSettled([
         useAdminStore.getState().fetchCafes(),
         useAdminStore.getState().fetchCustomers(),
@@ -46,23 +58,23 @@ export default function AdminAuthGuard({ children }) {
         useAdminStore.getState().fetchAnnouncements(),
       ]);
 
-      if (isMounted) setIsChecking(false);
+      if (!isCancelled) {
+        setIsReady(true);
+      }
     }
 
-    verify();
+    validate();
 
     return () => {
-      isMounted = false;
+      isCancelled = true;
     };
-  }, [pathname, isClient]); // Only re-run if route pathname changes
+  }, [pathname, isClient, isAuthenticated, checkAuth, router]);
 
-  // Don't protect the login page itself
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }
 
-  // Show loading spinner while checking authentication or preloading data
-  if (!isClient || isChecking) {
+  if (!isClient || !isReady) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-(--bgColor)">
         <div className="flex flex-col items-center gap-3">
@@ -73,10 +85,6 @@ export default function AdminAuthGuard({ children }) {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return <>{children}</>;

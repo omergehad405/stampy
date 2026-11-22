@@ -297,7 +297,7 @@ export default function DashboardCafeProfilePage() {
             <button
               onClick={handleReset}
               type="button"
-              className="flex items-center gap-1.5 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3.5 py-2 text-xs font-semibold text-(--mainColor) hover:bg-white"
+              className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3.5 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 transition cursor-pointer"
             >
               <LuRotateCcw className="h-3.5 w-3.5" />
               <span>Reset</span>
@@ -306,7 +306,7 @@ export default function DashboardCafeProfilePage() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-1.5 rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) shadow-sm hover:opacity-95"
+              className="flex items-center gap-1.5 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-sm hover:bg-(--secondColor)/90 transition cursor-pointer"
             >
               <LuSave className="h-4 w-4" />
               <span>{isSaving ? "Saving..." : "Save Changes"}</span>
@@ -316,7 +316,7 @@ export default function DashboardCafeProfilePage() {
       />
 
       {/* Tabs Bar */}
-      <div className="flex gap-1.5 overflow-x-auto rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-2 shadow-2xs">
+      <div className="flex gap-1.5 overflow-x-auto rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-2 shadow-2xs">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -324,7 +324,7 @@ export default function DashboardCafeProfilePage() {
             className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition ${
               activeTab === tab.key
                 ? "bg-(--mainColor) text-(--secondColor) shadow-xs"
-                : "text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                : "text-(--bgColor)/70 hover:bg-(--bgColor)/15"
             }`}
           >
             {tab.label}
@@ -333,22 +333,22 @@ export default function DashboardCafeProfilePage() {
       </div>
 
       {/* Tab Panels */}
-      <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-6 shadow-2xs">
+      <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-xs">
         {/* TAB 1: BASIC INFORMATION & BRANDING */}
         {activeTab === "basic" && (
           <div className="space-y-6">
-            <div className="border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-sm text-(--mainColor)">
+            <div className="border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-sm text-(--bgColor)">
                 Basic Identity & Media
               </h3>
-              <p className="text-xs text-(--mainColor)/60">
+              <p className="text-xs text-(--bgColor)/60">
                 Primary business name, branding photography, and category tag.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Cafe Name *
                 </label>
                 <input
@@ -358,12 +358,12 @@ export default function DashboardCafeProfilePage() {
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, name: e.target.value })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs font-bold text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs font-bold text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Tagline / Subheading
                 </label>
                 <input
@@ -372,12 +372,12 @@ export default function DashboardCafeProfilePage() {
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, tagline: e.target.value })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Category
                 </label>
                 <input
@@ -386,12 +386,12 @@ export default function DashboardCafeProfilePage() {
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, category: e.target.value })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Established Year
                 </label>
                 <input
@@ -403,7 +403,7 @@ export default function DashboardCafeProfilePage() {
                       establishedYear: Number(e.target.value),
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
             </div>
@@ -420,10 +420,10 @@ export default function DashboardCafeProfilePage() {
             </div>
 
             {/* Visual Assets (Cover & Logo) */}
-            <div className="grid grid-cols-1 gap-6 border-t border-[#ebdcc8] pt-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 border-t border-(--bgColor)/15 pt-6 md:grid-cols-2">
               {/* Logo Image */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-(--mainColor)">
+                <label className="block text-xs font-bold text-(--bgColor)">
                   Logo Image
                 </label>
 
@@ -435,7 +435,7 @@ export default function DashboardCafeProfilePage() {
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
                       logoMode === "url"
                         ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
                     }`}
                   >
                     <LuLink className="h-3.5 w-3.5" />
@@ -450,7 +450,7 @@ export default function DashboardCafeProfilePage() {
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
                       logoMode === "file"
                         ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
                     }`}
                   >
                     <LuUpload className="h-3.5 w-3.5" />
@@ -467,7 +467,7 @@ export default function DashboardCafeProfilePage() {
                       setProfileForm({ ...profileForm, logoImage: e.target.value })
                     }
                     placeholder="https://..."
-                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                   />
                 )}
 
@@ -494,7 +494,7 @@ export default function DashboardCafeProfilePage() {
                   <button
                     type="button"
                     onClick={() => logoFileRef.current?.click()}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#dacdb9] bg-[#f5ecdd] py-5 text-xs font-semibold text-(--mainColor)/70 hover:border-(--mainColor)/40"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-(--bgColor)/20 bg-(--bgColor)/10 py-5 text-xs font-semibold text-(--bgColor)/70 hover:border-(--mainColor)/40"
                   >
                     <LuUpload className="h-5 w-5" />
                     Choose logo from device
@@ -508,9 +508,9 @@ export default function DashboardCafeProfilePage() {
                       <img
                         src={profileForm.logoImage}
                         alt="Logo preview"
-                        className="h-16 w-16 rounded-xl object-cover border-2 border-[#dacdb9]"
+                        className="h-16 w-16 rounded-xl object-cover border-2 border-(--bgColor)/20"
                       />
-                      <div className="text-[11px] text-(--mainColor)/60 space-y-1">
+                      <div className="text-[11px] text-(--bgColor)/60 space-y-1">
                         <p>Recommended: Square 1:1 (400×400px)</p>
                         <button
                           type="button"
@@ -526,14 +526,14 @@ export default function DashboardCafeProfilePage() {
                       </div>
                     </>
                   ) : (
-                    <span className="text-[11px] text-(--mainColor)/50">No logo set yet.</span>
+                    <span className="text-[11px] text-(--bgColor)/50">No logo set yet.</span>
                   )}
                 </div>
               </div>
 
               {/* Cover Image */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-(--mainColor)">
+                <label className="block text-xs font-bold text-(--bgColor)">
                   Hero Cover Image
                 </label>
 
@@ -545,7 +545,7 @@ export default function DashboardCafeProfilePage() {
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
                       coverMode === "url"
                         ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
                     }`}
                   >
                     <LuLink className="h-3.5 w-3.5" />
@@ -560,7 +560,7 @@ export default function DashboardCafeProfilePage() {
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
                       coverMode === "file"
                         ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                        : "border-[#dacdb9] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                        : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
                     }`}
                   >
                     <LuUpload className="h-3.5 w-3.5" />
@@ -577,7 +577,7 @@ export default function DashboardCafeProfilePage() {
                       setProfileForm({ ...profileForm, coverImage: e.target.value })
                     }
                     placeholder="https://..."
-                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                   />
                 )}
 
@@ -604,7 +604,7 @@ export default function DashboardCafeProfilePage() {
                   <button
                     type="button"
                     onClick={() => coverFileRef.current?.click()}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#dacdb9] bg-[#f5ecdd] py-5 text-xs font-semibold text-(--mainColor)/70 hover:border-(--mainColor)/40"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-(--bgColor)/20 bg-(--bgColor)/10 py-5 text-xs font-semibold text-(--bgColor)/70 hover:border-(--mainColor)/40"
                   >
                     <LuUpload className="h-5 w-5" />
                     Choose cover photo from device
@@ -618,7 +618,7 @@ export default function DashboardCafeProfilePage() {
                       <img
                         src={profileForm.coverImage}
                         alt="Cover preview"
-                        className="h-24 w-full rounded-xl object-cover border border-[#dacdb9]"
+                        className="h-24 w-full rounded-xl object-cover border border-(--bgColor)/20"
                       />
                       <button
                         type="button"
@@ -633,7 +633,7 @@ export default function DashboardCafeProfilePage() {
                       </button>
                     </>
                   ) : (
-                    <span className="text-[11px] text-(--mainColor)/50">No cover image set yet.</span>
+                    <span className="text-[11px] text-(--bgColor)/50">No cover image set yet.</span>
                   )}
                 </div>
               </div>
@@ -644,17 +644,17 @@ export default function DashboardCafeProfilePage() {
         {/* TAB 2: ABOUT & HIGHLIGHTS */}
         {activeTab === "about" && (
           <div className="space-y-6">
-            <div className="border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-sm text-(--mainColor)">
+            <div className="border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-sm text-(--bgColor)">
                 Story & Cafe Features
               </h3>
-              <p className="text-xs text-(--mainColor)/60">
+              <p className="text-xs text-(--bgColor)/60">
                 Craft the narrative customer read when discovering your cafe.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Short Description (Card Teaser)
               </label>
               <textarea
@@ -669,12 +669,12 @@ export default function DashboardCafeProfilePage() {
                     },
                   })
                 }
-                className="w-full rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Full Cafe Story
               </label>
               <textarea
@@ -689,26 +689,26 @@ export default function DashboardCafeProfilePage() {
                     },
                   })
                 }
-                className="w-full rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
               />
             </div>
 
             {/* Highlights Tag Manager */}
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Key Features & Amenities
               </label>
               <div className="flex flex-wrap gap-2 mb-3">
                 {profileForm.about.highlights.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="flex items-center gap-1.5 rounded-full border border-[#dacdb9] bg-white px-3 py-1 text-xs font-medium text-(--mainColor)"
+                    className="flex items-center gap-1.5 rounded-full border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-1 text-xs font-medium text-(--bgColor)"
                   >
                     <span>{tag}</span>
                     <button
                       type="button"
                       onClick={() => removeHighlight(idx)}
-                      className="text-(--mainColor)/50 hover:text-rose-700"
+                      className="text-(--bgColor)/50 hover:text-rose-700"
                     >
                       ×
                     </button>
@@ -723,7 +723,7 @@ export default function DashboardCafeProfilePage() {
                   onChange={(e) => setNewHighlight(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addHighlight()}
                   placeholder="e.g. Pet-Friendly Patio"
-                  className="h-9 flex-1 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none"
+                  className="h-9 flex-1 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none"
                 />
                 <button
                   type="button"
@@ -740,18 +740,18 @@ export default function DashboardCafeProfilePage() {
         {/* TAB 3: LOCATION & MAP */}
         {activeTab === "location" && (
           <div className="space-y-6">
-            <div className="border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-sm text-(--mainColor)">
+            <div className="border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-sm text-(--bgColor)">
                 Address & Navigation
               </h3>
-              <p className="text-xs text-(--mainColor)/60">
+              <p className="text-xs text-(--bgColor)/60">
                 Physical premises location, postal details, and Google Maps URL.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Street Address
                 </label>
                 <input
@@ -766,12 +766,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   District / Neighborhood
                 </label>
                 <input
@@ -786,12 +786,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   City
                 </label>
                 <input
@@ -803,12 +803,12 @@ export default function DashboardCafeProfilePage() {
                       location: { ...profileForm.location, city: e.target.value },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Postcode / Zip
                 </label>
                 <input
@@ -823,12 +823,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Full Formatted Address
                 </label>
                 <input
@@ -843,12 +843,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Directions Hint / Landmark
                 </label>
                 <input
@@ -863,12 +863,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Google Maps URL
                 </label>
                 <div className="flex gap-2">
@@ -884,14 +884,14 @@ export default function DashboardCafeProfilePage() {
                         },
                       })
                     }
-                    className="flex-1 h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                    className="flex-1 h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                   />
                   {profileForm.location.googleMapsUrl && (
                     <a
                       href={profileForm.location.googleMapsUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-1.5 rounded-xl border border-[#dacdb9] bg-white px-3 text-xs font-semibold text-(--mainColor) hover:bg-white"
+                      className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/10"
                     >
                       <LuExternalLink className="h-3.5 w-3.5" />
                       <span>Test Map Link</span>
@@ -906,11 +906,11 @@ export default function DashboardCafeProfilePage() {
         {/* TAB 4: OPENING HOURS */}
         {activeTab === "hours" && (
           <div className="space-y-6">
-            <div className="border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-sm text-(--mainColor)">
+            <div className="border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-sm text-(--bgColor)">
                 Weekly Operating Schedule
               </h3>
-              <p className="text-xs text-(--mainColor)/60">
+              <p className="text-xs text-(--bgColor)/60">
                 Configure opening and closing times for each day of the week.
               </p>
             </div>
@@ -919,23 +919,23 @@ export default function DashboardCafeProfilePage() {
               {profileForm.openingHours.schedule.map((dayItem, idx) => (
                 <div
                   key={dayItem.day}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-3 text-xs gap-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-3 text-xs gap-3"
                 >
                   <div className="flex items-center gap-3 w-36">
-                    <span className="font-bold text-(--mainColor)">
+                    <span className="font-bold text-(--bgColor)">
                       {dayItem.day}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-(--mainColor)">
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-(--bgColor)">
                       <input
                         type="checkbox"
                         checked={!dayItem.isClosed}
                         onChange={(e) =>
                           updateScheduleItem(idx, "isClosed", !e.target.checked)
                         }
-                        className="rounded border-[#dacdb9] text-(--mainColor)"
+                        className="rounded border-(--bgColor)/20 text-(--bgColor)"
                       />
                       <span>{dayItem.isClosed ? "Closed" : "Open"}</span>
                     </label>
@@ -948,16 +948,16 @@ export default function DashboardCafeProfilePage() {
                           onChange={(e) =>
                             updateScheduleItem(idx, "open", e.target.value)
                           }
-                          className="h-8 rounded-lg border border-[#dacdb9] bg-white px-2 font-mono text-xs text-(--mainColor)"
+                          className="h-8 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2 font-mono text-xs text-(--bgColor)"
                         />
-                        <span className="text-(--mainColor)/60">to</span>
+                        <span className="text-(--bgColor)/60">to</span>
                         <input
                           type="time"
                           value={dayItem.close}
                           onChange={(e) =>
                             updateScheduleItem(idx, "close", e.target.value)
                           }
-                          className="h-8 rounded-lg border border-[#dacdb9] bg-white px-2 font-mono text-xs text-(--mainColor)"
+                          className="h-8 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2 font-mono text-xs text-(--bgColor)"
                         />
                       </div>
                     )}
@@ -967,7 +967,7 @@ export default function DashboardCafeProfilePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Holiday Notice
               </label>
               <input
@@ -983,7 +983,7 @@ export default function DashboardCafeProfilePage() {
                   })
                 }
                 placeholder="e.g. Open on Bank Holidays (Sunday hours apply)"
-                className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
               />
             </div>
           </div>
@@ -992,18 +992,18 @@ export default function DashboardCafeProfilePage() {
         {/* TAB 5: CONTACT & WEBSITE */}
         {activeTab === "contact" && (
           <div className="space-y-6">
-            <div className="border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-sm text-(--mainColor)">
+            <div className="border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-sm text-(--bgColor)">
                 Contact Channels & Website
               </h3>
-              <p className="text-xs text-(--mainColor)/60">
+              <p className="text-xs text-(--bgColor)/60">
                 Official phone, email, and web domain.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Phone (Dialable)
                 </label>
                 <input
@@ -1018,12 +1018,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Phone (Display Format)
                 </label>
                 <input
@@ -1038,12 +1038,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Contact Email
                 </label>
                 <input
@@ -1058,12 +1058,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Official Website URL
                 </label>
                 <input
@@ -1078,7 +1078,7 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
             </div>
@@ -1088,11 +1088,11 @@ export default function DashboardCafeProfilePage() {
         {/* TAB 6: SOCIAL MEDIA */}
         {activeTab === "social" && (
           <div className="space-y-6">
-            <div className="border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-sm text-(--mainColor)">
+            <div className="border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-sm text-(--bgColor)">
                 Social Media Accounts
               </h3>
-              <p className="text-xs text-(--mainColor)/60">
+              <p className="text-xs text-(--bgColor)/60">
                 Connect your social media presence for customer engagement.
               </p>
             </div>
@@ -1100,7 +1100,7 @@ export default function DashboardCafeProfilePage() {
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               {/* Instagram */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Instagram Handle
                 </label>
                 <input
@@ -1119,12 +1119,12 @@ export default function DashboardCafeProfilePage() {
                     })
                   }
                   placeholder="@coffeehouselondon"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Instagram URL
                 </label>
                 <input
@@ -1142,13 +1142,13 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               {/* Facebook */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Facebook Page Handle
                 </label>
                 <input
@@ -1166,12 +1166,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Facebook URL
                 </label>
                 <input
@@ -1189,13 +1189,13 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               {/* TikTok */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   TikTok Handle
                 </label>
                 <input
@@ -1213,12 +1213,12 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   WhatsApp Contact Link
                 </label>
                 <input
@@ -1236,7 +1236,7 @@ export default function DashboardCafeProfilePage() {
                       },
                     })
                   }
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
                 />
               </div>
             </div>
@@ -1246,12 +1246,12 @@ export default function DashboardCafeProfilePage() {
         {/* TAB 7: DIGITAL MENU */}
         {activeTab === "menu" && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-[#ebdcc8] pb-3">
+            <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
               <div>
-                <h3 className="font-bold text-sm text-(--mainColor)">
+                <h3 className="font-bold text-sm text-(--bgColor)">
                   Digital Menu Items
                 </h3>
-                <p className="text-xs text-(--mainColor)/60">
+                <p className="text-xs text-(--bgColor)/60">
                   Manage menu items displayed in the customer menu preview.
                 </p>
               </div>
@@ -1270,10 +1270,10 @@ export default function DashboardCafeProfilePage() {
               {profileForm.menuPreview.categories.map((cat, idx) => (
                 <div
                   key={cat.id || idx}
-                  className="rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-4 text-xs space-y-3"
+                  className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-4 text-xs space-y-3"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-(--mainColor)">
+                    <span className="font-bold text-(--bgColor)">
                       Item #{idx + 1}
                     </span>
                     <button
@@ -1287,7 +1287,7 @@ export default function DashboardCafeProfilePage() {
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block font-bold text-(--mainColor) mb-1">
+                      <label className="block font-bold text-(--bgColor) mb-1">
                         Item Title
                       </label>
                       <input
@@ -1297,12 +1297,12 @@ export default function DashboardCafeProfilePage() {
                           updateMenuCategory(cat.id, "title", e.target.value)
                         }
                         placeholder="e.g. Flat White"
-                        className="w-full h-9 rounded-lg border border-[#dacdb9] bg-white px-2.5 text-xs text-(--mainColor) outline-none"
+                        className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-(--mainColor) mb-1">
+                      <label className="block font-bold text-(--bgColor) mb-1">
                         Item Price
                       </label>
                       <input
@@ -1312,12 +1312,12 @@ export default function DashboardCafeProfilePage() {
                           updateMenuCategory(cat.id, "price", e.target.value)
                         }
                         placeholder="e.g. £3.50"
-                        className="w-full h-9 rounded-lg border border-[#dacdb9] bg-white px-2.5 text-xs text-(--mainColor) outline-none"
+                        className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block font-bold text-(--mainColor) mb-1">
+                      <label className="block font-bold text-(--bgColor) mb-1">
                         Item Description
                       </label>
                       <input
@@ -1327,7 +1327,7 @@ export default function DashboardCafeProfilePage() {
                           updateMenuCategory(cat.id, "description", e.target.value)
                         }
                         placeholder="e.g. Smooth double shot with steamed milk"
-                        className="w-full h-9 rounded-lg border border-[#dacdb9] bg-white px-2.5 text-xs text-(--mainColor) outline-none"
+                        className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
                       />
                     </div>
                   </div>
@@ -1339,11 +1339,11 @@ export default function DashboardCafeProfilePage() {
         {/* TAB 8: CAFE QR CODE */}
         {activeTab === "qr" && (
           <div className="space-y-6">
-            <div className="border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-sm text-(--mainColor)">
+            <div className="border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-sm text-(--bgColor)">
                 Cafe Public QR Code
               </h3>
-              <p className="text-xs text-(--mainColor)/60">
+              <p className="text-xs text-(--bgColor)/60">
                 Share this QR code with customers. When scanned, it opens your cafe&apos;s public info page on Stampy.
               </p>
             </div>
@@ -1351,7 +1351,7 @@ export default function DashboardCafeProfilePage() {
             <div className="flex flex-col lg:flex-row gap-8 items-start">
               {/* QR Code display card */}
               <div className="flex flex-col items-center gap-4 shrink-0">
-                <div className="relative bg-white rounded-3xl border-2 border-[#dacdb9] p-6 shadow-sm flex items-center justify-center">
+                <div className="relative bg-(--bgColor)/10 rounded-3xl border-2 border-(--bgColor)/20 p-6 shadow-sm flex items-center justify-center">
                   <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-(--mainColor) flex items-center justify-center shadow">
                     <LuQrCode className="w-4 h-4 text-(--secondColor)" />
                   </div>
@@ -1367,7 +1367,7 @@ export default function DashboardCafeProfilePage() {
                   ) : (
                     <div
                       style={{ width: 220, height: 220 }}
-                      className="flex items-center justify-center rounded-2xl bg-[#f5ecdd] text-xs text-(--mainColor)/50 text-center px-4"
+                      className="flex items-center justify-center rounded-2xl bg-(--bgColor)/10 text-xs text-(--bgColor)/50 text-center px-4"
                     >
                       Cafe slug not set. Save a cafe profile first.
                     </div>
@@ -1376,8 +1376,8 @@ export default function DashboardCafeProfilePage() {
 
                 {cafe?.name && (
                   <div className="text-center space-y-0.5">
-                    <p className="text-sm font-bold text-(--mainColor)">{cafe.name}</p>
-                    <p className="text-xs text-(--mainColor)/50">Powered by Stampy</p>
+                    <p className="text-sm font-bold text-(--bgColor)">{cafe.name}</p>
+                    <p className="text-xs text-(--bgColor)/50">Powered by Stampy</p>
                   </div>
                 )}
 
@@ -1395,7 +1395,7 @@ export default function DashboardCafeProfilePage() {
                     type="button"
                     onClick={handleCopyUrl}
                     disabled={!cafeInfoUrl}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 py-2.5 text-xs font-bold text-(--mainColor) hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-2.5 text-xs font-bold text-(--bgColor) hover:bg-(--bgColor)/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
                   >
                     {copiedUrl ? (
                       <>
@@ -1416,13 +1416,13 @@ export default function DashboardCafeProfilePage() {
               <div className="flex-1 space-y-5 min-w-0">
                 {/* URL display */}
                 <div>
-                  <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                  <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                     QR Code Destination URL
                   </label>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 flex items-center text-xs text-(--mainColor)/80 font-mono truncate select-all">
+                    <div className="flex-1 h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 flex items-center text-xs text-(--bgColor)/80 font-mono truncate select-all">
                       {cafeInfoUrl || (
-                        <span className="text-(--mainColor)/40 italic">No slug set yet</span>
+                        <span className="text-(--bgColor)/40 italic">No slug set yet</span>
                       )}
                     </div>
                     {cafeInfoUrl && (
@@ -1430,7 +1430,7 @@ export default function DashboardCafeProfilePage() {
                         href={cafeInfoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-1.5 h-10 rounded-xl border border-[#dacdb9] bg-white px-3 text-xs font-semibold text-(--mainColor) hover:bg-[#ebdcc8] transition shrink-0"
+                        className="flex items-center gap-1.5 h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/15 transition shrink-0"
                       >
                         <LuExternalLink className="h-3.5 w-3.5" />
                         Preview
@@ -1440,12 +1440,12 @@ export default function DashboardCafeProfilePage() {
                 </div>
 
                 {/* Usage instructions */}
-                <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-4 space-y-3">
-                  <h4 className="text-xs font-bold text-(--mainColor) flex items-center gap-1.5">
-                    <LuInfo className="h-3.5 w-3.5 text-(--mainColor)/60" />
+                <div className="rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-4 space-y-3">
+                  <h4 className="text-xs font-bold text-(--bgColor) flex items-center gap-1.5">
+                    <LuInfo className="h-3.5 w-3.5 text-(--bgColor)/60" />
                     How to use this QR code
                   </h4>
-                  <ul className="space-y-2 text-xs text-(--mainColor)/70 leading-relaxed">
+                  <ul className="space-y-2 text-xs text-(--bgColor)/70 leading-relaxed">
                     <li className="flex items-start gap-2">
                       <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
                       Print it and display it at your counter, tables, or window.
@@ -1491,8 +1491,8 @@ export default function DashboardCafeProfilePage() {
       </div>
 
       {/* Sticky Save Confirmation Footer */}
-      <div className="flex items-center justify-between rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-4 shadow-2xs">
-        <div className="flex items-center gap-2 text-xs text-(--mainColor)/70">
+      <div className="flex items-center justify-between rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-4 shadow-2xs">
+        <div className="flex items-center gap-2 text-xs text-(--bgColor)/70">
           <LuCircleCheck className="h-4 w-4 text-emerald-600" />
           <span>Save changes when you are ready to update the live profile.</span>
         </div>
@@ -1501,7 +1501,7 @@ export default function DashboardCafeProfilePage() {
           <button
             type="button"
             onClick={handleReset}
-            className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor)"
+            className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-4 py-2 text-xs font-semibold text-(--bgColor)"
           >
             Cancel
           </button>

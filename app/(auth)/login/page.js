@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MdOutlineMailOutline, MdLocalPhone } from "react-icons/md";
 import { ImUser } from "react-icons/im";
@@ -10,12 +11,10 @@ import { apiRegister, apiLogin } from "@/app/lib/authApi";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import { getAuthToken } from "@/app/lib/apiClient";
 
-const HERO_IMAGE = "/loginPageDesctop.png";
-
 const inputBase =
-  "w-full h-[42px] rounded-xl border border-[#e8dfca] bg-[#faf6ec] px-3 text-sm " +
-  "text-(--mainColor) placeholder:text-(--mainColor)/45 outline-none transition " +
-  "focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40";
+  "w-full h-[44px] rounded-xl border border-[#e8dfca] bg-[#ffffff] px-3 text-sm " +
+  "text-[#3b2418] placeholder-[#3b2418]/40 outline-none transition " +
+  "focus:border-[#8ec5ff] focus:ring-2 focus:ring-[#8ec5ff]/40";
 
 function LoginPageContent() {
   const router = useRouter();
@@ -78,7 +77,8 @@ function LoginPageContent() {
     }
   }, [isAuthenticated, user]);
 
-  const [mode, setMode] = useState("signup"); // "signup" or "login"
+  const modeParam = searchParams.get("mode");
+  const [mode, setMode] = useState(modeParam === "signup" ? "signup" : "login");
   const [accountType, setAccountType] = useState("customer"); // "customer" or "cafeOwner"
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -135,22 +135,22 @@ function LoginPageContent() {
         });
 
         if (res.success && res.data?.user) {
-          const user = res.data.user;
+          const registeredUser = res.data.user;
           toast.success(
             accountType === "cafeOwner"
-              ? `Welcome, Cafe Owner ${user.name}! Your account is ready.`
-              : `Welcome to Stampy, ${user.name}! Your loyalty card is ready.`
+              ? `Welcome, Cafe Owner ${registeredUser.name}! Your account is ready.`
+              : `Welcome to Stampy, ${registeredUser.name}! Your loyalty card is ready.`
           );
 
-          if (user.role === "user") {
+          if (registeredUser.role === "user") {
             setUser({
-              ...user,
-              phone: form.phone ? `${form.countryCode} ${form.phone}` : user.phone,
+              ...registeredUser,
+              phone: form.phone ? `${form.countryCode} ${form.phone}` : registeredUser.phone,
             });
             fetchCurrentUser();
           }
 
-          handleRoleRedirect(user);
+          handleRoleRedirect(registeredUser);
         }
       } else {
         // Mode: Login
@@ -160,15 +160,15 @@ function LoginPageContent() {
         });
 
         if (res.success && res.data?.user) {
-          const user = res.data.user;
-          toast.success(`Welcome back, ${user.name}!`);
+          const loggedInUser = res.data.user;
+          toast.success(`Welcome back, ${loggedInUser.name}!`);
 
-          if (user.role === "user") {
-            setUser(user);
+          if (loggedInUser.role === "user") {
+            setUser(loggedInUser);
             fetchCurrentUser();
           }
 
-          handleRoleRedirect(user);
+          handleRoleRedirect(loggedInUser);
         }
       }
     } catch (err) {
@@ -181,58 +181,36 @@ function LoginPageContent() {
   };
 
   return (
-    <main className="min-h-screen text-(--mainColor) lg:grid lg:grid-cols-[1fr_0.85fr] bg-[#f2ebda]">
-      {/* Left: form */}
-      <section className="flex items-center justify-center px-5 py-8 sm:px-10 lg:px-16">
-        <div className="w-full max-w-[420px]">
-          {/* Brand */}
+    <main className="min-h-screen flex items-center justify-center bg-[#f2ebda] px-4 py-10 sm:px-6">
+      <div className="w-full max-w-[440px]">
+        {/* Card */}
+        <div className="rounded-2xl border border-[#e8dfca] bg-[#faf6ec] p-6 sm:p-8 shadow-sm">
+          {/* Brand Header */}
           <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-[#d3e0e8]">
-              <LuCoffee className="h-4 w-4" />
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-[#d3e0e8] text-[#3b2418]">
+              <LuCoffee className="h-5 w-5" />
             </span>
-            <span className="text-xs font-bold tracking-wide">STAMPY LOYALTY</span>
+            <span className="text-xs font-bold tracking-wider text-[#3b2418]">STAMPY LOYALTY</span>
           </div>
 
-          <h1 className="mt-5 text-[2rem] leading-[1.15] font-semibold sm:text-4xl">
-            {mode === "signup" ? (
-              <>
-                Create Your
-                <br />
-                {accountType === "cafeOwner" ? "Cafe Account" : "Loyalty Card"}
-              </>
-            ) : (
-              <>
-                Welcome Back
-                <br />
-                To Stampy
-              </>
-            )}
+          <h1 className="mt-5 text-2xl font-bold text-[#3b2418] sm:text-3xl">
+            {mode === "login"
+              ? "Welcome Back"
+              : accountType === "cafeOwner"
+              ? "Register Your Cafe"
+              : "Create Loyalty Card"}
           </h1>
 
-          <p className="mt-3 max-w-[340px] text-sm leading-relaxed text-(--mainColor)/80">
-            {mode === "signup"
-              ? accountType === "cafeOwner"
-                ? "Register your cafe to issue loyalty stamps and reward returning patrons."
-                : "Join our digital loyalty program and enjoy exclusive rewards with every visit."
-              : "Sign in to access your digital loyalty card, rewards, and account settings."}
+          <p className="mt-2 text-xs sm:text-sm leading-relaxed text-[#3b2418]/75">
+            {mode === "login"
+              ? "Sign in to access your digital loyalty card, rewards, and account settings."
+              : accountType === "cafeOwner"
+              ? "Register your cafe to start issuing loyalty stamps and rewarding customers."
+              : "Join our digital loyalty program and enjoy exclusive rewards with every visit."}
           </p>
 
-          {/* Mode Tabs (Sign Up vs Sign In) */}
+          {/* Mode Switcher Tabs */}
           <div className="mt-5 grid grid-cols-2 rounded-xl bg-[#e8dfca]/60 p-1 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signup");
-                setErrorMessage("");
-              }}
-              className={`rounded-lg py-2 transition cursor-pointer ${
-                mode === "signup"
-                  ? "bg-[#faf6ec] text-(--mainColor) shadow-xs"
-                  : "text-(--mainColor)/70 hover:text-(--mainColor)"
-              }`}
-            >
-              Sign Up
-            </button>
             <button
               type="button"
               onClick={() => {
@@ -241,71 +219,76 @@ function LoginPageContent() {
               }}
               className={`rounded-lg py-2 transition cursor-pointer ${
                 mode === "login"
-                  ? "bg-[#faf6ec] text-(--mainColor) shadow-xs"
-                  : "text-(--mainColor)/70 hover:text-(--mainColor)"
+                  ? "bg-[#faf6ec] text-[#3b2418] shadow-xs font-bold"
+                  : "text-[#3b2418]/65 hover:text-[#3b2418]"
               }`}
             >
               Sign In
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signup");
+                setErrorMessage("");
+              }}
+              className={`rounded-lg py-2 transition cursor-pointer ${
+                mode === "signup"
+                  ? "bg-[#faf6ec] text-[#3b2418] shadow-xs font-bold"
+                  : "text-[#3b2418]/65 hover:text-[#3b2418]"
+              }`}
+            >
+              Sign Up
+            </button>
           </div>
 
-          {/* Account Type Selector (Only in Sign Up Mode) */}
+          {/* Account Type Toggle in Sign Up mode */}
           {mode === "signup" && (
-            <div className="mt-3.5 flex items-center justify-between rounded-xl border border-[#e8dfca] bg-[#faf6ec] p-1.5 text-xs">
-              <span className="pl-2 font-medium text-(--mainColor)/70">Account Type:</span>
-              <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setAccountType("customer")}
-                  className={`flex items-center gap-1 rounded-lg px-3 py-1 font-semibold transition cursor-pointer ${
-                    accountType === "customer"
-                      ? "bg-(--secondColor) text-(--mainColor)"
-                      : "text-(--mainColor)/70 hover:bg-[#e8dfca]/50"
-                  }`}
-                >
-                  <LuUserCheck className="h-3.5 w-3.5" />
-                  Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAccountType("cafeOwner")}
-                  className={`flex items-center gap-1 rounded-lg px-3 py-1 font-semibold transition cursor-pointer ${
-                    accountType === "cafeOwner"
-                      ? "bg-(--secondColor) text-(--mainColor)"
-                      : "text-(--mainColor)/70 hover:bg-[#e8dfca]/50"
-                  }`}
-                >
-                  <LuCoffee className="h-3.5 w-3.5" />
-                  Cafe Owner
-                </button>
-              </div>
+            <div className="mt-4 flex rounded-xl border border-[#e8dfca] bg-[#faf6ec] p-1 text-xs font-medium text-[#3b2418]">
+              <button
+                type="button"
+                onClick={() => setAccountType("customer")}
+                className={`flex-1 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  accountType === "customer"
+                    ? "bg-[#8ec5ff] text-[#3b2418] font-bold shadow-xs"
+                    : "text-[#3b2418]/70 hover:text-[#3b2418]"
+                }`}
+              >
+                <LuUserCheck className="h-3.5 w-3.5" />
+                <span>Customer</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccountType("cafeOwner")}
+                className={`flex-1 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  accountType === "cafeOwner"
+                    ? "bg-[#8ec5ff] text-[#3b2418] font-bold shadow-xs"
+                    : "text-[#3b2418]/70 hover:text-[#3b2418]"
+                }`}
+              >
+                <LuCoffee className="h-3.5 w-3.5" />
+                <span>Cafe Owner</span>
+              </button>
             </div>
           )}
 
-          {/* Mobile banner image */}
-          <img
-            src={HERO_IMAGE}
-            alt="Latte in a ceramic cup beside coffee beans"
-            className="mt-4 h-[120px] w-full rounded-2xl object-cover object-[50%_65%] shadow-sm lg:hidden"
-          />
-
-          {/* Inline Error Message */}
+          {/* Error Message */}
           {errorMessage && (
             <div className="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-800">
               {errorMessage}
             </div>
           )}
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="mt-5 space-y-3.5" noValidate>
-            {/* Full name (Sign Up only) */}
+            {/* Full Name (Sign Up only) */}
             {mode === "signup" && (
               <div>
-                <label htmlFor="fullName" className="mb-1 block text-xs font-semibold">
+                <label htmlFor="fullName" className="mb-1 block text-xs font-semibold text-[#3b2418]">
                   {accountType === "cafeOwner" ? "Owner Full Name" : "Full Name"}
                 </label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--mainColor)/60">
-                    <ImUser />
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#3b2418]/50">
+                    <ImUser className="h-4 w-4" />
                   </span>
                   <input
                     id="fullName"
@@ -322,13 +305,13 @@ function LoginPageContent() {
               </div>
             )}
 
-            {/* Email */}
+            {/* Email Address */}
             <div>
-              <label htmlFor="email" className="mb-1 block text-xs font-semibold">
+              <label htmlFor="email" className="mb-1 block text-xs font-semibold text-[#3b2418]">
                 Email Address
               </label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--mainColor)/60">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#3b2418]/50">
                   <MdOutlineMailOutline className="h-4 w-4" />
                 </span>
                 <input
@@ -348,18 +331,18 @@ function LoginPageContent() {
             {/* Phone (Sign Up only) */}
             {mode === "signup" && (
               <div>
-                <label htmlFor="phone" className="mb-1 block text-xs font-semibold">
+                <label htmlFor="phone" className="mb-1 block text-xs font-semibold text-[#3b2418]">
                   Phone Number (Optional)
                 </label>
-                <div className="flex gap-2 relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--mainColor)/60">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#3b2418]/50">
                     <MdLocalPhone className="h-4 w-4" />
                   </span>
                   <input
                     id="phone"
                     name="phone"
                     type="tel"
-                    autoComplete="tel-national"
+                    autoComplete="tel"
                     placeholder="e.g. +44 7700 900111"
                     value={form.phone}
                     onChange={handleChange}
@@ -371,11 +354,23 @@ function LoginPageContent() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="mb-1 block text-xs font-semibold">
-                Password {mode === "signup" && <span className="font-normal text-(--mainColor)/60">(min. 8 characters)</span>}
-              </label>
+              <div className="mb-1 flex items-center justify-between">
+                <label htmlFor="password" className="text-xs font-semibold text-[#3b2418]">
+                  Password {mode === "signup" && <span className="font-normal text-[#3b2418]/60">(min. 8 characters)</span>}
+                </label>
+
+                {/* Forget Password Link in Login Mode */}
+                {mode === "login" && (
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-bold text-[#3b2418] hover:text-[#1d110b] hover:underline transition cursor-pointer"
+                  >
+                    Forgot password?
+                  </Link>
+                )}
+              </div>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--mainColor)/60">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#3b2418]/50">
                   <LuLock className="h-4 w-4" />
                 </span>
                 <input
@@ -392,22 +387,36 @@ function LoginPageContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-(--mainColor)/60 hover:text-(--mainColor) cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3b2418]/50 hover:text-[#3b2418] cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <LuEyeOff className="h-4 w-4" /> : <LuEye className="h-4 w-4" />}
                 </button>
               </div>
+
+              {/* Bottom Reminder for Forget Password in Login Mode */}
+              {mode === "login" && (
+                <div className="mt-2 flex items-center justify-between pt-0.5">
+                  <span className="text-[11px] text-[#3b2418]/65">Trouble remembering your password?</span>
+                  <Link
+                    href="/forgot-password"
+                    className="text-[11px] font-semibold text-[#3b2418] underline hover:text-[#180e08] transition"
+                  >
+                    Reset it here
+                  </Link>
+                </div>
+              )}
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-2 h-[42px] w-full cursor-pointer rounded-xl bg-(--secondColor) text-sm font-semibold text-(--mainColor) transition hover:opacity-90 active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2"
+              className="mt-3 h-[44px] w-full cursor-pointer rounded-xl bg-[#8ec5ff] text-sm font-bold text-[#3b2418] shadow-xs transition hover:opacity-90 active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--mainColor)/30 border-t-(--mainColor)" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#3b2418]/30 border-t-[#3b2418]" />
                   <span>{mode === "signup" ? "Creating Account..." : "Signing In..."}</span>
                 </>
               ) : (
@@ -421,29 +430,49 @@ function LoginPageContent() {
               )}
             </button>
 
-            <p className="flex max-w-[320px] items-start gap-2 pt-1 text-[11px] leading-snug text-(--mainColor)/75">
-              <LuShieldCheck className="mt-0.5 h-3 w-3 shrink-0" />
+            {/* Privacy / Safety Notice */}
+            <p className="flex items-start gap-2 pt-1 text-[11px] leading-snug text-[#3b2418]/70">
+              <LuShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#3b2418]/60" />
               <span>
-                Your information is safe with us. We only use it to manage your loyalty rewards and account.
+                Your data is safe and encrypted. We only use it to manage your loyalty rewards and account.
               </span>
             </p>
           </form>
-        </div>
-      </section>
 
-      {/* Right: image panel (desktop only) */}
-      <aside className="hidden bg-[#f7f2e6] p-4 lg:block">
-        <div className="relative h-full min-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl shadow-sm">
-          <img
-            src={HERO_IMAGE}
-            alt="Latte in a ceramic cup beside coffee beans"
-            className="absolute inset-0 h-full w-full rounded-2xl object-cover object-[50%_65%] shadow-sm"
-          />
-          <span className="absolute bottom-5 left-5 inline-flex items-center gap-2 rounded-full bg-[#faf6ec]/90 px-4 py-2 text-xs backdrop-blur-sm">
-            Crafted daily · Earn rewards every cup
-          </span>
+          {/* Bottom Switcher */}
+          <div className="mt-6 border-t border-[#e8dfca] pt-4 text-center">
+            {mode === "login" ? (
+              <p className="text-xs text-[#3b2418]/75">
+                Don&apos;t have an account yet?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signup");
+                    setErrorMessage("");
+                  }}
+                  className="font-bold text-[#3b2418] underline hover:opacity-85 cursor-pointer ml-1"
+                >
+                  Create one now
+                </button>
+              </p>
+            ) : (
+              <p className="text-xs text-[#3b2418]/75">
+                Already registered with Stampy?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("login");
+                    setErrorMessage("");
+                  }}
+                  className="font-bold text-[#3b2418] underline hover:opacity-85 cursor-pointer ml-1"
+                >
+                  Sign in here
+                </button>
+              </p>
+            )}
+          </div>
         </div>
-      </aside>
+      </div>
     </main>
   );
 }
@@ -453,7 +482,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-[#f2ebda]">
-          <div className="h-8 w-8 animate-spin rounded-full border-3 border-(--mainColor)/20 border-t-(--mainColor)" />
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#3b2418]/20 border-t-[#3b2418]" />
         </div>
       }
     >

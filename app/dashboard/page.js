@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   LuUsers,
@@ -14,6 +14,7 @@ import {
   LuClock,
   LuCircleCheck,
   LuSparkles,
+  LuLoader,
 } from "react-icons/lu";
 import DashboardPageHeader from "./components/DashboardPageHeader";
 import DashboardMetricCard from "./components/DashboardMetricCard";
@@ -21,20 +22,39 @@ import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
 
 export default function DashboardOverviewPage() {
-  const { customers, rewards, activities, cafe } = useDashboardStore();
+  const {
+    customers,
+    rewards,
+    activities,
+    cafe,
+    fetchCustomers,
+    fetchActivities,
+    fetchRewards,
+    fetchCafeProfile,
+    isLoadingCustomers,
+    isLoadingActivities,
+  } = useDashboardStore();
   const { currentUser } = useDashboardAuthStore();
 
+  // Load live data from server on initial mount
+  useEffect(() => {
+    fetchCustomers();
+    fetchActivities();
+    fetchRewards();
+    fetchCafeProfile();
+  }, [fetchCustomers, fetchActivities, fetchRewards, fetchCafeProfile]);
+
   // Calculate dynamic metrics
-  const totalCustomers = customers.length;
+  const totalCustomers = customers.length || cafe.customerCount || 0;
   const activeCustomers = customers.filter((c) => c.status === "active").length;
-  const totalStampsIssued = customers.reduce(
-    (acc, c) => acc + (c.lifetimeStamps || c.stamps || 0),
-    0
-  );
-  const totalRewardsRedeemed = customers.reduce(
-    (acc, c) => acc + (c.rewardsRedeemedCount || 0),
-    0
-  );
+  const totalStampsIssued =
+    customers.length > 0
+      ? customers.reduce((acc, c) => acc + (c.lifetimeStamps || c.stamps || 0), 0)
+      : cafe.totalStampsIssued || 0;
+  const totalRewardsRedeemed =
+    customers.length > 0
+      ? customers.reduce((acc, c) => acc + (c.rewardsRedeemedCount || 0), 0)
+      : cafe.totalRewardsRedeemed || 0;
 
   // 7-day visit trend sample data for visualization
   const weeklyTrends = [
@@ -53,7 +73,7 @@ export default function DashboardOverviewPage() {
       {/* Page Header */}
       <DashboardPageHeader
         title="Loyalty Overview"
-        description={`Welcome back, ${currentUser?.name || "Elena"}. Here is what's happening with ${cafe.name}'s loyalty program today.`}
+        description={`Welcome back, ${currentUser?.name || "Staff Member"}. Here is what's happening with ${cafe.name || "your café"}'s loyalty program today.`}
         actions={
           <div className="flex items-center gap-2.5">
             <Link
@@ -108,7 +128,7 @@ export default function DashboardOverviewPage() {
         {/* Quick Action 1: QR Scan */}
         <Link
           href="/dashboard/scan"
-          className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-(--mainColor)/20 bg-(--mainColor) p-5 text-(--bgColor) shadow-sm transition hover:shadow-md"
+          className="group relative flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-5 text-(--bgColor) shadow-sm transition hover:shadow-md"
         >
           <div className="flex items-center justify-between">
             <span className="rounded-lg bg-(--secondColor)/20 px-2.5 py-1 text-[11px] font-bold text-(--secondColor) uppercase">
@@ -133,23 +153,23 @@ export default function DashboardOverviewPage() {
         {/* Quick Action 2: Manage Rewards */}
         <Link
           href="/dashboard/rewards"
-          className="group flex flex-col justify-between rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs transition hover:shadow-xs"
+          className="group flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-5 text-(--bgColor) shadow-sm transition hover:shadow-md"
         >
           <div className="flex items-center justify-between">
-            <span className="rounded-lg bg-(--secondColor)/30 px-2.5 py-1 text-[11px] font-bold text-(--mainColor) uppercase">
+            <span className="rounded-lg bg-(--secondColor)/20 px-2.5 py-1 text-[11px] font-bold text-(--secondColor) uppercase">
               Loyalty Catalog
             </span>
-            <LuGift className="h-6 w-6 text-(--mainColor) transition group-hover:scale-110" />
+            <LuGift className="h-6 w-6 text-(--secondColor) transition group-hover:scale-110" />
           </div>
           <div className="mt-4">
-            <h3 className="text-base font-bold text-(--mainColor)">
+            <h3 className="text-base font-bold text-(--bgColor)">
               Manage Rewards
             </h3>
-            <p className="mt-1 text-xs text-(--mainColor)/70">
+            <p className="mt-1 text-xs text-(--bgColor)/75">
               Configure free drinks, artisan pastries, and stamp thresholds.
             </p>
           </div>
-          <div className="mt-4 flex items-center gap-1 text-xs font-bold text-(--mainColor)">
+          <div className="mt-4 flex items-center gap-1 text-xs font-bold text-(--secondColor)">
             <span>View & Edit Rewards</span>
             <LuArrowUpRight className="h-4 w-4" />
           </div>
@@ -158,23 +178,23 @@ export default function DashboardOverviewPage() {
         {/* Quick Action 3: Edit Cafe Profile */}
         <Link
           href="/dashboard/profile"
-          className="group flex flex-col justify-between rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs transition hover:shadow-xs"
+          className="group flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-5 text-(--bgColor) shadow-sm transition hover:shadow-md"
         >
           <div className="flex items-center justify-between">
-            <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800 uppercase">
+            <span className="rounded-lg bg-emerald-400/20 px-2.5 py-1 text-[11px] font-bold text-emerald-200 uppercase">
               Customer Storefront
             </span>
-            <LuStore className="h-6 w-6 text-(--mainColor) transition group-hover:scale-110" />
+            <LuStore className="h-6 w-6 text-(--secondColor) transition group-hover:scale-110" />
           </div>
           <div className="mt-4">
-            <h3 className="text-base font-bold text-(--mainColor)">
+            <h3 className="text-base font-bold text-(--bgColor)">
               Update Cafe Profile
             </h3>
-            <p className="mt-1 text-xs text-(--mainColor)/70">
+            <p className="mt-1 text-xs text-(--bgColor)/75">
               Update opening hours, story, menu highlights, and social links.
             </p>
           </div>
-          <div className="mt-4 flex items-center gap-1 text-xs font-bold text-(--mainColor)">
+          <div className="mt-4 flex items-center gap-1 text-xs font-bold text-(--secondColor)">
             <span>Open Profile Editor</span>
             <LuArrowUpRight className="h-4 w-4" />
           </div>
@@ -182,78 +202,93 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Recent Activity Table */}
-      <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] shadow-2xs overflow-hidden">
-        <div className="flex items-center justify-between border-b border-[#ebdcc8] px-5 py-4">
+      <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between border-b border-(--bgColor)/15 px-5 py-4">
           <div>
-            <h3 className="font-bold text-sm text-(--mainColor)">
+            <h3 className="font-bold text-sm text-(--bgColor)">
               Recent Counter Activity
             </h3>
-            <p className="text-xs text-(--mainColor)/60">
+            <p className="text-xs text-(--bgColor)/60">
               Live log of visits, stamps issued, and rewards redeemed
             </p>
           </div>
           <Link
             href="/dashboard/activity"
-            className="flex items-center gap-1 text-xs font-bold text-(--mainColor) hover:underline"
+            className="flex items-center gap-1 text-xs font-bold text-(--secondColor) hover:underline"
           >
             <span>View Full History</span>
             <LuArrowUpRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#ebdcc8] bg-[#f4ece0]/60 text-(--mainColor)/70 font-semibold uppercase tracking-wider">
-              <tr>
-                <th className="px-5 py-3">Customer</th>
-                <th className="px-5 py-3">Activity</th>
-                <th className="px-5 py-3">Points Delta</th>
-                <th className="px-5 py-3">Confirmed By</th>
-                <th className="px-5 py-3">Time</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#ebdcc8]">
-              {activities.slice(0, 5).map((act) => (
-                <tr key={act.id} className="hover:bg-[#f6efe4] transition">
-                  <td className="px-5 py-3.5 font-bold text-(--mainColor)">
-                    {act.customerName}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px] ${act.type === "redemption"
-                        ? "bg-purple-100 text-purple-800"
-                        : act.type === "join"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-emerald-100 text-emerald-800"
-                        }`}
-                    >
-                      {act.title}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 font-bold">
-                    <span
-                      className={
-                        act.stampsDelta > 0
-                          ? "text-emerald-700"
-                          : act.stampsDelta < 0
-                            ? "text-rose-700"
-                            : "text-(--mainColor)"
-                      }
-                    >
-                      {act.stampsDelta > 0 ? `+${act.stampsDelta}` : act.stampsDelta}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-(--mainColor)/75 font-medium">
-                    {act.staffName}
-                  </td>
-                  <td className="px-5 py-3.5 text-(--mainColor)/60">
-                    {act.formattedDate}
-                  </td>
+        {isLoadingActivities && activities.length === 0 ? (
+          <div className="flex items-center justify-center py-10 text-xs text-(--bgColor)/70">
+            <LuLoader className="h-4 w-4 animate-spin text-(--secondColor) mr-2" />
+            <span>Loading live counter activity from server...</span>
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 text-center text-xs text-(--bgColor)/60">
+            <LuActivity className="h-7 w-7 mb-2 text-(--bgColor)/30" />
+            <span className="font-bold text-(--bgColor)/80">No counter activity recorded yet</span>
+            <span className="text-[11px] text-(--bgColor)/50 mt-0.5 max-w-sm">
+              Visits and stamp redemptions confirmed by baristas will appear here immediately.
+            </span>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-(--bgColor)/15 bg-(--bgColor)/10 text-(--bgColor)/80 font-semibold uppercase tracking-wider">
+                <tr>
+                  <th className="px-5 py-3">Customer</th>
+                  <th className="px-5 py-3">Activity</th>
+                  <th className="px-5 py-3">Points Delta</th>
+                  <th className="px-5 py-3">Confirmed By</th>
+                  <th className="px-5 py-3">Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-(--bgColor)/15">
+                {activities.slice(0, 5).map((act) => (
+                  <tr key={act.id} className="hover:bg-(--bgColor)/5 transition">
+                    <td className="px-5 py-3.5 font-bold text-(--bgColor)">
+                      {act.customerName}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px] ${act.type === "redemption"
+                          ? "bg-purple-400/20 text-purple-200 border border-purple-400/30"
+                          : act.type === "join"
+                            ? "bg-blue-400/20 text-blue-200 border border-blue-400/30"
+                            : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/30"
+                          }`}
+                      >
+                        {act.title}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 font-bold">
+                      <span
+                        className={
+                          act.stampsDelta > 0
+                            ? "text-emerald-400"
+                            : act.stampsDelta < 0
+                              ? "text-rose-400"
+                              : "text-(--bgColor)"
+                        }
+                      >
+                        {act.stampsDelta > 0 ? `+${act.stampsDelta}` : act.stampsDelta}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-(--bgColor)/75 font-medium">
+                      {act.staffName}
+                    </td>
+                    <td className="px-5 py-3.5 text-(--bgColor)/60">
+                      {act.formattedDate}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

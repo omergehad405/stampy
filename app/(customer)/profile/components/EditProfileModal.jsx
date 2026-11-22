@@ -1,16 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { LuX, LuCamera, LuCheck, LuTrash2 } from "react-icons/lu";
-
-const PRESET_AVATARS = [
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
-  "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
-  "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80",
-];
+import React, { useState, useRef } from "react";
+import { LuX, LuCamera, LuTrash2, LuUpload } from "react-icons/lu";
 
 export default function EditProfileModal({ user, onClose, onSave }) {
   const [editForm, setEditForm] = useState({
@@ -20,9 +11,7 @@ export default function EditProfileModal({ user, onClose, onSave }) {
     avatar: user?.avatar || "",
   });
 
-  const [customAvatarInput, setCustomAvatarInput] = useState(
-    user?.avatar && !PRESET_AVATARS.includes(user.avatar) ? user.avatar : ""
-  );
+  const fileInputRef = useRef(null);
 
   const initials = editForm.name
     ? editForm.name
@@ -34,20 +23,34 @@ export default function EditProfileModal({ user, onClose, onSave }) {
         .slice(0, 2)
     : "SP";
 
-  const handleSelectPreset = (url) => {
-    setEditForm((prev) => ({ ...prev, avatar: url }));
-    setCustomAvatarInput("");
-  };
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleCustomAvatarChange = (e) => {
-    const val = e.target.value;
-    setCustomAvatarInput(val);
-    setEditForm((prev) => ({ ...prev, avatar: val }));
+    // Validate image type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (PNG, JPG, JPEG, WEBP).");
+      return;
+    }
+
+    // Limit to 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size should be less than 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditForm((prev) => ({ ...prev, avatar: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRemoveAvatar = () => {
     setEditForm((prev) => ({ ...prev, avatar: "" }));
-    setCustomAvatarInput("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = (e) => {
@@ -88,7 +91,7 @@ export default function EditProfileModal({ user, onClose, onSave }) {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           {/* Avatar Section */}
-          <div className="p-4 rounded-2xl bg-white border border-[#e3d7c0] shadow-xs space-y-3">
+          <div className="p-4 rounded-2xl bg-white border border-[#e3d7c0] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-[#3b2418]">
                 Profile Picture / Avatar
@@ -105,9 +108,9 @@ export default function EditProfileModal({ user, onClose, onSave }) {
               )}
             </div>
 
-            {/* Current Avatar Preview */}
-            <div className="flex items-center gap-3.5">
-              <div className="w-16 h-16 rounded-2xl bg-(--secondColor) text-[#3b2418] flex items-center justify-center text-xl font-extrabold shadow-sm overflow-hidden shrink-0 border-2 border-(--secondColor)">
+            {/* Current Avatar Preview & Device Upload Action */}
+            <div className="flex items-center gap-4">
+              <div className="relative group w-20 h-20 rounded-2xl bg-(--secondColor) text-[#3b2418] flex items-center justify-center text-2xl font-extrabold shadow-sm overflow-hidden shrink-0 border-2 border-(--secondColor)">
                 {editForm.avatar ? (
                   <img
                     src={editForm.avatar}
@@ -120,69 +123,39 @@ export default function EditProfileModal({ user, onClose, onSave }) {
                 ) : (
                   <span>{initials}</span>
                 )}
-              </div>
-              <div className="min-w-0 flex-1 text-xs">
-                <p className="font-semibold text-[#3b2418]">
-                  {editForm.avatar ? "Custom Avatar Selected" : "Initial Badge (Default)"}
-                </p>
-                <p className="text-[11px] text-[#3b2418]/65 mt-0.5">
-                  Pick a friendly portrait below or paste an image link.
-                </p>
-              </div>
-            </div>
 
-            {/* Preset Avatars */}
-            <div>
-              <p className="text-[11px] font-semibold text-[#3b2418]/75 mb-2">
-                Choose from presets:
-              </p>
-              <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
-                {PRESET_AVATARS.map((url, idx) => {
-                  const isSelected = editForm.avatar === url;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleSelectPreset(url)}
-                      className={`relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                        isSelected
-                          ? "border-(--mainColor) ring-2 ring-(--secondColor) scale-105"
-                          : "border-transparent opacity-80 hover:opacity-100 hover:border-[#3b2418]/30"
-                      }`}
-                    >
-                      <img
-                        src={url}
-                        alt={`Preset avatar ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      {isSelected && (
-                        <span className="absolute inset-0 bg-[#3b2418]/35 flex items-center justify-center text-white">
-                          <LuCheck className="w-4 h-4" />
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                {/* Overlay camera icon click trigger */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity cursor-pointer"
+                  title="Upload from device"
+                >
+                  <LuCamera className="w-6 h-6" />
+                </button>
               </div>
-            </div>
 
-            {/* Custom URL Input */}
-            <div>
-              <label htmlFor="custom-avatar-url" className="block text-[11px] font-semibold text-[#3b2418]/75 mb-1">
-                Or paste image URL:
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#3b2418]/50">
-                  <LuCamera className="w-3.5 h-3.5" />
-                </span>
+              <div className="min-w-0 flex-1 space-y-2">
                 <input
-                  id="custom-avatar-url"
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={customAvatarInput}
-                  onChange={handleCustomAvatarChange}
-                  className="w-full h-9 pl-9 pr-3 rounded-xl border border-[#e3d7c0] bg-[#faf6ed] text-xs text-[#3b2418] placeholder:text-[#3b2418]/40 outline-none focus:border-[#3b2418] focus:ring-1 focus:ring-(--secondColor)"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-(--mainColor) hover:opacity-90 text-(--bgColor) text-xs font-bold shadow-xs transition-all cursor-pointer"
+                >
+                  <LuUpload className="w-3.5 h-3.5" />
+                  <span>Upload Image from Device</span>
+                </button>
+
+                <p className="text-[11px] text-[#3b2418]/65 leading-tight">
+                  Supports JPG, PNG or WEBP (up to 5MB). Photo is saved to your Stampy profile.
+                </p>
               </div>
             </div>
           </div>

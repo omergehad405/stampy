@@ -137,12 +137,14 @@ export default function HomePage() {
         list.push({
           ...act,
           cafeSlug: slug,
-          cafeName: cafe?.name || "Café",
+          cafeName: cafe?.name || m?.name || "Café",
         });
       });
     });
 
-    return list;
+    return list.sort(
+      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    );
   }, [isMounted, memberships]);
 
   // Handle opening reward redemption modal

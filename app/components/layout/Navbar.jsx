@@ -11,6 +11,8 @@ export default function Navbar() {
   if (
     pathname === "/login" ||
     pathname === "/signup" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin")
   ) {
@@ -86,7 +88,7 @@ export default function Navbar() {
       isActive: pathname === "/" || pathname === "/home",
     },
     {
-      label: "My Cafes",
+      label: "Cafes",
       href: "/my-cafes",
       icon: LuCompass,
       isActive: pathname.startsWith("/my-cafes"),

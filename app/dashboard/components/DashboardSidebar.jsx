@@ -26,9 +26,9 @@ export default function DashboardSidebar({ isOpen, onClose }) {
   const { currentUser, logout } = useDashboardAuthStore();
   const { cafe } = useDashboardStore();
 
-  const handleLogout = () => {
-    logout();
-    router.push("/dashboard/login");
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/dashboard/login";
   };
 
   const role = currentUser?.backendRole || currentUser?.role;
@@ -118,32 +118,32 @@ export default function DashboardSidebar({ isOpen, onClose }) {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-[#e3d7c0] bg-[#faf6ed] text-(--mainColor) transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col justify-between border-r border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Top Section */}
         <div className="flex flex-col">
           {/* Brand Header */}
-          <div className="flex items-center justify-between border-b border-[#e8ded0] px-5 py-4">
+          <div className="flex items-center justify-between border-b border-(--bgColor)/15 px-5 py-4">
             <Link
               href="/dashboard"
               className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
               onClick={onClose}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-(--mainColor) text-(--secondColor) shadow-xs">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-(--secondColor) text-[#3B2418] shadow-xs">
                 <LuCoffee className="h-5 w-5" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold tracking-tight text-(--mainColor) text-lg leading-tight">
+                  <span className="font-bold tracking-tight text-(--bgColor) text-lg leading-tight">
                     Stampy
                   </span>
-                  <span className="rounded-md bg-(--secondColor)/25 px-1.5 py-0.5 text-[10px] font-bold text-(--mainColor) uppercase">
+                  <span className="rounded-md bg-(--secondColor) px-1.5 py-0.5 text-[10px] font-bold text-[#3B2418] uppercase">
                     Portal
                   </span>
                 </div>
-                <span className="text-[11px] font-medium text-(--mainColor)/60">
+                <span className="text-[11px] font-medium text-(--bgColor)/70">
                   Business Dashboard
                 </span>
               </div>
@@ -152,7 +152,7 @@ export default function DashboardSidebar({ isOpen, onClose }) {
             {/* Mobile Close Button */}
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-(--mainColor)/70 hover:bg-[#ebdcc8] hover:text-(--mainColor) lg:hidden"
+              className="rounded-lg p-1.5 text-(--bgColor)/70 hover:bg-(--bgColor)/10 hover:text-(--bgColor) lg:hidden cursor-pointer"
               aria-label="Close sidebar"
             >
               <LuX className="h-5 w-5" />
@@ -160,23 +160,23 @@ export default function DashboardSidebar({ isOpen, onClose }) {
           </div>
 
           {/* Cafe Mini Identity Card */}
-          <div className="m-3.5 rounded-xl border border-[#ebdcc8] bg-[#f4ebe0]/60 p-3 shadow-2xs">
+          <div className="m-3.5 rounded-xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-3 shadow-2xs">
             <div className="flex items-center gap-3">
               <img
                 src={cafe.logoImage || "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80"}
                 alt={cafe.name}
-                className="h-10 w-10 rounded-lg object-cover border border-[#dacdb9]"
+                className="h-10 w-10 rounded-lg object-cover border border-(--bgColor)/20"
               />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
-                  <h3 className="truncate text-xs font-bold text-(--mainColor)">
+                  <h3 className="truncate text-xs font-bold text-(--bgColor)">
                     {cafe.name}
                   </h3>
                   {cafe.isVerified && (
-                    <LuShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-700" title="Verified Cafe" />
+                    <LuShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400" title="Verified Cafe" />
                   )}
                 </div>
-                <p className="truncate text-[11px] text-(--mainColor)/65">
+                <p className="truncate text-[11px] text-(--bgColor)/70">
                   {cafe.category || "Specialty Coffee"}
                 </p>
               </div>
@@ -194,20 +194,20 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                   onClick={onClose}
                   className={`group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
                     item.isActive
-                      ? "bg-(--mainColor) text-(--bgColor) shadow-xs"
+                      ? "bg-(--secondColor) text-[#3B2418] font-bold shadow-xs"
                       : item.highlight
-                      ? "bg-(--secondColor)/30 text-(--mainColor) hover:bg-(--secondColor)/50"
-                      : "text-(--mainColor)/80 hover:bg-[#eee3d1] hover:text-(--mainColor)"
+                      ? "bg-(--secondColor)/20 text-(--secondColor) hover:bg-(--secondColor)/30"
+                      : "text-(--bgColor)/80 hover:bg-(--bgColor)/10 hover:text-(--bgColor)"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon
                       className={`h-4.5 w-4.5 transition-transform duration-150 group-hover:scale-105 ${
                         item.isActive
-                          ? "text-(--secondColor)"
+                          ? "text-[#3B2418]"
                           : item.highlight
-                          ? "text-(--mainColor)"
-                          : "text-(--mainColor)/70"
+                          ? "text-(--secondColor)"
+                          : "text-(--bgColor)/70"
                       }`}
                     />
                     <span>{item.label}</span>
@@ -217,8 +217,8 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                         item.isActive
-                          ? "bg-(--secondColor) text-(--mainColor)"
-                          : "bg-(--mainColor)/15 text-(--mainColor)"
+                          ? "bg-(--mainColor) text-(--secondColor)"
+                          : "bg-(--secondColor) text-[#3B2418]"
                       }`}
                     >
                       {item.badge}
@@ -231,8 +231,8 @@ export default function DashboardSidebar({ isOpen, onClose }) {
         </div>
 
         {/* Bottom User Profile & Logout */}
-        <div className="border-t border-[#e8ded0] p-3.5">
-          <div className="flex items-center justify-between rounded-xl bg-[#f2e6d6]/60 p-2.5">
+        <div className="border-t border-(--bgColor)/15 p-3.5">
+          <div className="flex items-center justify-between rounded-xl bg-(--bgColor)/10 border border-(--bgColor)/15 p-2.5">
             <div className="flex items-center gap-2.5 min-w-0">
               <img
                 src={
@@ -240,20 +240,20 @@ export default function DashboardSidebar({ isOpen, onClose }) {
                   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
                 }
                 alt={currentUser?.name || "Staff"}
-                className="h-8 w-8 rounded-full object-cover border border-[#d6c7b3]"
+                className="h-8 w-8 rounded-full object-cover border border-(--bgColor)/20"
               />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-bold text-(--mainColor)">
+                <div className="truncate text-xs font-bold text-(--bgColor)">
                   {currentUser?.name || "Staff Member"}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span
                     className={`inline-block rounded-md px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider ${
                       roleKey === "owner"
-                        ? "bg-amber-100 text-amber-900 border border-amber-300"
+                        ? "bg-amber-400/20 text-amber-200 border border-amber-400/40"
                         : roleKey === "manager"
-                        ? "bg-blue-100 text-blue-900 border border-blue-300"
-                        : "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                        ? "bg-blue-400/20 text-blue-200 border border-blue-400/40"
+                        : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/40"
                     }`}
                   >
                     {roleKey === "owner"
@@ -268,7 +268,7 @@ export default function DashboardSidebar({ isOpen, onClose }) {
 
             <button
               onClick={handleLogout}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-(--mainColor)/70 transition hover:bg-rose-100 hover:text-rose-700"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-(--bgColor)/70 transition hover:bg-rose-500/20 hover:text-rose-200 cursor-pointer"
               title="Log out of Dashboard"
               aria-label="Log out"
             >

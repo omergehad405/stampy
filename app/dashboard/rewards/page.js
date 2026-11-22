@@ -199,7 +199,7 @@ export default function DashboardRewardsPage() {
             <button
               onClick={() => fetchRewards()}
               disabled={isLoadingRewards}
-              className="flex items-center gap-1.5 rounded-xl border border-[#dacdb9] bg-white px-3 py-2 text-xs font-semibold text-(--mainColor) hover:bg-[#faf6ed] disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 disabled:opacity-50 cursor-pointer"
               title="Refresh rewards"
             >
               <LuRefreshCw className={`h-3.5 w-3.5 ${isLoadingRewards ? "animate-spin" : ""}`} />
@@ -207,7 +207,7 @@ export default function DashboardRewardsPage() {
             </button>
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) shadow-sm hover:opacity-95"
+              className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-xs hover:opacity-95 cursor-pointer"
             >
               <LuPlus className="h-4 w-4" />
               <span>Create New Reward</span>
@@ -217,7 +217,7 @@ export default function DashboardRewardsPage() {
       />
 
       {/* Filter Tabs */}
-      <div className="flex items-center justify-between rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-3 shadow-2xs">
+      <div className="flex items-center justify-between rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-3 shadow-sm text-(--bgColor)">
         <div className="flex items-center gap-2">
           {["all", "active", "inactive"].map((tab) => {
             const count =
@@ -231,10 +231,10 @@ export default function DashboardRewardsPage() {
               <button
                 key={tab}
                 onClick={() => setFilterActive(tab)}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold capitalize transition ${
+                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold capitalize transition cursor-pointer ${
                   filterActive === tab
-                    ? "bg-(--mainColor) text-(--secondColor) shadow-2xs"
-                    : "text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                    ? "bg-(--secondColor) text-[#3B2418] font-bold shadow-xs"
+                    : "text-(--bgColor)/75 hover:bg-(--bgColor)/10"
                 }`}
               >
                 {tab === "all" ? "All Rewards" : tab} ({count})
@@ -243,29 +243,29 @@ export default function DashboardRewardsPage() {
           })}
         </div>
 
-        <span className="text-xs text-(--mainColor)/60">
+        <span className="text-xs text-(--bgColor)/65">
           Showing {filteredRewards.length} reward{filteredRewards.length !== 1 ? "s" : ""}
         </span>
       </div>
 
       {/* Loading Skeleton */}
       {isLoadingRewards && (!rewards || rewards.length === 0) && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-12 text-center">
-          <LuLoader className="h-8 w-8 animate-spin text-(--mainColor)" />
-          <p className="mt-3 text-sm font-semibold text-(--mainColor)">Loading rewards from server...</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-12 text-center">
+          <LuLoader className="h-8 w-8 animate-spin text-(--secondColor)" />
+          <p className="mt-3 text-sm font-semibold text-(--bgColor)">Loading rewards from server...</p>
         </div>
       )}
 
       {/* Error State */}
       {rewardsError && (
-        <div className="flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">
+        <div className="flex items-center justify-between rounded-2xl border border-rose-500/30 bg-rose-500/20 p-4 text-xs text-rose-200">
           <div className="flex items-center gap-2">
-            <LuTriangleAlert className="h-4 w-4 text-rose-600 shrink-0" />
+            <LuTriangleAlert className="h-4 w-4 text-rose-300 shrink-0" />
             <span>{rewardsError}</span>
           </div>
           <button
             onClick={() => fetchRewards()}
-            className="rounded-lg bg-rose-600 px-3 py-1 font-semibold text-white hover:bg-rose-700"
+            className="rounded-lg bg-rose-600 px-3 py-1 font-semibold text-white hover:bg-rose-700 cursor-pointer"
           >
             Retry
           </button>
@@ -274,16 +274,16 @@ export default function DashboardRewardsPage() {
 
       {/* Empty State */}
       {!isLoadingRewards && filteredRewards.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#dacdb9] bg-[#faf6ed]/70 p-12 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#ebdcc8] text-(--mainColor)">
+        <div className="flex flex-col items-center justify-center rounded-2xl sm:rounded-3xl border border-dashed border-(--bgColor)/20 bg-(--mainColor) text-(--bgColor) p-12 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-(--bgColor)/10 text-(--secondColor)">
             <LuGift className="h-8 w-8" />
           </div>
-          <h3 className="mt-4 font-bold text-base text-(--mainColor)">
+          <h3 className="mt-4 font-bold text-base text-(--bgColor)">
             {filterActive === "all"
               ? "No rewards created yet"
               : `No ${filterActive} rewards found`}
           </h3>
-          <p className="mt-1.5 max-w-sm text-xs text-(--mainColor)/70 leading-relaxed">
+          <p className="mt-1.5 max-w-sm text-xs text-(--bgColor)/70 leading-relaxed">
             {filterActive === "all"
               ? "Start building your customer loyalty program by creating your first redeemable reward."
               : `You currently have no rewards matching the "${filterActive}" status.`}
@@ -291,10 +291,10 @@ export default function DashboardRewardsPage() {
           {filterActive === "all" && (
             <button
               onClick={openCreateModal}
-              className="mt-5 flex items-center gap-2 rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) shadow-sm hover:opacity-95"
+              className="mt-5 flex items-center gap-2 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-sm hover:bg-(--secondColor)/90 cursor-pointer"
             >
               <LuPlus className="h-4 w-4" />
-              <span>Create Your First Reward</span>
+              <span>Create First Reward</span>
             </button>
           )}
         </div>
@@ -313,67 +313,67 @@ export default function DashboardRewardsPage() {
           return (
             <div
               key={rewardId}
-              className={`flex flex-col justify-between rounded-2xl border p-5 transition shadow-2xs ${
+              className={`flex flex-col justify-between rounded-2xl sm:rounded-3xl border p-5 transition shadow-sm ${
                 isActive
-                  ? "border-[#e3d7c0] bg-[#faf6ed] hover:shadow-xs"
-                  : "border-gray-300 bg-gray-100/70 opacity-75"
+                  ? "border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) hover:shadow-md"
+                  : "border-(--bgColor)/10 bg-(--mainColor)/60 text-(--bgColor)/60 opacity-75"
               }`}
             >
               <div>
                 {/* Card Header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-(--mainColor) text-(--secondColor)">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-(--secondColor) text-[#3B2418]">
                       <CategoryIcon className="h-5 w-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-(--mainColor)/60">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-(--bgColor)/60">
                         {reward.category || "cafee & drinks"}
                       </span>
-                      <h3 className="font-bold text-sm text-(--mainColor)">
+                      <h3 className="font-bold text-sm text-(--bgColor)">
                         {reward.title || reward.name}
                       </h3>
                     </div>
                   </div>
 
                   {(reward.categoryTag || reward.tag) && (
-                    <span className="rounded-md bg-(--secondColor)/35 px-2 py-0.5 text-[10px] font-bold text-(--mainColor)">
+                    <span className="rounded-md bg-(--secondColor)/20 border border-(--secondColor)/30 px-2 py-0.5 text-[10px] font-bold text-(--secondColor)">
                       {reward.categoryTag || reward.tag}
                     </span>
                   )}
                 </div>
 
                 {/* Description */}
-                <p className="mt-3 text-xs text-(--mainColor)/70 leading-relaxed">
+                <p className="mt-3 text-xs text-(--bgColor)/75 leading-relaxed">
                   {reward.description}
                 </p>
 
                 {/* Required Stamps Cost Badge */}
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-[#f5ecdd] p-3 text-xs font-semibold text-(--mainColor)">
+                <div className="mt-4 flex items-center justify-between rounded-xl bg-(--bgColor)/10 border border-(--bgColor)/15 p-3 text-xs font-semibold text-(--bgColor)">
                   <div className="flex items-center gap-1.5">
-                    <LuCoffee className="h-4 w-4 text-(--mainColor)" />
+                    <LuCoffee className="h-4 w-4 text-(--secondColor)" />
                     <span>Cost:</span>
-                    <strong className="text-sm font-extrabold">
+                    <strong className="text-sm font-extrabold text-(--secondColor)">
                       {reward.requiredStamps || reward.stampsRequired} Stamps
                     </strong>
                   </div>
-                  <span className="text-[11px] text-(--mainColor)/60">
+                  <span className="text-[11px] text-(--bgColor)/60">
                     {reward.redemptionsCount || 0} claimed
                   </span>
                 </div>
               </div>
 
               {/* Actions Footer */}
-              <div className="mt-5 flex items-center justify-between border-t border-[#ebdcc8] pt-3 text-xs">
+              <div className="mt-5 flex items-center justify-between border-t border-(--bgColor)/15 pt-3 text-xs">
                 {/* Active / Inactive Status Toggle */}
                 <button
                   type="button"
                   disabled={isTogglingThis}
                   onClick={() => handleToggleStatus(reward)}
-                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold transition ${
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold transition cursor-pointer ${
                     isActive
-                      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      ? "bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 hover:bg-emerald-400/30"
+                      : "bg-(--bgColor)/10 text-(--bgColor)/60 border border-(--bgColor)/20 hover:bg-(--bgColor)/20"
                   } disabled:opacity-50`}
                 >
                   {isTogglingThis ? (
@@ -388,7 +388,7 @@ export default function DashboardRewardsPage() {
                   <button
                     type="button"
                     onClick={() => openEditModal(reward)}
-                    className="rounded-lg border border-[#dacdb9] bg-white/70 p-1.5 text-(--mainColor) hover:bg-white transition"
+                    className="rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 p-1.5 text-(--bgColor) hover:bg-(--bgColor)/20 transition cursor-pointer"
                     title="Edit reward"
                   >
                     <LuPencil className="h-3.5 w-3.5" />
@@ -396,7 +396,7 @@ export default function DashboardRewardsPage() {
                   <button
                     type="button"
                     onClick={() => setDeletingReward(reward)}
-                    className="rounded-lg border border-rose-200 bg-rose-50 p-1.5 text-rose-700 hover:bg-rose-100 transition"
+                    className="rounded-lg border border-rose-500/30 bg-rose-500/20 p-1.5 text-rose-200 hover:bg-rose-500/30 transition cursor-pointer"
                     title="Delete reward"
                   >
                     <LuTrash2 className="h-3.5 w-3.5" />
@@ -410,15 +410,15 @@ export default function DashboardRewardsPage() {
 
       {/* Create / Edit Reward Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl border border-[#ebdcc8] bg-[#faf6ed] p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-base text-(--mainColor)">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-base text-(--bgColor)">
                 {editingReward ? "Edit Reward" : "Create New Reward"}
               </h3>
               <button
                 onClick={() => !isSubmitting && setShowModal(false)}
-                className="rounded-lg p-1 text-(--mainColor)/60 hover:bg-[#ebdcc8]"
+                className="rounded-lg p-1 text-(--bgColor)/70 hover:bg-(--bgColor)/10 cursor-pointer"
               >
                 <LuX className="h-5 w-5" />
               </button>
@@ -427,7 +427,7 @@ export default function DashboardRewardsPage() {
             <form onSubmit={handleFormSubmit} className="mt-4 space-y-3.5">
               {/* Reward Title * */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   Reward Title *
                 </label>
                 <input
@@ -436,14 +436,14 @@ export default function DashboardRewardsPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g. Free Classic Coffee"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               {/* Required Stamps * & Category Tag */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                  <label className="block text-xs font-bold text-(--bgColor) mb-1">
                     Required Stamps *
                   </label>
                   <input
@@ -456,12 +456,12 @@ export default function DashboardRewardsPage() {
                       setFormData({ ...formData, requiredStamps: Number(e.target.value) })
                     }
                     placeholder="e.g. 5"
-                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                  <label className="block text-xs font-bold text-(--bgColor) mb-1">
                     Category Tag
                   </label>
                   <input
@@ -471,14 +471,14 @@ export default function DashboardRewardsPage() {
                       setFormData({ ...formData, categoryTag: e.target.value })
                     }
                     placeholder="e.g. Most Popular"
-                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                   />
                 </div>
               </div>
 
               {/* Description * */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   Description *
                 </label>
                 <textarea
@@ -489,19 +489,19 @@ export default function DashboardRewardsPage() {
                     setFormData({ ...formData, description: e.target.value })
                   }
                   placeholder="Details of what the customer receives when redeeming this reward..."
-                  className="w-full rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-2.5 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-2.5 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               {/* Category (one of: cafee & drinks, bakery & sweets, special discount only) */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   Category *
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--mainColor) px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor) cursor-pointer"
                 >
                   <option value="cafee & drinks">cafee & drinks (Café & Drinks)</option>
                   <option value="bakery & sweets">bakery & sweets (Bakery & Sweets)</option>
@@ -511,32 +511,32 @@ export default function DashboardRewardsPage() {
 
               {/* Status (active and inactive) */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   Status *
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: "active" })}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition ${
+                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition cursor-pointer ${
                       formData.status === "active"
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-2xs"
-                        : "border-[#dacdb9] bg-[#f5ecdd] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                        ? "border-emerald-400/40 bg-emerald-400/20 text-emerald-200 shadow-2xs font-bold"
+                        : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor)/70 hover:bg-(--bgColor)/20"
                     }`}
                   >
-                    <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
                     <span>Active</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: "inactive" })}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition ${
+                    className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition cursor-pointer ${
                       formData.status === "inactive"
-                        ? "border-gray-500 bg-gray-100 text-gray-800 shadow-2xs"
-                        : "border-[#dacdb9] bg-[#f5ecdd] text-(--mainColor)/70 hover:bg-[#ebdcc8]"
+                        ? "border-gray-400/40 bg-gray-400/20 text-gray-200 shadow-2xs font-bold"
+                        : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor)/70 hover:bg-(--bgColor)/20"
                     }`}
                   >
-                    <span className="h-2 w-2 rounded-full bg-gray-500" />
+                    <span className="h-2 w-2 rounded-full bg-gray-400" />
                     <span>Inactive</span>
                   </button>
                 </div>
@@ -548,14 +548,14 @@ export default function DashboardRewardsPage() {
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setShowModal(false)}
-                  className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor) hover:bg-[#f5ecdd] disabled:opacity-50"
+                  className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-4 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 disabled:opacity-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) hover:opacity-95 disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] hover:opacity-95 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting && <LuLoader className="h-3.5 w-3.5 animate-spin" />}
                   <span>{editingReward ? "Save Changes" : "Create Reward"}</span>
@@ -568,15 +568,15 @@ export default function DashboardRewardsPage() {
 
       {/* Delete Confirmation Modal */}
       {deletingReward && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border border-[#ebdcc8] bg-[#faf6ed] p-6 shadow-xl">
-            <div className="flex items-center gap-2.5 text-rose-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-xl">
+            <div className="flex items-center gap-2.5 text-rose-400">
               <LuTriangleAlert className="h-5 w-5 shrink-0" />
-              <h3 className="font-bold text-base text-(--mainColor)">
+              <h3 className="font-bold text-base text-(--bgColor)">
                 Delete Reward
               </h3>
             </div>
-            <p className="mt-2 text-xs text-(--mainColor)/75 leading-relaxed">
+            <p className="mt-2 text-xs text-(--bgColor)/75 leading-relaxed">
               Are you sure you want to delete <strong>&ldquo;{deletingReward.title || deletingReward.name}&rdquo;</strong>? Customers will no longer be able to view or redeem this reward.
             </p>
             <div className="mt-5 flex items-center justify-end gap-2.5">
@@ -584,7 +584,7 @@ export default function DashboardRewardsPage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setDeletingReward(null)}
-                className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor) hover:bg-[#f5ecdd] disabled:opacity-50"
+                className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-4 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
@@ -592,7 +592,7 @@ export default function DashboardRewardsPage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={handleDeleteConfirm}
-                className="flex items-center gap-1.5 rounded-xl bg-rose-700 px-4 py-2 text-xs font-bold text-white hover:bg-rose-800 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 cursor-pointer"
               >
                 {isDeleting && <LuLoader className="h-3.5 w-3.5 animate-spin" />}
                 <span>Delete Reward</span>

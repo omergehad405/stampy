@@ -2,8 +2,6 @@
 
 import { create } from "zustand";
 import { CAFES_CATALOG, registerCafeCatalogEntry } from "../(customer)/cafe/data/cafesCatalog";
-import { INITIAL_CUSTOMERS, INITIAL_DASHBOARD_ACTIVITIES } from "./useDashboardStore";
-import { INITIAL_REDEMPTIONS } from "./useLoyaltyStore";
 import { useDashboardAuthStore } from "./useDashboardAuthStore";
 import {
   apiAdminGetCafes,
@@ -38,53 +36,9 @@ export const ADMIN_CAFES = [];
 
 export const ADMIN_CUSTOMERS = [];
 
-// ─── Platform-wide Activities ─────────────────────────────────────────────
+// ─── Platform-wide Activities (Loaded dynamically from MongoDB backend) ────
 
-export const ADMIN_ACTIVITIES = [
-  ...INITIAL_DASHBOARD_ACTIVITIES.map((a) => ({ ...a, cafeName: "Coffee House", cafeSlug: "coffee-house" })),
-  {
-    id: "act-admin-1",
-    type: "stamp",
-    title: "Stamp Issued (+1)",
-    customerName: "Noah Bennett",
-    customerId: "cust-glob-2",
-    cafeName: "The Roasted Bean & Co.",
-    cafeSlug: "the-roasted-bean",
-    staffName: "James Whitfield",
-    timestamp: "2026-11-18T14:00:00.000Z",
-    formattedDate: "Today • 2:00 PM",
-    stampsDelta: 1,
-    note: "Nitro cold brew visit",
-  },
-  {
-    id: "act-admin-2",
-    type: "redemption",
-    title: "Reward Redeemed: Fresh Butter Croissant",
-    customerName: "Isabelle Martin",
-    customerId: "cust-glob-1",
-    cafeName: "Bread House & Bakery",
-    cafeSlug: "bread-house",
-    staffName: "Pierre Moreau",
-    timestamp: "2026-11-18T10:30:00.000Z",
-    formattedDate: "Today • 10:30 AM",
-    stampsDelta: -4,
-    note: "Reward redemption: croissant",
-  },
-  {
-    id: "act-admin-3",
-    type: "join",
-    title: "New Customer Joined",
-    customerName: "Fatima Al-Hassan",
-    customerId: "cust-glob-3",
-    cafeName: "The Roasted Bean & Co.",
-    cafeSlug: "the-roasted-bean",
-    staffName: "System",
-    timestamp: "2026-11-10T09:15:00.000Z",
-    formattedDate: "Nov 10 • 9:15 AM",
-    stampsDelta: 1,
-    note: "Welcome bonus stamp credited",
-  },
-];
+export const ADMIN_ACTIVITIES = [];
 
 // ─── Announcements (Loaded dynamically from MongoDB backend) ──────────────
 
@@ -106,26 +60,9 @@ const INITIAL_SETTINGS = {
   maintenanceMode: false,
 };
 
-// ─── Audit Log ───────────────────────────────────────────────────────────
+// ─── Audit Log (Loaded dynamically from MongoDB backend) ─────────────────
 
-const INITIAL_AUDIT_LOG = [
-  {
-    id: "audit-1",
-    action: "CAFE_STATUS_CHANGED",
-    description: "Cafe 'Urban Grind' status changed from active → suspended",
-    adminName: "Platform Admin",
-    timestamp: "2026-10-30T14:22:00.000Z",
-    metadata: { cafeId: "cafe-suspended-01", from: "active", to: "suspended" },
-  },
-  {
-    id: "audit-2",
-    action: "PLAN_ASSIGNED",
-    description: "Subscription plan 'Starter' assigned to 'Coffee House'",
-    adminName: "Platform Admin",
-    timestamp: "2026-01-15T10:00:00.000Z",
-    metadata: { cafeId: "cafe-coffee-house", planId: "plan-starter" },
-  },
-];
+const INITIAL_AUDIT_LOG = [];
 
 // ─── Zustand Store ────────────────────────────────────────────────────────
 
@@ -136,7 +73,7 @@ export const useAdminStore = create((set, get) => ({
   customers: [],
   isLoadingCustomers: false,
   customersLoaded: false,
-  activities: ADMIN_ACTIVITIES,
+  activities: [],
   plans: [],
   availableFeatures: [],
   isLoadingPlans: false,
@@ -145,7 +82,7 @@ export const useAdminStore = create((set, get) => ({
   isLoadingAnnouncements: false,
   announcementsLoaded: false,
   settings: INITIAL_SETTINGS,
-  auditLog: INITIAL_AUDIT_LOG,
+  auditLog: [],
 
   // ── Computed helpers ──────────────────────────────────────────────────
 

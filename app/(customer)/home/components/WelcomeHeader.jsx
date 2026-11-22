@@ -98,15 +98,6 @@ export default function WelcomeHeader({ user }) {
           </Link>
 
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider opacity-60 flex items-center gap-1 text-(--mainColor)">
-                <LuSparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Customer Dashboard</span>
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-(--mainColor)/10 text-(--mainColor) font-medium">
-                {user?.memberCode || user?.qrCode || "..."}
-              </span>
-            </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-(--mainColor) mt-0.5">
               <span>{greeting}, </span>

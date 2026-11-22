@@ -10,7 +10,6 @@ import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import ProfileHeader from "./components/ProfileHeader";
 import ProfileOverview from "./components/ProfileOverview";
 import PersonalInformation from "./components/PersonalInformation";
-import AccountSettings from "./components/AccountSettings";
 import ProfileLogout from "./components/ProfileLogout";
 import EditProfileModal from "./components/EditProfileModal";
 import LogoutConfirmModal from "./components/LogoutConfirmModal";
@@ -20,12 +19,16 @@ export default function CustomerProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const { user, updateUserProfile, fetchCurrentUser, logout } = useLoyaltyStore();
+  const { user, updateUserProfile, fetchCurrentUser, logout, isAuthenticated } = useLoyaltyStore();
 
-  // Load real authenticated user from backend on refresh/mount
   useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("stampy_auth_token") : null;
+    if (!token && !isAuthenticated) {
+      router.replace("/login");
+      return;
+    }
     fetchCurrentUser();
-  }, [fetchCurrentUser]);
+  }, [fetchCurrentUser, isAuthenticated, router]);
 
   const handleSaveProfile = async (form) => {
     if (!form.name.trim()) {
@@ -58,7 +61,7 @@ export default function CustomerProfilePage() {
     }
     logout();
     toast("You have logged out of your Stampy account.", { type: "info" });
-    router.push("/login");
+    window.location.href = "/login";
   };
 
   const initials = user?.name
@@ -82,8 +85,6 @@ export default function CustomerProfilePage() {
       />
 
       <PersonalInformation user={user} />
-
-      <AccountSettings user={user} />
 
       <ProfileLogout onLogout={() => setIsLogoutModalOpen(true)} />
 

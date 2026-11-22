@@ -186,28 +186,28 @@ export default function DashboardUsersPage() {
       )}
 
       {/* Search Toolbar */}
-      <div className="flex items-center justify-between rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-4 shadow-2xs">
+      <div className="flex items-center justify-between rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-4 text-(--bgColor) shadow-sm">
         <div className="relative flex-1 max-w-sm">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name, email, or role..."
-            className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] pl-9 pr-3 text-xs text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none focus:border-(--mainColor)"
+            className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 pl-9 pr-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
           />
-          <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--mainColor)/50" />
+          <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--bgColor)/50" />
         </div>
 
-        <span className="text-xs text-(--mainColor)/60 font-semibold">
+        <span className="text-xs text-(--bgColor)/65 font-semibold">
           {filteredStaff.length} Team Member{filteredStaff.length !== 1 ? "s" : ""}
         </span>
       </div>
 
       {/* Staff Table */}
-      <div className="overflow-hidden rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] shadow-2xs">
+      <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#ebdcc8] bg-[#f4ece0]/60 text-(--mainColor)/70 font-semibold uppercase tracking-wider">
+            <thead className="border-b border-(--bgColor)/15 bg-(--bgColor)/10 text-(--bgColor)/80 font-semibold uppercase tracking-wider">
               <tr>
                 <th className="px-5 py-3.5">Employee</th>
                 <th className="px-5 py-3.5">Assigned Role</th>
@@ -216,46 +216,46 @@ export default function DashboardUsersPage() {
                 {isOwner && <th className="px-5 py-3.5 text-right">Actions</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#ebdcc8]">
+            <tbody className="divide-y divide-(--bgColor)/15">
               {filteredStaff.length === 0 ? (
                 <tr>
-                  <td colSpan={isOwner ? 5 : 4} className="px-5 py-10 text-center text-(--mainColor)/50">
+                  <td colSpan={isOwner ? 5 : 4} className="px-5 py-10 text-center text-(--bgColor)/50">
                     No team members found.
                   </td>
                 </tr>
               ) : (
                 filteredStaff.map((staff) => (
-                  <tr key={staff.id} className="hover:bg-[#f6efe4] transition">
+                  <tr key={staff.id} className="hover:bg-(--bgColor)/5 transition">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         {staff.avatar ? (
                           <img
                             src={staff.avatar}
                             alt={staff.name}
-                            className="h-9 w-9 rounded-full object-cover border border-[#decfa8]"
+                            className="h-9 w-9 rounded-full object-cover border border-(--bgColor)/20"
                           />
                         ) : (
-                          <div className="h-9 w-9 rounded-full bg-[#e8d9c0] border border-[#decfa8] flex items-center justify-center text-sm font-bold text-(--mainColor)">
+                          <div className="h-9 w-9 rounded-full bg-(--bgColor)/10 border border-(--bgColor)/20 flex items-center justify-center text-sm font-bold text-(--secondColor)">
                             {staff.name?.[0]?.toUpperCase() || "?"}
                           </div>
                         )}
                         <div>
-                          <div className="font-bold text-(--mainColor) text-sm">
+                          <div className="font-bold text-(--bgColor) text-sm">
                             {staff.name}
                           </div>
-                          <div className="text-[11px] text-(--mainColor)/60">
+                          <div className="text-[11px] text-(--bgColor)/60">
                             {staff.email}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#dacdb9] bg-[#f5ecdd] px-2.5 py-1 text-xs font-semibold text-(--mainColor)">
-                        <LuShield className="h-3.5 w-3.5 text-(--mainColor)/70" />
+                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 py-1 text-xs font-semibold text-(--secondColor)">
+                        <LuShield className="h-3.5 w-3.5 text-(--secondColor)" />
                         <span>{staff.role}</span>
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-(--mainColor)/75 font-medium">
+                    <td className="px-5 py-4 text-(--bgColor)/75 font-medium">
                       {staff.joinedDate || "—"}
                     </td>
                     <td className="px-5 py-4">
@@ -313,15 +313,15 @@ export default function DashboardUsersPage() {
 
       {/* Add / Edit Staff Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-[#ebdcc8] bg-[#faf6ed] p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#ebdcc8] pb-3">
-              <h3 className="font-bold text-base text-(--mainColor)">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
+              <h3 className="font-bold text-base text-(--bgColor)">
                 {editingStaff ? "Edit Employee" : "Add Team Member"}
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="rounded-lg p-1 text-(--mainColor)/60 hover:bg-[#ebdcc8]"
+                className="rounded-lg p-1 text-(--bgColor)/70 hover:bg-(--bgColor)/10 cursor-pointer"
               >
                 <LuX className="h-5 w-5" />
               </button>
@@ -329,7 +329,7 @@ export default function DashboardUsersPage() {
 
             <form onSubmit={handleFormSubmit} className="mt-4 space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   Full Name *
                 </label>
                 <input
@@ -338,12 +338,12 @@ export default function DashboardUsersPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Liam Davies"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   Email Address *
                 </label>
                 <input
@@ -353,15 +353,15 @@ export default function DashboardUsersPage() {
                   disabled={!!editingStaff}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="liam@coffeehouse.london"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor) disabled:opacity-60"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor) disabled:opacity-60"
                 />
                 {editingStaff && (
-                  <p className="mt-1 text-[11px] text-(--mainColor)/50">Email cannot be changed after account creation.</p>
+                  <p className="mt-1 text-[11px] text-(--bgColor)/50">Email cannot be changed after account creation.</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   Phone Number
                 </label>
                 <input
@@ -369,29 +369,29 @@ export default function DashboardUsersPage() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+44 7700 900555"
-                  className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                 />
               </div>
 
               {/* Password field */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1">
                   {editingStaff ? "New Password (leave blank to keep current)" : "Password *"}
                 </label>
                 <div className="relative">
-                  <LuLock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-(--mainColor)/50" />
+                  <LuLock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-(--bgColor)/50" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder={editingStaff ? "••••••••" : "Min. 8 characters"}
                     minLength={formData.password ? 8 : undefined}
-                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] pl-9 pr-10 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 pl-9 pr-10 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-(--mainColor)/50 hover:text-(--mainColor)"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-(--bgColor)/50 hover:text-(--bgColor) cursor-pointer"
                   >
                     {showPassword ? <LuEyeOff className="h-3.5 w-3.5" /> : <LuEye className="h-3.5 w-3.5" />}
                   </button>
@@ -400,7 +400,7 @@ export default function DashboardUsersPage() {
 
               {/* Role Selection — owners can't be created from here */}
               <div>
-                <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                   Select Role & Responsibilities
                 </label>
                 <div className="space-y-2">
@@ -409,8 +409,8 @@ export default function DashboardUsersPage() {
                       key={opt.key}
                       className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition ${
                         formData.roleKey === opt.key
-                          ? "border-(--mainColor) bg-[#f5ecdd]"
-                          : "border-[#dacdb9] bg-white/60 hover:bg-white"
+                          ? "border-(--secondColor) bg-(--bgColor)/15 text-(--bgColor)"
+                          : "border-(--bgColor)/15 bg-(--bgColor)/5 hover:bg-(--bgColor)/10 text-(--bgColor)/75"
                       }`}
                     >
                       <input
@@ -424,13 +424,13 @@ export default function DashboardUsersPage() {
                             role: opt.name,
                           })
                         }
-                        className="mt-0.5 text-(--mainColor)"
+                        className="mt-0.5 accent-(--secondColor)"
                       />
                       <div className="text-xs">
-                        <span className="font-bold text-(--mainColor)">
+                        <span className="font-bold text-(--bgColor)">
                           {opt.name}
                         </span>
-                        <p className="mt-0.5 text-[11px] text-(--mainColor)/65">
+                        <p className="mt-0.5 text-[11px] text-(--bgColor)/65">
                           {opt.description}
                         </p>
                       </div>
@@ -443,14 +443,14 @@ export default function DashboardUsersPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor)"
+                  className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-4 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) disabled:opacity-60"
+                  className="rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 transition cursor-pointer disabled:opacity-60"
                 >
                   {isSaving ? "Saving..." : editingStaff ? "Update Employee" : "Add Employee"}
                 </button>
@@ -462,29 +462,29 @@ export default function DashboardUsersPage() {
 
       {/* Delete Confirmation Modal */}
       {deletingStaff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border border-[#ebdcc8] bg-[#faf6ed] p-6 shadow-xl">
-            <div className="flex items-center gap-2.5 text-rose-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-2xl">
+            <div className="flex items-center gap-2.5 text-rose-400">
               <LuTriangleAlert className="h-5 w-5" />
-              <h3 className="font-bold text-base text-(--mainColor)">
+              <h3 className="font-bold text-base text-(--bgColor)">
                 Delete Employee Account
               </h3>
             </div>
-            <p className="mt-2 text-xs text-(--mainColor)/75 leading-relaxed">
+            <p className="mt-2 text-xs text-(--bgColor)/75 leading-relaxed">
               Are you sure you want to remove <strong>&ldquo;{deletingStaff.name}&rdquo;</strong>? They will immediately lose access to the cafe dashboard.
             </p>
             <div className="mt-5 flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setDeletingStaff(null)}
-                className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor)"
+                className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-4 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteConfirm}
-                className="rounded-xl bg-rose-700 px-4 py-2 text-xs font-bold text-white hover:bg-rose-800"
+                className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 transition cursor-pointer"
               >
                 Remove User
               </button>

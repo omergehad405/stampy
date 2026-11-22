@@ -39,11 +39,6 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleDemoFill = () => {
-    setEmail("stampy2026@gmail.com");
-    setPassword("Stampy2026#");
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-(--bgColor)">
       <div className="w-full max-w-md space-y-6 rounded-3xl border border-[#e3d7c0] bg-[#faf6ed] p-7 sm:p-10 shadow-sm">

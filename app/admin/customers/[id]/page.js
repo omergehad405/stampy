@@ -78,7 +78,7 @@ export default function AdminCustomerDetailPage({ params }) {
   };
 
   // Resolve joined cafes
-  const joinedCafeSlugs = customer.joinedCafes || ["coffee-house"];
+  const joinedCafeSlugs = Array.isArray(customer.joinedCafes) ? customer.joinedCafes : [];
   const joinedCafesData = joinedCafeSlugs.map((slug) => {
     const catalogItem = CAFES_CATALOG[slug];
     return {

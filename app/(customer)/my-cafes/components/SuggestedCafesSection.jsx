@@ -20,6 +20,16 @@ import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import { apiGetCafes } from "@/app/lib/cafeApi";
 import { getAllRegisteredCafes } from "@/app/(customer)/cafe/data/cafesCatalog";
 
+// Helper to shuffle an array randomly using Fisher-Yates
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export default function SuggestedCafesSection() {
   const router = useRouter();
   const { isCafeJoined, joinCafe } = useLoyaltyStore();
@@ -43,12 +53,17 @@ export default function SuggestedCafesSection() {
 
         // Filter out any already joined cafes
         const unjoined = (list || []).filter((c) => !isCafeJoined(c.slug));
-        setSuggestedCafes(unjoined);
+        // Pick random 3 or 4 cafes on every render/load
+        const shuffled = shuffleArray(unjoined.length > 0 ? unjoined : list);
+        const randomCount = Math.floor(Math.random() * 2) + 3; // 3 or 4
+        setSuggestedCafes(shuffled.slice(0, randomCount));
       } catch (err) {
         if (!isCancelled) {
           console.warn("[SuggestedCafes] API fetch error, fallback:", err.message);
           const fallback = getAllRegisteredCafes().filter((c) => !isCafeJoined(c.slug));
-          setSuggestedCafes(fallback);
+          const shuffled = shuffleArray(fallback.length > 0 ? fallback : getAllRegisteredCafes());
+          const randomCount = Math.floor(Math.random() * 2) + 3; // 3 or 4
+          setSuggestedCafes(shuffled.slice(0, randomCount));
         }
       } finally {
         if (!isCancelled) {

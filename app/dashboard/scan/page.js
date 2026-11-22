@@ -152,8 +152,11 @@ export default function DashboardScanPage() {
   const activeCustomer = customers.find((c) => c.id === selectedCustomerId);
 
   // Check if customer visited today
-  const todayStr = new Date().toISOString().split("T")[0];
-  const hasVisitedToday = activeCustomer?.lastVisitDate === todayStr;
+  const [todayStr, setTodayStr] = useState("");
+  useEffect(() => {
+    setTodayStr(new Date().toISOString().split("T")[0]);
+  }, []);
+  const hasVisitedToday = Boolean(todayStr && activeCustomer?.lastVisitDate === todayStr);
 
   // Find rewards this customer can redeem
   const availableRewards = activeCustomer
@@ -522,11 +525,11 @@ export default function DashboardScanPage() {
         {/* Left Column: QR Scanner & Lookup (5 cols) */}
         <div className="space-y-5 lg:col-span-5">
           {/* Scanner Card */}
-          <div className="overflow-hidden rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] shadow-2xs">
-            <div className="flex items-center justify-between border-b border-[#ebdcc8] px-5 py-3.5">
+          <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) shadow-xs">
+            <div className="flex items-center justify-between border-b border-(--bgColor)/15 px-5 py-3.5">
               <div className="flex items-center gap-2">
-                <LuQrCode className="h-4 w-4 text-(--mainColor)" />
-                <h2 className="font-bold text-xs uppercase tracking-wider text-(--mainColor)">
+                <LuQrCode className="h-4 w-4 text-(--secondColor)" />
+                <h2 className="font-bold text-xs uppercase tracking-wider text-(--bgColor)">
                   QR Viewfinder
                 </h2>
               </div>
@@ -535,7 +538,7 @@ export default function DashboardScanPage() {
                   <button
                     type="button"
                     onClick={switchCameraFacing}
-                    className="flex items-center gap-1 rounded-lg border border-[#dacdb9] bg-white px-2 py-1 text-xs font-semibold text-(--mainColor) hover:bg-[#f5ecdd]"
+                    className="flex items-center gap-1 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2 py-1 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 cursor-pointer"
                     title="Switch camera (front/back)"
                   >
                     <LuRefreshCw className="h-3.5 w-3.5" />
@@ -545,10 +548,10 @@ export default function DashboardScanPage() {
                 <button
                   type="button"
                   onClick={toggleCamera}
-                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition cursor-pointer ${
                     isCameraActive
-                      ? "bg-rose-100 text-rose-800 hover:bg-rose-200"
-                      : "bg-(--secondColor) text-(--mainColor) hover:opacity-90"
+                      ? "bg-rose-500/20 text-rose-200 border border-rose-500/30 hover:bg-rose-500/30"
+                      : "bg-(--secondColor) text-[#3B2418] hover:bg-(--secondColor)/90"
                   }`}
                 >
                   {isCameraActive ? (
@@ -624,7 +627,7 @@ export default function DashboardScanPage() {
                   </p>
                   <button
                     onClick={() => startCamera()}
-                    className="mt-4 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-(--mainColor) shadow-sm transition hover:opacity-90 cursor-pointer"
+                    className="mt-4 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-sm transition hover:bg-(--secondColor)/90 cursor-pointer"
                   >
                     Activate Phone / Web Camera
                   </button>
@@ -633,8 +636,8 @@ export default function DashboardScanPage() {
             </div>
 
             {/* Fallback Manual Code / ID Lookup */}
-            <div className="p-4 border-t border-[#ebdcc8]">
-              <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+            <div className="p-4 border-t border-(--bgColor)/15">
+              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                 Scan Code / Customer Identifier Entry
               </label>
               <div className="flex gap-2">
@@ -646,18 +649,18 @@ export default function DashboardScanPage() {
                     onKeyDown={(e) => e.key === "Enter" && handleIdentifyCustomer()}
                     placeholder="Scan QR or enter customer code..."
                     disabled={isScanningQuery}
-                    className="w-full h-10 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] pl-9 pr-3 text-xs font-semibold text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none focus:border-(--mainColor)"
+                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 pl-9 pr-3 text-xs font-semibold text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                   />
-                  <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--mainColor)/50" />
+                  <LuSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--bgColor)/50" />
                 </div>
                 <button
                   type="button"
                   onClick={() => handleIdentifyCustomer()}
                   disabled={isScanningQuery || !codeInput.trim()}
-                  className="rounded-xl bg-(--mainColor) px-4 text-xs font-bold text-(--secondColor) hover:opacity-95 disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  className="rounded-xl bg-(--secondColor) px-4 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
                 >
                   {isScanningQuery ? (
-                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-(--secondColor)/30 border-t-(--secondColor)" />
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#3B2418]/30 border-t-[#3B2418]" />
                   ) : (
                     <LuStamp className="h-3.5 w-3.5" />
                   )}
@@ -665,28 +668,30 @@ export default function DashboardScanPage() {
                 </button>
               </div>
 
-              {/* Fast Test Presets */}
-              <div className="mt-3">
-                <span className="text-[10px] font-bold text-(--mainColor)/60 uppercase tracking-wider">
-                  Test Customer Shortcuts:
-                </span>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {customers.slice(0, 4).map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => handleIdentifyCustomer(c.code || c.id)}
-                      className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition cursor-pointer ${
-                        selectedCustomerId === c.id
-                          ? "border-(--mainColor) bg-(--mainColor) text-(--secondColor)"
-                          : "border-[#dacdb9] bg-white/70 text-(--mainColor) hover:bg-white"
-                      }`}
-                    >
-                      {c.name.split(" ")[0]} ({c.stamps}/10)
-                    </button>
-                  ))}
+              {/* Recent Enrolled Customers */}
+              {customers.length > 0 && (
+                <div className="mt-3">
+                  <span className="text-[10px] font-bold text-(--bgColor)/60 uppercase tracking-wider">
+                    Recent Enrolled Customers:
+                  </span>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {customers.slice(0, 4).map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleIdentifyCustomer(c.code || c.id)}
+                        className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition cursor-pointer ${
+                          selectedCustomerId === c.id
+                            ? "border-(--secondColor) bg-(--secondColor) text-[#3B2418]"
+                            : "border-(--bgColor)/20 bg-(--bgColor)/10 text-(--bgColor) hover:bg-(--bgColor)/20"
+                        }`}
+                      >
+                        {c.name.split(" ")[0]} ({c.stamps}/10)
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -696,17 +701,17 @@ export default function DashboardScanPage() {
           {activeCustomer ? (
             <div className="space-y-5">
               {/* Customer Profile Card */}
-              <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#ebdcc8] pb-4">
+              <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-5 shadow-xs">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-(--bgColor)/15 pb-4">
                   <div className="flex items-center gap-3.5">
                     {activeCustomer.avatar ? (
                       <img
                         src={activeCustomer.avatar}
                         alt={activeCustomer.name}
-                        className="h-14 w-14 rounded-2xl object-cover border-2 border-[#decfa8] shadow-2xs"
+                        className="h-14 w-14 rounded-2xl object-cover border-2 border-(--secondColor) shadow-2xs"
                       />
                     ) : (
-                      <div className="h-14 w-14 rounded-2xl bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-lg border-2 border-[#decfa8]">
+                      <div className="h-14 w-14 rounded-2xl bg-(--secondColor) text-[#3B2418] flex items-center justify-center font-bold text-lg border-2 border-(--secondColor)">
                         {activeCustomer.name
                           .split(" ")
                           .map((n) => n[0])
@@ -717,15 +722,15 @@ export default function DashboardScanPage() {
                     )}
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-bold text-(--mainColor)">
+                        <h2 className="text-lg font-bold text-(--bgColor)">
                           {activeCustomer.name}
                         </h2>
-                        <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 uppercase">
+                        <span className="rounded-md bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 text-[10px] font-bold uppercase">
                           {activeCustomer.status || "Active Member"}
                         </span>
                       </div>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-(--mainColor)/70">
-                        <span className="font-mono font-semibold">{activeCustomer.code || "MEMBER"}</span>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-(--bgColor)/70">
+                        <span className="font-mono font-semibold text-(--secondColor)">{activeCustomer.code || "MEMBER"}</span>
                         <span>•</span>
                         <span>{activeCustomer.email}</span>
                       </div>
@@ -737,7 +742,7 @@ export default function DashboardScanPage() {
                       setSelectedCustomerId(null);
                       setActionSuccessData(null);
                     }}
-                    className="flex items-center gap-1.5 rounded-xl border border-[#dacdb9] bg-white/70 px-3 py-1.5 text-xs font-semibold text-(--mainColor) hover:bg-white self-start sm:self-auto cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-1.5 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 self-start sm:self-auto cursor-pointer"
                   >
                     <LuRefreshCw className="h-3.5 w-3.5" />
                     <span>Scan Next</span>
@@ -745,28 +750,28 @@ export default function DashboardScanPage() {
                 </div>
 
                 {/* Stamp Balance & Visual Slots */}
-                <div className="mt-5 rounded-2xl border border-[#dacdb9] bg-[#f5ecdd] p-4">
+                <div className="mt-5 rounded-2xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-(--mainColor)/70">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-(--bgColor)/70">
                         Current Card Progress
                       </span>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-extrabold text-(--mainColor)">
+                        <span className="text-3xl font-extrabold text-(--secondColor)">
                           {activeCustomer.stamps}
                         </span>
-                        <span className="text-sm font-semibold text-(--mainColor)/60">
+                        <span className="text-sm font-semibold text-(--bgColor)/60">
                           / {settings.stampTarget} stamps
                         </span>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <span className="text-xs font-semibold text-(--mainColor)/70">
-                        Lifetime Stamps: <strong>{activeCustomer.lifetimeStamps}</strong>
+                      <span className="text-xs font-semibold text-(--bgColor)/70">
+                        Lifetime Stamps: <strong className="text-(--bgColor)">{activeCustomer.lifetimeStamps}</strong>
                       </span>
-                      <div className="text-xs text-(--mainColor)/70">
-                        Total Visits: <strong>{activeCustomer.totalVisits}</strong>
+                      <div className="text-xs text-(--bgColor)/70">
+                        Total Visits: <strong className="text-(--bgColor)">{activeCustomer.totalVisits}</strong>
                       </div>
                     </div>
                   </div>
@@ -780,8 +785,8 @@ export default function DashboardScanPage() {
                           key={idx}
                           className={`aspect-square rounded-xl flex items-center justify-center border transition-all ${
                             isStamped
-                              ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor) shadow-xs"
-                              : "bg-white/60 border-[#dacdb9] text-(--mainColor)/30"
+                              ? "bg-(--secondColor) text-[#3B2418] border-(--secondColor) shadow-xs"
+                              : "bg-(--bgColor)/5 border-(--bgColor)/15 text-(--bgColor)/30"
                           }`}
                         >
                           <LuCoffee className="h-4 w-4" />
@@ -793,13 +798,13 @@ export default function DashboardScanPage() {
 
                 {/* Action Feedback Notification */}
                 {actionSuccessData && (
-                  <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900 flex items-center justify-between">
+                  <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-400/20 p-3 text-xs text-emerald-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <LuCircleCheck className="h-5 w-5 text-emerald-600 shrink-0" />
+                      <LuCircleCheck className="h-5 w-5 text-emerald-300 shrink-0" />
                       <span>{actionSuccessData.message}</span>
                     </div>
                     {actionSuccessData.unlockedReward && (
-                      <span className="rounded-md bg-emerald-200 px-2 py-0.5 font-bold uppercase text-[10px]">
+                      <span className="rounded-md bg-emerald-300/30 text-emerald-200 border border-emerald-300/40 px-2 py-0.5 font-bold uppercase text-[10px]">
                         Reward Unlocked!
                       </span>
                     )}
@@ -809,7 +814,7 @@ export default function DashboardScanPage() {
                 {/* Stamp Action Controls */}
                 <div className="mt-5 space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-(--mainColor) mb-1.5">
+                    <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
                       Order / Item Note (Optional)
                     </label>
                     <input
@@ -817,7 +822,7 @@ export default function DashboardScanPage() {
                       value={visitNote}
                       onChange={(e) => setVisitNote(e.target.value)}
                       placeholder="e.g. Flat white & croissant"
-                      className="w-full h-9 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none focus:border-(--mainColor)"
+                      className="w-full h-9 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
                     />
                   </div>
                 </div>
@@ -827,7 +832,7 @@ export default function DashboardScanPage() {
                     type="button"
                     onClick={handleRecordVisit}
                     disabled={hasVisitedToday && !allowDailyOverride}
-                    className="flex items-center gap-2 rounded-xl bg-(--mainColor) px-5 py-2.5 text-xs font-bold text-(--secondColor) shadow-sm transition hover:opacity-95 disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] shadow-sm transition hover:bg-(--secondColor)/90 disabled:opacity-50 cursor-pointer"
                   >
                     <LuCircleCheck className="h-4 w-4" />
                     <span>
@@ -840,15 +845,15 @@ export default function DashboardScanPage() {
               </div>
 
               {/* Action Box: Available Rewards Redemption */}
-              <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs">
-                <div className="flex items-center justify-between border-b border-[#ebdcc8] pb-3">
+              <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-5 shadow-xs">
+                <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
                   <div className="flex items-center gap-2">
-                    <LuGift className="h-4 w-4 text-(--mainColor)" />
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-(--mainColor)">
+                    <LuGift className="h-4 w-4 text-(--secondColor)" />
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-(--bgColor)">
                       Eligible Rewards for Redemption
                     </h3>
                   </div>
-                  <span className="text-xs font-bold text-(--mainColor)">
+                  <span className="text-xs font-bold text-(--secondColor)">
                     {availableRewards.length} Unlocked
                   </span>
                 </div>
@@ -858,22 +863,22 @@ export default function DashboardScanPage() {
                     availableRewards.map((reward) => (
                       <div
                         key={reward.id}
-                        className="flex items-center justify-between rounded-xl border border-[#dacdb9] bg-[#f5ecdd] p-3 transition hover:border-(--mainColor)"
+                        className="flex items-center justify-between rounded-xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-3 transition hover:border-(--secondColor)/50"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-(--mainColor) text-(--secondColor)">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-(--secondColor) text-[#3B2418]">
                             <LuGift className="h-5 w-5" />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-xs text-(--mainColor)">
+                              <h4 className="font-bold text-xs text-(--bgColor)">
                                 {reward.name}
                               </h4>
-                              <span className="rounded bg-(--secondColor)/30 px-1.5 py-0.5 text-[10px] font-bold text-(--mainColor)">
+                              <span className="rounded bg-(--secondColor)/20 border border-(--secondColor)/30 px-1.5 py-0.5 text-[10px] font-bold text-(--secondColor)">
                                 {reward.stampsRequired} Stamps
                               </span>
                             </div>
-                            <p className="text-[11px] text-(--mainColor)/70 max-w-sm line-clamp-1">
+                            <p className="text-[11px] text-(--bgColor)/70 max-w-sm line-clamp-1">
                               {reward.description}
                             </p>
                           </div>
@@ -882,19 +887,19 @@ export default function DashboardScanPage() {
                         <button
                           type="button"
                           onClick={() => setRewardToRedeem(reward)}
-                          className="rounded-xl bg-purple-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs transition hover:bg-purple-800 cursor-pointer"
+                          className="rounded-xl bg-(--secondColor) px-3.5 py-1.5 text-xs font-bold text-[#3B2418] shadow-2xs transition hover:bg-(--secondColor)/90 cursor-pointer"
                         >
                           Redeem Now
                         </button>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-xl border border-dashed border-[#dacdb9] p-4 text-center">
-                      <LuSparkles className="mx-auto h-6 w-6 text-(--mainColor)/40" />
-                      <p className="mt-1 text-xs font-semibold text-(--mainColor)/70">
+                    <div className="rounded-xl border border-dashed border-(--bgColor)/20 p-4 text-center">
+                      <LuSparkles className="mx-auto h-6 w-6 text-(--bgColor)/40" />
+                      <p className="mt-1 text-xs font-semibold text-(--bgColor)/70">
                         No rewards unlocked yet.
                       </p>
-                      <p className="text-[11px] text-(--mainColor)/50">
+                      <p className="text-[11px] text-(--bgColor)/50">
                         Customer needs {Math.max(0, 5 - (activeCustomer.stamps || 0))} more stamp(s) to unlock the first reward.
                       </p>
                     </div>
@@ -904,24 +909,16 @@ export default function DashboardScanPage() {
             </div>
           ) : (
             /* Empty state when no customer is scanned */
-            <div className="flex h-96 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#e3d7c0] bg-[#faf6ed]/50 p-8 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-(--secondColor)/20 text-(--mainColor)">
+            <div className="flex h-96 flex-col items-center justify-center rounded-2xl sm:rounded-3xl border-2 border-dashed border-(--bgColor)/20 bg-(--mainColor) text-(--bgColor) p-8 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-(--bgColor)/10 text-(--secondColor)">
                 <LuQrCode className="h-8 w-8" />
               </div>
-              <h3 className="mt-4 text-base font-bold text-(--mainColor)">
+              <h3 className="mt-4 text-base font-bold text-(--bgColor)">
                 No Customer Scanned Yet
               </h3>
-              <p className="mt-1.5 max-w-sm text-xs text-(--mainColor)/70">
+              <p className="mt-1.5 max-w-sm text-xs text-(--bgColor)/70">
                 Point the camera at a customer&apos;s Stampy QR card, or enter their code to verify membership and issue stamps.
               </p>
-              <div className="mt-5 flex gap-2">
-                <button
-                  onClick={() => handleIdentifyCustomer("STAMPY-7842")}
-                  className="rounded-xl bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--secondColor) cursor-pointer hover:opacity-95"
-                >
-                  Load Omar Hassan (Test Demo)
-                </button>
-              </div>
             </div>
           )}
         </div>
@@ -936,12 +933,12 @@ export default function DashboardScanPage() {
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
         >
-          <div className="relative w-full max-w-md rounded-3xl border border-[#e8dfca] bg-[#faf6ed] p-6 sm:p-7 shadow-2xl text-(--mainColor)">
+          <div className="relative w-full max-w-md rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-6 sm:p-7 shadow-2xl text-(--bgColor)">
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setScanModal(null)}
-              className="absolute top-4 right-4 p-2 rounded-full text-(--mainColor)/60 hover:text-(--mainColor) hover:bg-(--mainColor)/10 transition cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-full text-(--bgColor)/60 hover:text-(--bgColor) hover:bg-(--bgColor)/10 transition cursor-pointer"
               aria-label="Close modal"
             >
               <LuX className="w-5 h-5" />
@@ -950,17 +947,17 @@ export default function DashboardScanPage() {
             {/* Error State */}
             {scanModal.error ? (
               <div className="text-center py-4 space-y-3">
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-xs">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center shadow-xs">
                   <LuTriangleAlert className="w-7 h-7" />
                 </div>
-                <h3 className="text-lg font-bold text-(--mainColor)">Customer Not Found</h3>
-                <p className="text-xs text-rose-700/90 bg-rose-50 border border-rose-200 rounded-xl p-3 leading-relaxed">
+                <h3 className="text-lg font-bold text-(--bgColor)">Customer Not Found</h3>
+                <p className="text-xs text-rose-200 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 leading-relaxed">
                   {scanModal.error}
                 </p>
                 <button
                   type="button"
                   onClick={() => setScanModal(null)}
-                  className="w-full mt-4 rounded-xl bg-(--mainColor) py-2.5 text-xs font-bold text-(--secondColor) hover:opacity-90 cursor-pointer"
+                  className="w-full mt-4 rounded-xl bg-(--secondColor) py-2.5 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 cursor-pointer"
                 >
                   Close & Try Again
                 </button>
@@ -970,28 +967,28 @@ export default function DashboardScanPage() {
                 {/* Header Badge */}
                 <div className="flex items-center justify-center">
                   {scanModal.isJoined ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-xs font-bold text-emerald-800">
-                      <LuCircleCheck className="w-4 h-4 text-emerald-600" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/20 border border-emerald-400/30 px-3 py-1 text-xs font-bold text-emerald-200">
+                      <LuCircleCheck className="w-4 h-4 text-emerald-300" />
                       Verified Member • {scanModal.cafe?.name || "This Café"}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-800">
-                      <LuCircleAlert className="w-4 h-4 text-amber-600" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 border border-amber-400/30 px-3 py-1 text-xs font-bold text-amber-200">
+                      <LuCircleAlert className="w-4 h-4 text-amber-300" />
                       Not Joined to {scanModal.cafe?.name || "This Café"}
                     </span>
                   )}
                 </div>
 
                 {/* Customer Information Card */}
-                <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white border border-[#e3d7c0] shadow-xs">
+                <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-(--bgColor)/10 border border-(--bgColor)/15 shadow-xs">
                   {scanModal.customer.avatar ? (
                     <img
                       src={scanModal.customer.avatar}
                       alt={scanModal.customer.name}
-                      className="w-14 h-14 rounded-2xl object-cover border border-[#e3d7c0] shadow-xs"
+                      className="w-14 h-14 rounded-2xl object-cover border border-(--secondColor) shadow-xs"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-lg border border-[#e3d7c0]">
+                    <div className="w-14 h-14 rounded-2xl bg-(--secondColor) text-[#3B2418] flex items-center justify-center font-bold text-lg border border-(--secondColor)">
                       {scanModal.customer.name
                         .split(" ")
                         .map((n) => n[0])
@@ -1002,16 +999,16 @@ export default function DashboardScanPage() {
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-bold text-(--mainColor) truncate">
+                    <h3 className="text-base sm:text-lg font-bold text-(--bgColor) truncate">
                       {scanModal.customer.name}
                     </h3>
-                    <div className="flex flex-col gap-0.5 text-xs text-(--mainColor)/70 mt-0.5">
+                    <div className="flex flex-col gap-0.5 text-xs text-(--bgColor)/70 mt-0.5">
                       {scanModal.customer.email && (
                         <span className="truncate">{scanModal.customer.email}</span>
                       )}
-                      <div className="flex items-center gap-1 text-[11px] text-(--mainColor)/60">
+                      <div className="flex items-center gap-1 text-[11px] text-(--bgColor)/60">
                         <LuCalendar className="w-3 h-3 shrink-0" />
-                        <span>Member since: <strong>{scanModal.customer.joinedDate || "Recently"}</strong></span>
+                        <span>Member since: <strong className="text-(--bgColor)">{scanModal.customer.joinedDate || "Recently"}</strong></span>
                       </div>
                     </div>
                   </div>
@@ -1019,25 +1016,25 @@ export default function DashboardScanPage() {
 
                 {/* Membership & Stamp Status */}
                 {scanModal.isJoined ? (
-                  <div className="rounded-2xl border border-[#dacdb9] bg-[#f5ecdd] p-4 space-y-3">
+                  <div className="rounded-2xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-(--mainColor)/70">
+                      <span className="text-xs font-bold uppercase tracking-wider text-(--bgColor)/70">
                         Current Loyalty Card
                       </span>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-black text-(--mainColor)">
+                        <span className="text-2xl font-black text-(--secondColor)">
                           {scanModal.stamps}
                         </span>
-                        <span className="text-xs font-bold text-(--mainColor)/60">
+                        <span className="text-xs font-bold text-(--bgColor)/60">
                           / {scanModal.totalStamps} Stamps
                         </span>
                       </div>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full h-2.5 rounded-full bg-white/70 overflow-hidden border border-[#dacdb9]">
+                    <div className="w-full h-2.5 rounded-full bg-(--bgColor)/15 overflow-hidden border border-(--bgColor)/20">
                       <div
-                        className="h-full bg-(--mainColor) rounded-full transition-all duration-500"
+                        className="h-full bg-(--secondColor) rounded-full transition-all duration-500"
                         style={{
                           width: `${Math.min(
                             100,
@@ -1048,19 +1045,19 @@ export default function DashboardScanPage() {
                     </div>
 
                     {scanModal.alreadyVisitedToday && (
-                      <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-900 flex items-center gap-2">
-                        <LuTriangleAlert className="w-4 h-4 shrink-0 text-amber-700" />
+                      <div className="rounded-xl border border-amber-400/30 bg-amber-400/20 px-3 py-2 text-[11px] text-amber-200 flex items-center gap-2">
+                        <LuTriangleAlert className="w-4 h-4 shrink-0 text-amber-300" />
                         <span>Customer already received today&apos;s visit stamp. (Rule: 1 stamp per calendar day)</span>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 space-y-2">
-                    <div className="flex items-center gap-2 text-amber-800 font-bold text-xs">
-                      <LuCircleAlert className="w-4 h-4 shrink-0" />
+                  <div className="rounded-2xl border border-amber-400/30 bg-amber-400/20 p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-amber-200 font-bold text-xs">
+                      <LuCircleAlert className="w-4 h-4 shrink-0 text-amber-300" />
                       <span>Not a member of this café yet</span>
                     </div>
-                    <p className="text-xs text-amber-900/80 leading-relaxed">
+                    <p className="text-xs text-amber-100/80 leading-relaxed">
                       {scanModal.customer.name} has a Stampy account, but has not yet joined{" "}
                       <strong>{scanModal.cafe?.name || "your café"}</strong>. You can enroll them right now and credit their first stamp!
                     </p>
@@ -1069,14 +1066,14 @@ export default function DashboardScanPage() {
 
                 {/* Celebratory Award Success Banner */}
                 {scanModal.awardSuccess ? (
-                  <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-center space-y-2 animate-in fade-in">
-                    <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/20 p-4 text-center space-y-2 animate-in fade-in">
+                    <div className="w-10 h-10 mx-auto rounded-full bg-emerald-400/30 text-emerald-200 flex items-center justify-center">
                       <LuCheck className="w-6 h-6 stroke-[3]" />
                     </div>
-                    <h4 className="font-extrabold text-sm text-emerald-950">
+                    <h4 className="font-extrabold text-sm text-emerald-200">
                       🎉 Stamp Successfully Awarded!
                     </h4>
-                    <p className="text-xs text-emerald-800">
+                    <p className="text-xs text-emerald-100">
                       {scanModal.customer.name} now has{" "}
                       <strong>
                         {scanModal.awardSuccess.newStamps} / {scanModal.totalStamps} stamps
@@ -1084,7 +1081,7 @@ export default function DashboardScanPage() {
                       at {scanModal.cafe?.name}.
                     </p>
                     {scanModal.awardSuccess.unlockedReward && (
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-200 px-3 py-1 text-xs font-bold text-emerald-900 mt-1">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/30 text-emerald-100 border border-emerald-400/40 px-3 py-1 text-xs font-bold mt-1">
                         <LuSparkles className="w-3.5 h-3.5" />
                         <span>Reward Target Reached! Unlocked reward tier.</span>
                       </div>
@@ -1092,7 +1089,7 @@ export default function DashboardScanPage() {
                     <button
                       type="button"
                       onClick={() => setScanModal(null)}
-                      className="w-full mt-3 rounded-xl bg-emerald-800 text-white font-bold text-xs py-2.5 hover:bg-emerald-900 transition cursor-pointer"
+                      className="w-full mt-3 rounded-xl bg-emerald-700 text-white font-bold text-xs py-2.5 hover:bg-emerald-600 transition cursor-pointer"
                     >
                       Done • Scan Next Customer
                     </button>
@@ -1104,9 +1101,9 @@ export default function DashboardScanPage() {
                       <button
                         type="button"
                         disabled
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-amber-100 border border-amber-300 text-amber-900 py-3.5 px-4 font-bold text-sm opacity-80 cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-amber-400/20 border border-amber-400/30 text-amber-200 py-3.5 px-4 font-bold text-sm opacity-80 cursor-not-allowed"
                       >
-                        <LuTriangleAlert className="w-5 h-5 text-amber-700" />
+                        <LuTriangleAlert className="w-5 h-5 text-amber-300" />
                         <span>Already Received Today&apos;s Stamp</span>
                       </button>
                     ) : (
@@ -1114,11 +1111,11 @@ export default function DashboardScanPage() {
                         type="button"
                         onClick={handleAwardStampFromModal}
                         disabled={scanModal.isAwarding}
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-(--secondColor) text-(--mainColor) py-3.5 px-4 font-extrabold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition cursor-pointer disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-(--secondColor) text-[#3B2418] py-3.5 px-4 font-extrabold text-sm shadow-md hover:bg-(--secondColor)/90 active:scale-[0.99] transition cursor-pointer disabled:opacity-50"
                       >
                         {scanModal.isAwarding ? (
                           <>
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--mainColor)/30 border-t-(--mainColor)" />
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#3B2418]/30 border-t-[#3B2418]" />
                             <span>Crediting Stamp to Account...</span>
                           </>
                         ) : (
@@ -1137,7 +1134,7 @@ export default function DashboardScanPage() {
                     <button
                       type="button"
                       onClick={() => setScanModal(null)}
-                      className="w-full text-center text-xs font-bold text-(--mainColor)/60 hover:text-(--mainColor) py-1 transition cursor-pointer"
+                      className="w-full text-center text-xs font-bold text-(--bgColor)/60 hover:text-(--bgColor) py-1 transition cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -1158,12 +1155,12 @@ export default function DashboardScanPage() {
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
         >
-          <div className="relative w-full max-w-md rounded-3xl border border-[#e8dfca] bg-[#faf6ed] p-6 sm:p-7 shadow-2xl text-(--mainColor)">
+          <div className="relative w-full max-w-md rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) p-6 sm:p-7 shadow-2xl text-(--bgColor)">
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setRewardRedemptionModal(null)}
-              className="absolute top-4 right-4 p-2 rounded-full text-(--mainColor)/60 hover:text-(--mainColor) hover:bg-(--mainColor)/10 transition cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-full text-(--bgColor)/60 hover:text-(--bgColor) hover:bg-(--bgColor)/10 transition cursor-pointer"
               aria-label="Close modal"
             >
               <LuX className="w-5 h-5" />
@@ -1171,8 +1168,8 @@ export default function DashboardScanPage() {
 
             {/* Error Message */}
             {rewardRedemptionModal.error && (
-              <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 flex items-center gap-2">
-                <LuTriangleAlert className="w-4 h-4 shrink-0 text-rose-600" />
+              <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/20 p-3 text-xs text-rose-200 flex items-center gap-2">
+                <LuTriangleAlert className="w-4 h-4 shrink-0 text-rose-300" />
                 <span>{rewardRedemptionModal.error}</span>
               </div>
             )}
@@ -1180,13 +1177,13 @@ export default function DashboardScanPage() {
             <div className="space-y-4">
               {/* Header Badge & Title */}
               <div className="text-center space-y-1">
-                <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-xs">
+                <div className="w-12 h-12 mx-auto rounded-2xl bg-(--secondColor)/20 text-(--secondColor) border border-(--secondColor)/30 flex items-center justify-center shadow-xs">
                   <LuGift className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-(--mainColor)">
+                <h3 className="text-lg font-bold text-(--bgColor)">
                   Reward Voucher Verification
                 </h3>
-                <p className="text-xs text-(--mainColor)/60">
+                <p className="text-xs text-(--bgColor)/60">
                   Scanned single-use reward QR code
                 </p>
               </div>
@@ -1194,47 +1191,47 @@ export default function DashboardScanPage() {
               {/* Status Badge */}
               <div className="flex items-center justify-center">
                 {rewardRedemptionModal.redemption?.isValid ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-xs font-bold text-emerald-800">
-                    <LuCircleCheck className="w-4 h-4 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/20 border border-emerald-400/30 px-3 py-1 text-xs font-bold text-emerald-200">
+                    <LuCircleCheck className="w-4 h-4 text-emerald-300" />
                     Valid Voucher • Ready to Claim
                   </span>
                 ) : rewardRedemptionModal.redemption?.isUsed ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-800">
-                    <LuTriangleAlert className="w-4 h-4 text-amber-600" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 border border-amber-400/30 px-3 py-1 text-xs font-bold text-amber-200">
+                    <LuTriangleAlert className="w-4 h-4 text-amber-300" />
                     Voucher Already Claimed / Used
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 border border-rose-300 px-3 py-1 text-xs font-bold text-rose-800">
-                    <LuCircleAlert className="w-4 h-4 text-rose-600" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 border border-rose-500/30 px-3 py-1 text-xs font-bold text-rose-200">
+                    <LuCircleAlert className="w-4 h-4 text-rose-300" />
                     Voucher Expired
                   </span>
                 )}
               </div>
 
               {/* Voucher Card Info */}
-              <div className="rounded-2xl border border-purple-200 bg-purple-50/60 p-4 space-y-2.5">
+              <div className="rounded-2xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <LuGift className="w-5 h-5 text-purple-700 shrink-0" />
-                    <h4 className="font-extrabold text-base text-purple-950">
+                    <LuGift className="w-5 h-5 text-(--secondColor) shrink-0" />
+                    <h4 className="font-extrabold text-base text-(--bgColor)">
                       {rewardRedemptionModal.redemption?.rewardName}
                     </h4>
                   </div>
-                  <span className="rounded-md bg-purple-200/80 px-2 py-0.5 text-xs font-bold text-purple-900">
+                  <span className="rounded-md bg-(--secondColor)/20 border border-(--secondColor)/30 px-2 py-0.5 text-xs font-bold text-(--secondColor)">
                     -{rewardRedemptionModal.redemption?.stampsSpent || 0} Stamps
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-purple-200/70 text-xs text-purple-900/80">
+                <div className="flex items-center justify-between pt-1 border-t border-(--bgColor)/15 text-xs text-(--bgColor)/80">
                   <span>Voucher Code:</span>
-                  <span className="font-mono font-bold text-(--mainColor) bg-white px-2 py-0.5 rounded border border-purple-200">
+                  <span className="font-mono font-bold text-(--bgColor) bg-(--bgColor)/15 px-2 py-0.5 rounded border border-(--bgColor)/20">
                     {rewardRedemptionModal.redemption?.code}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-purple-900/80">
+                <div className="flex items-center justify-between text-xs text-(--bgColor)/80">
                   <span>Eligible Café:</span>
-                  <span className="font-semibold text-(--mainColor)">
+                  <span className="font-semibold text-(--bgColor)">
                     {rewardRedemptionModal.cafe?.name || "This Café"}
                   </span>
                 </div>
@@ -1242,15 +1239,15 @@ export default function DashboardScanPage() {
 
               {/* Customer Info Card */}
               {rewardRedemptionModal.customer && (
-                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white border border-[#e3d7c0] shadow-2xs">
+                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-(--bgColor)/10 border border-(--bgColor)/15 shadow-2xs">
                   {rewardRedemptionModal.customer.avatar ? (
                     <img
                       src={rewardRedemptionModal.customer.avatar}
                       alt={rewardRedemptionModal.customer.name}
-                      className="w-12 h-12 rounded-xl object-cover border border-[#e3d7c0]"
+                      className="w-12 h-12 rounded-xl object-cover border border-(--secondColor)"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-(--mainColor) text-(--secondColor) flex items-center justify-center font-bold text-base border border-[#e3d7c0]">
+                    <div className="w-12 h-12 rounded-xl bg-(--secondColor) text-[#3B2418] flex items-center justify-center font-bold text-base border border-(--secondColor)">
                       {rewardRedemptionModal.customer.name
                         ?.split(" ")
                         .map((n) => n[0])
@@ -1261,10 +1258,10 @@ export default function DashboardScanPage() {
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <h5 className="font-bold text-sm text-(--mainColor) truncate">
+                    <h5 className="font-bold text-sm text-(--bgColor) truncate">
                       {rewardRedemptionModal.customer.name}
                     </h5>
-                    <p className="text-xs text-(--mainColor)/60 truncate">
+                    <p className="text-xs text-(--bgColor)/60 truncate">
                       {rewardRedemptionModal.customer.email || "Registered Member"}
                     </p>
                   </div>
@@ -1273,24 +1270,24 @@ export default function DashboardScanPage() {
 
               {/* Celebratory Success Banner */}
               {rewardRedemptionModal.fulfilledSuccess ? (
-                <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-center space-y-2 animate-in fade-in">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/20 p-4 text-center space-y-2 animate-in fade-in">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-emerald-400/30 text-emerald-200 flex items-center justify-center">
                     <LuCheck className="w-6 h-6 stroke-[3]" />
                   </div>
-                  <h4 className="font-extrabold text-sm text-emerald-950">
+                  <h4 className="font-extrabold text-sm text-emerald-200">
                     🎉 Reward Confirmed & Fulfilled!
                   </h4>
-                  <p className="text-xs text-emerald-800">
+                  <p className="text-xs text-emerald-100">
                     {rewardRedemptionModal.redemption?.rewardName} has been verified and given to{" "}
                     <strong>{rewardRedemptionModal.customer?.name}</strong>.
                   </p>
-                  <p className="text-[11px] text-emerald-700/80">
+                  <p className="text-[11px] text-emerald-200/80">
                     Recorded in café activity and customer redemption history.
                   </p>
                   <button
                     type="button"
                     onClick={() => setRewardRedemptionModal(null)}
-                    className="w-full mt-2 rounded-xl bg-emerald-800 text-white font-bold text-xs py-2.5 hover:bg-emerald-900 transition cursor-pointer"
+                    className="w-full mt-2 rounded-xl bg-emerald-700 text-white font-bold text-xs py-2.5 hover:bg-emerald-600 transition cursor-pointer"
                   >
                     Done • Close
                   </button>
@@ -1303,11 +1300,11 @@ export default function DashboardScanPage() {
                       type="button"
                       onClick={handleFulfillRewardFromModal}
                       disabled={rewardRedemptionModal.isFulfilling}
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white py-3.5 px-4 font-extrabold text-sm shadow-md transition cursor-pointer disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-(--secondColor) hover:bg-(--secondColor)/90 text-[#3B2418] py-3.5 px-4 font-extrabold text-sm shadow-md transition cursor-pointer disabled:opacity-50"
                     >
                       {rewardRedemptionModal.isFulfilling ? (
                         <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#3B2418]/30 border-t-[#3B2418]" />
                           <span>Fulfilling Reward...</span>
                         </>
                       ) : (
@@ -1321,9 +1318,9 @@ export default function DashboardScanPage() {
                     <button
                       type="button"
                       disabled
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gray-200 text-gray-600 py-3.5 px-4 font-bold text-sm cursor-not-allowed opacity-80"
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-(--bgColor)/10 text-(--bgColor)/50 py-3.5 px-4 font-bold text-sm cursor-not-allowed opacity-80"
                     >
-                      <LuTriangleAlert className="w-4 h-4 text-gray-500" />
+                      <LuTriangleAlert className="w-4 h-4 text-(--bgColor)/40" />
                       <span>Reward Already Claimed • Cannot Fulfill</span>
                     </button>
                   )}
@@ -1331,7 +1328,7 @@ export default function DashboardScanPage() {
                   <button
                     type="button"
                     onClick={() => setRewardRedemptionModal(null)}
-                    className="w-full text-center text-xs font-bold text-(--mainColor)/60 hover:text-(--mainColor) py-1 transition cursor-pointer"
+                    className="w-full text-center text-xs font-bold text-(--bgColor)/60 hover:text-(--bgColor) py-1 transition cursor-pointer"
                   >
                     Close
                   </button>
@@ -1344,25 +1341,25 @@ export default function DashboardScanPage() {
 
       {/* Confirmation Modal for Reward Redemption */}
       {rewardToRedeem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border border-[#ebdcc8] bg-[#faf6ed] p-6 shadow-xl">
-            <div className="flex items-center gap-2.5 text-purple-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-2xl">
+            <div className="flex items-center gap-2.5 text-(--secondColor)">
               <LuGift className="h-6 w-6" />
-              <h3 className="font-bold text-base text-(--mainColor)">
+              <h3 className="font-bold text-base text-(--bgColor)">
                 Confirm Reward Redemption
               </h3>
             </div>
-            <p className="mt-2 text-xs text-(--mainColor)/75">
+            <p className="mt-2 text-xs text-(--bgColor)/80">
               Are you sure you want to redeem <strong>{rewardToRedeem.name}</strong> for <strong>{activeCustomer?.name}</strong>?
             </p>
-            <div className="mt-3 rounded-xl bg-purple-50 p-3 text-xs text-purple-900">
+            <div className="mt-3 rounded-xl border border-(--bgColor)/15 bg-(--bgColor)/10 p-3 text-xs text-(--bgColor)">
               <div className="flex justify-between">
                 <span>Stamps to deduct:</span>
-                <strong className="font-bold">-{rewardToRedeem.stampsRequired} stamps</strong>
+                <strong className="font-bold text-(--secondColor)">-{rewardToRedeem.stampsRequired} stamps</strong>
               </div>
               <div className="mt-1 flex justify-between">
                 <span>Remaining balance:</span>
-                <strong className="font-bold">
+                <strong className="font-bold text-(--bgColor)">
                   {(activeCustomer?.stamps || 0) - rewardToRedeem.stampsRequired} stamps
                 </strong>
               </div>
@@ -1371,14 +1368,14 @@ export default function DashboardScanPage() {
               <button
                 type="button"
                 onClick={() => setRewardToRedeem(null)}
-                className="rounded-xl border border-[#dacdb9] bg-white px-4 py-2 text-xs font-semibold text-(--mainColor) cursor-pointer"
+                className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-4 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmRedeem}
-                className="rounded-xl bg-purple-700 px-4 py-2 text-xs font-bold text-white hover:bg-purple-800 cursor-pointer"
+                className="rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] hover:bg-(--secondColor)/90 transition cursor-pointer"
               >
                 Yes, Redeem Reward
               </button>

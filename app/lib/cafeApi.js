@@ -135,3 +135,20 @@ export async function apiGetMyRedemptions(cafeSlugOrId = "") {
   }
   return data.data?.redemptions || [];
 }
+
+/**
+ * Fetch authenticated customer's full activities (visits, stamps, redemptions) for a cafe
+ */
+export async function apiGetCustomerActivities(slugOrId) {
+  if (!slugOrId) return [];
+  const res = await fetch(`${BASE}/${encodeURIComponent(slugOrId)}/activities`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to fetch customer activities.");
+  }
+  return data.data?.activities || [];
+}

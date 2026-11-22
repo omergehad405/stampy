@@ -7,7 +7,7 @@ import { LuMoon, LuSun } from "react-icons/lu";
 
 const emptySubscribe = () => () => { };
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ className }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const isClient = useSyncExternalStore(
     emptySubscribe,
@@ -18,7 +18,7 @@ export default function ThemeToggle() {
   if (!isClient) {
     return (
       <div
-        className="w-9 h-9 p-2 rounded-full text-(--mainColor) opacity-0"
+        className={className || "w-9 h-9 p-2 rounded-full text-(--mainColor) opacity-0"}
         aria-hidden="true"
       />
     );
@@ -76,7 +76,10 @@ export default function ThemeToggle() {
       type="button"
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       onClick={toggleThemeWithCircularReveal}
-      className="p-2 rounded-full hover:bg-(--mainColor)/10 text-(--mainColor) transition-colors cursor-pointer"
+      className={
+        className ||
+        "p-2 rounded-full hover:bg-(--mainColor)/10 text-(--mainColor) transition-colors cursor-pointer"
+      }
     >
       {isDark ? (
         <LuSun className="w-5 h-5 lg:w-6 lg:h-6" />

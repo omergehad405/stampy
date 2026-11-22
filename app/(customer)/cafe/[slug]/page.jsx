@@ -22,7 +22,6 @@ import RecentActivity from "./components/RecentActivity";
 import CafeQrCard from "./components/CafeQrCard";
 import QrScrollBadge from "./components/QrScrollBadge";
 import CafeQrModal from "./components/CafeQrModal";
-import WelcomeStampModal from "./components/WelcomeStampModal";
 
 function DedicatedCafePageContent() {
   const params = useParams();
@@ -38,6 +37,7 @@ function DedicatedCafePageContent() {
     joinCafe,
     isAuthenticated,
     fetchCurrentUser,
+    fetchCafeActivities,
   } = useLoyaltyStore();
 
   const isJoined = isCafeJoined(slug);
@@ -48,11 +48,18 @@ function DedicatedCafePageContent() {
   const [isJoining, setIsJoining] = useState(false);
   const qrSectionRef = useRef(null);
 
-  // Active stamps tracking and celebration modal state
+  // Active stamps tracking and celebration animation state
   const currentStamps = membership?.stamps ?? 0;
   const totalStamps = membership?.totalStamps ?? cafe?.stampTarget ?? 10;
   const prevStampsRef = useRef(null);
-  const [stampModalConfig, setStampModalConfig] = useState(null);
+  const [animatingStamps, setAnimatingStamps] = useState([]); // array of slot numbers e.g. [3] or [3, 4]
+
+  // Fetch real customer cafe activities (visits, stamps, redemptions)
+  useEffect(() => {
+    if (isJoined && slug) {
+      fetchCafeActivities(slug);
+    }
+  }, [isJoined, slug, fetchCafeActivities]);
 
   // Background polling every 3.5s so barista scan is immediately picked up
   useEffect(() => {
@@ -73,13 +80,7 @@ function DedicatedCafePageContent() {
         sessionStorage.getItem(`stampy_welcome_stamp_${slug}`) === "true";
 
       if (hasWelcomeParam || hasSessionFlag) {
-        setStampModalConfig({
-          isOpen: true,
-          stampNumber: 1,
-          addedStamps: 1,
-          isWelcome: true,
-          unlockedReward: false,
-        });
+        setAnimatingStamps([1]);
         sessionStorage.removeItem(`stampy_welcome_stamp_${slug}`);
       }
     }
@@ -90,10 +91,14 @@ function DedicatedCafePageContent() {
     if (!isJoined || membership?.stamps === undefined) return;
 
     if (prevStampsRef.current !== null && membership.stamps > prevStampsRef.current) {
-      const addedStamps = membership.stamps - prevStampsRef.current;
-      const newTotal = membership.stamps;
+      const startStamp = prevStampsRef.current + 1;
+      const endStamp = membership.stamps;
+      const newSlots = [];
+      for (let s = startStamp; s <= endStamp; s++) {
+        newSlots.push(s);
+      }
 
-      // 1. Close QR modal if open so customer sees the celebration
+      // 1. Close QR modal if open so customer watches stamps get stamped on the card
       setIsQrModalOpen(false);
 
       // 2. Automatically navigate smoothly to top if scrolled down on mobile
@@ -101,14 +106,12 @@ function DedicatedCafePageContent() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      // 3. Open celebration modal
-      setStampModalConfig({
-        isOpen: true,
-        stampNumber: newTotal,
-        addedStamps,
-        isWelcome: false,
-        unlockedReward: newTotal >= totalStamps,
-      });
+      // 3. Trigger realistic sequential stamp animation in the grid
+      setAnimatingStamps(newSlots);
+
+      if (newSlots.length > 0) {
+        toast.success(`🎉 +${newSlots.length} stamp awarded!`);
+      }
     }
 
     prevStampsRef.current = membership.stamps;
@@ -146,13 +149,7 @@ function DedicatedCafePageContent() {
     try {
       const result = await joinCafe(cafe?.id || cafe?._id || slug);
       if (result.success) {
-        setStampModalConfig({
-          isOpen: true,
-          stampNumber: 1,
-          addedStamps: 1,
-          isWelcome: true,
-          unlockedReward: false,
-        });
+        setAnimatingStamps([1]);
         toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`, {
           position: "top-right",
           autoClose: 3500,
@@ -183,7 +180,7 @@ function DedicatedCafePageContent() {
     );
   }
 
-  const recentActivities = (membership?.history || []).slice(0, 5);
+  const recentActivities = membership?.history || [];
 
   return (
     <div className="w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10 pb-12">
@@ -192,7 +189,11 @@ function DedicatedCafePageContent() {
       <div className="md:grid md:grid-cols-12 md:gap-6 lg:gap-10 items-start mt-4 lg:mt-8">
         <div className="md:col-span-7 flex flex-col gap-6">
           <CafeGreeting cafe={cafe} user={user} />
-          <StampProgress currentStamps={currentStamps} totalStamps={totalStamps} />
+          <StampProgress
+            currentStamps={currentStamps}
+            totalStamps={totalStamps}
+            rewards={cafe?.rewards || []}
+          />
 
           {/* 📱 Mobile Quick Present QR Code Bar (< md screens) */}
           <div className="block md:hidden">
@@ -220,7 +221,12 @@ function DedicatedCafePageContent() {
             </button>
           </div>
 
-          <StampsGrid currentStamps={currentStamps} totalStamps={totalStamps} />
+          <StampsGrid
+            currentStamps={currentStamps}
+            totalStamps={totalStamps}
+            animatingStamps={animatingStamps}
+            onAnimationComplete={() => setAnimatingStamps([])}
+          />
 
           {/* 📱 On Mobile, QR card is placed right under StampsGrid so customer doesn't scroll past activities */}
           <div className="block md:hidden">
@@ -256,20 +262,6 @@ function DedicatedCafePageContent() {
           user={user}
           totalStamps={totalStamps}
           onClose={() => setIsQrModalOpen(false)}
-        />
-      )}
-
-      {/* 🌟 Celebratory Barista Stamp Animation Modal */}
-      {stampModalConfig?.isOpen && (
-        <WelcomeStampModal
-          cafe={cafe}
-          isOpen={stampModalConfig.isOpen}
-          onClose={() => setStampModalConfig(null)}
-          totalStamps={totalStamps}
-          stampNumber={stampModalConfig.stampNumber}
-          isWelcome={stampModalConfig.isWelcome}
-          unlockedReward={stampModalConfig.unlockedReward}
-          addedStamps={stampModalConfig.addedStamps}
         />
       )}
     </div>

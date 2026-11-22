@@ -121,3 +121,37 @@ export async function apiGetQrCode() {
   }
   return data;
 }
+
+export async function apiForgotPassword({ email }) {
+  const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to send reset email. Please try again.");
+  }
+  return data;
+}
+
+export async function apiResetPassword({ token, password, confirmPassword }) {
+  const response = await fetch(`${API_BASE}/api/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ token, password, confirmPassword }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to reset password. Please try again.");
+  }
+  return data;
+}

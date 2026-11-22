@@ -1,49 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export const INITIAL_NOTIFICATIONS = [
-  {
-    id: "notif-1",
-    title: "Stamp Collected!",
-    message:
-      "You earned 1 stamp at Downtown Branch. Only 4 more to unlock your free specialty coffee!",
-    time: "2 hours ago",
-    unread: true,
-    type: "stamp",
-  },
-  {
-    id: "notif-2",
-    title: "Reward Getting Closer 🎉",
-    message:
-      "You've collected 6 out of 10 stamps! Keep visiting to earn your reward soon.",
-    time: "Yesterday",
-    unread: true,
-    type: "reward",
-  },
-  {
-    id: "notif-3",
-    title: "Double Stamp Tuesday!",
-    message:
-      "Visit any participating branch between 2 PM and 5 PM tomorrow to earn 2 stamps per drink.",
-    time: "2 days ago",
-    unread: true,
-    type: "promo",
-  },
-  {
-    id: "notif-4",
-    title: "Welcome to Stampy",
-    message:
-      "Your digital loyalty card is all set up. Present your personal QR code at checkout every visit.",
-    time: "5 days ago",
-    unread: false,
-    type: "system",
-  },
-];
+export const INITIAL_NOTIFICATIONS = [];
 
 export const useNotificationStore = create(
   persist(
     (set) => ({
-      notifications: INITIAL_NOTIFICATIONS,
+      notifications: [],
 
       // Add a new notification dynamically to the top of the box
       addNotification: ({ title, message, type = "reward" }) =>

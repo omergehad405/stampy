@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getCafeBySlug } from "../(customer)/cafe/data/cafesCatalog";
 import { apiGetMe, apiUpdateProfile } from "@/app/lib/authApi";
-import { apiJoinCafe, apiLeaveCafe, apiRedeemReward, apiGetMyRedemptions } from "@/app/lib/cafeApi";
+import { apiJoinCafe, apiLeaveCafe, apiRedeemReward, apiGetMyRedemptions, apiGetCustomerActivities } from "@/app/lib/cafeApi";
 import { getAuthToken, removeAuthToken } from "@/app/lib/apiClient";
 import { useNotificationStore } from "./useNotificationStore";
 
@@ -108,17 +108,22 @@ export const useLoyaltyStore = create(
                     lifetimeStamps: c.lifetimeStamps || c.stamps || 0,
                     joinedAt: c.joinedAt || new Date().toISOString(),
                     lastVisitDate: c.lastVisitDate || null,
-                    history: [
-                      {
-                        id: `act-joined-${slug}`,
-                        type: "join",
-                        title: "Joined Loyalty Program",
-                        date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
-                        description: `Enrolled in ${c.name || slug}`,
-                        stampsDelta: 0,
-                      },
-                    ],
-                    redemptions: [],
+                    history:
+                      Array.isArray(c.history) && c.history.length > 0
+                        ? c.history
+                        : get().memberships[slug]?.history || [
+                            {
+                              id: `act-joined-${slug}`,
+                              type: "join",
+                              title: "Joined Loyalty Program",
+                              date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
+                              description: `Enrolled in ${c.name || slug}`,
+                              stampsDelta: 0,
+                            },
+                          ],
+                    redemptions: Array.isArray(c.redemptions)
+                      ? c.redemptions
+                      : get().memberships[slug]?.redemptions || [],
                   };
                 }
               });
@@ -204,17 +209,22 @@ export const useLoyaltyStore = create(
                 lifetimeStamps: c.lifetimeStamps || c.stamps || 0,
                 joinedAt: c.joinedAt || new Date().toISOString(),
                 lastVisitDate: c.lastVisitDate || null,
-                history: [
-                  {
-                    id: `act-joined-${slug}`,
-                    type: "join",
-                    title: "Joined Loyalty Program",
-                    date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
-                    description: `Enrolled in ${c.name || slug}`,
-                    stampsDelta: 0,
-                  },
-                ],
-                redemptions: [],
+                history:
+                  Array.isArray(c.history) && c.history.length > 0
+                    ? c.history
+                    : get().memberships[slug]?.history || [
+                        {
+                          id: `act-joined-${slug}`,
+                          type: "join",
+                          title: "Joined Loyalty Program",
+                          date: c.joinedAt ? new Date(c.joinedAt).toLocaleDateString() : "Recently",
+                          description: `Enrolled in ${c.name || slug}`,
+                          stampsDelta: 0,
+                        },
+                      ],
+                redemptions: Array.isArray(c.redemptions)
+                  ? c.redemptions
+                  : get().memberships[slug]?.redemptions || [],
               };
             }
           });
@@ -502,6 +512,31 @@ export const useLoyaltyStore = create(
         }
 
         return { success: true };
+      },
+
+      // Fetch real customer activities (visits, stamps, redemptions) from server for a cafe
+      fetchCafeActivities: async (cafeSlug) => {
+        try {
+          const activities = await apiGetCustomerActivities(cafeSlug);
+          if (Array.isArray(activities)) {
+            set((state) => {
+              const currentMembership = state.memberships[cafeSlug] || {};
+              return {
+                memberships: {
+                  ...state.memberships,
+                  [cafeSlug]: {
+                    ...currentMembership,
+                    history: activities,
+                  },
+                },
+              };
+            });
+            return { success: true, activities };
+          }
+        } catch (err) {
+          console.warn("[Loyalty Store] fetchCafeActivities error:", err.message);
+        }
+        return { success: false, activities: [] };
       },
 
       // Fetch real customer redemptions from server for a cafe
