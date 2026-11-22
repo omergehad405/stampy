@@ -2,7 +2,7 @@
 
 @layer base {
   :root {
-    --mainColor: #3b2418;
+    --mainColor: #271307;
     --secondColor: #8ec5ff;
     --bgColor: #f2ebda;
   }
@@ -10,7 +10,7 @@
   .dark {
     --mainColor: #f2ebda;
     --secondColor: #8ec5ff;
-    --bgColor: #3b2418;
+    --bgColor: #271307;
   }
 
   * {
