@@ -13,7 +13,7 @@ export default function ReturnRateCard({ returnRate, newVsReturning, sampleSizeM
   return (
     <SectionCard
       title="Returning and new customers"
-      description="A returning customer visited at least twice during the selected period"
+      description="Return rate counts customers with 2 or more visits in this range. New vs. returning compares each customer's first recorded visit with this range."
       className="h-full"
     >
       {isLoading ? (

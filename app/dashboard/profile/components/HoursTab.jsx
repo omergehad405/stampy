@@ -25,6 +25,34 @@ export default function HoursTab({
         </p>
       </div>
 
+      <div>
+        <label
+          htmlFor="cafe-timezone"
+          className="mb-1.5 block text-xs font-bold text-(--bgColor)"
+        >
+          Time zone
+        </label>
+        <input
+          id="cafe-timezone"
+          type="text"
+          value={profileForm.openingHours.timezone}
+          onChange={(event) =>
+            setProfileForm({
+              ...profileForm,
+              openingHours: {
+                ...profileForm.openingHours,
+                timezone: event.target.value,
+              },
+            })
+          }
+          placeholder="Africa/Cairo"
+          className="h-10 w-full rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
+        />
+        <p className="mt-1 text-[11px] text-(--bgColor)/60">
+          Analytics groups visits using this time zone. Egypt: Africa/Cairo.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between">
         <button
           type="button"

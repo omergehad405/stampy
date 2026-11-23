@@ -195,7 +195,7 @@ const cafeSchema = new mongoose.Schema(
     openingHours: {
       timezone: {
         type: String,
-        default: "Europe/London",
+        default: "Africa/Cairo",
       },
       holidayNotice: {
         type: String,

@@ -92,8 +92,9 @@ const isCafeSubscriptionExpired = async (cafe) => {
  */
 const getPublicCafes = async (req, res) => {
   try {
-    const cafes = await Cafe.find({ isActive: true, status: "active" }).sort({ createdAt: -1 });
-
+    const cafes = await Cafe.find({ isActive: true, status: "active" })
+      .select("-customers")
+      .sort({ createdAt: -1 });
     // Fetch rewards for all cafes to attach reward counts & preview
     const cafeIds = cafes.map((c) => c._id);
     const allRewards = await Reward.find({
@@ -179,7 +180,7 @@ const getCafeBySlug = async (req, res) => {
       ? { $or: [{ slug: slugOrId.toLowerCase() }, { _id: slugOrId }] }
       : { slug: slugOrId.toLowerCase() };
 
-    const cafe = await Cafe.findOne(query);
+    const cafe = await Cafe.findOne(query).select("-customers");
 
     if (!cafe) {
       return res.status(404).json({
@@ -392,8 +393,34 @@ const updateMyCafeProfile = async (req, res) => {
 
     // Opening Hours
     if (openingHours && typeof openingHours === "object") {
+      if (openingHours.timezone !== undefined) {
+        if (
+          typeof openingHours.timezone !== "string" ||
+          !openingHours.timezone.trim()
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: "A valid IANA time zone is required.",
+          });
+        }
+
+        try {
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: openingHours.timezone.trim(),
+          });
+        } catch (error) {
+          if (error instanceof RangeError) {
+            return res.status(400).json({
+              success: false,
+              message: "A valid IANA time zone is required.",
+            });
+          }
+          throw error;
+        }
+      }
+
       cafe.openingHours = {
-        timezone: openingHours.timezone || cafe.openingHours?.timezone || "Europe/London",
+        timezone: openingHours.timezone || cafe.openingHours?.timezone || "Africa/Cairo",
         holidayNotice:
           openingHours.holidayNotice !== undefined
             ? openingHours.holidayNotice

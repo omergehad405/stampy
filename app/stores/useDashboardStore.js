@@ -60,7 +60,7 @@ const EMPTY_CAFE = {
     googleMapsReviewUrl: "",
   },
   openingHours: {
-    timezone: "Europe/London",
+    timezone: "Africa/Cairo",
     holidayNotice: "",
     schedule: [
       { day: "Monday", open: "07:30", close: "19:00", isClosed: false },
@@ -121,7 +121,7 @@ export const useDashboardStore = create((set, get) => ({
     emailDigests: true,
     instantScanNotification: true,
     autoRewardAlert: true,
-    timezone: "Europe/London",
+    timezone: "Africa/Cairo",
   },
 
   // === VISITS & STAMPS ACTIONS ===

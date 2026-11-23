@@ -38,7 +38,7 @@ const formatCafeResponse = (cafe) => {
     accentColor: cafe.accentColor || "#3B2418",
     about: cafe.about || { shortDescription: "", fullDescription: "", highlights: [] },
     location: cafe.location || {},
-    openingHours: cafe.openingHours || { timezone: "Europe/London", holidayNotice: "", schedule: [] },
+    openingHours: cafe.openingHours || { timezone: "Africa/Cairo", holidayNotice: "", schedule: [] },
     contact: cafe.contact || {},
     website: cafe.website || { url: "", displayUrl: "" },
     socialMedia: cafe.socialMedia || {},

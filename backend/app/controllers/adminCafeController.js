@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Cafe = require("../models/Cafe");
-
+const mongoose = require("mongoose");
+const { Plan } = require("../models/Plan");
 /**
  * Generate a URL-friendly, unique slug from cafe name
  */

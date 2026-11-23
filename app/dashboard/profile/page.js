@@ -90,7 +90,7 @@ const buildProfileForm = (cafe) => ({
     googleMapsReviewUrl: cafe?.location?.googleMapsReviewUrl || "",
   },
   openingHours: {
-    timezone: cafe?.openingHours?.timezone || "Europe/London",
+    timezone: cafe?.openingHours?.timezone || "Africa/Cairo",
     holidayNotice: cafe?.openingHours?.holidayNotice || "",
     schedule: sanitizeSchedule(cafe?.openingHours?.schedule),
   },

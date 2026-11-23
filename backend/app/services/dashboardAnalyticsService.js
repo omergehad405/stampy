@@ -13,7 +13,7 @@ const SAMPLE_SIZE_MINIMUM =
     : 10;
 
 const aggregateActivitySummary = async (cafeId, start, end) => {
-  const [summary, stampsIssued] = await Promise.all([
+  const [summaryRows, stampsIssued] = await Promise.all([
     Activity.aggregate([
       {
         $match: {
@@ -40,6 +40,7 @@ const aggregateActivitySummary = async (cafeId, start, end) => {
     ]),
     aggregateStampsIssued(cafeId, start, end),
   ]);
+  const summary = summaryRows[0];
 
   return {
     visits: summary?.visits || 0,
@@ -206,12 +207,18 @@ const getPeakHours = async (cafeId, start, end, timezone = CAIRO_TIMEZONE) =>
             timezone,
           },
         },
+        weekday: {
+          $dayOfWeek: {
+            date: "$createdAt",
+            timezone,
+          },
+        },
       },
     },
     {
       $group: {
         _id: {
-          weekday: "$localDate.dayOfWeek",
+          weekday: "$weekday",
           hour: "$localDate.hour",
         },
         visits: { $sum: 1 },
