@@ -307,19 +307,32 @@ export default function DashboardScanPage() {
       return;
     }
 
+    let isDetecting = false;
     const intervalId = setInterval(async () => {
       // Don't auto-scan while a modal is already open
-      if (!isScanning || scanModal?.isOpen || !videoRef.current || videoRef.current.readyState < 2) {
+      if (
+        !isScanning ||
+        isDetecting ||
+        scanModal?.isOpen ||
+        !videoRef.current ||
+        videoRef.current.readyState < 2
+      ) {
         return;
       }
+
+      isDetecting = true;
       try {
         const barcodes = await detector.detect(videoRef.current);
         if (barcodes.length > 0 && barcodes[0].rawValue) {
           const raw = barcodes[0].rawValue;
-          handleIdentifyCustomer(raw);
+          isScanning = false;
+          stopCamera();
+          await handleIdentifyCustomer(raw);
         }
       } catch {
         // frame busy or no barcode detected in frame
+      } finally {
+        isDetecting = false;
       }
     }, 450);
 
@@ -327,7 +340,7 @@ export default function DashboardScanPage() {
       isScanning = false;
       clearInterval(intervalId);
     };
-  }, [isCameraActive, handleIdentifyCustomer, scanModal?.isOpen]);
+  }, [isCameraActive, handleIdentifyCustomer, scanModal?.isOpen, stopCamera]);
 
   // Award stamp from the centered modal popup
   const handleAwardStampFromModal = async () => {
