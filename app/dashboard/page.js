@@ -31,6 +31,7 @@ export default function DashboardOverviewPage() {
     isLoadingActivities,
   } = useDashboardStore();
   const { currentUser } = useDashboardAuthStore();
+  const [now, setNow] = useState(null);
 
   // Load live data from server on initial mount
   useEffect(() => {
@@ -39,6 +40,11 @@ export default function DashboardOverviewPage() {
     fetchRewards();
     fetchCafeProfile();
   }, [fetchCustomers, fetchActivities, fetchRewards, fetchCafeProfile]);
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => setNow(new Date()), 0);
+    return () => window.clearTimeout(timerId);
+  }, []);
 
   // Calculate dynamic metrics
   const totalCustomers = customers.length || cafe.customerCount || 0;
@@ -72,18 +78,19 @@ export default function DashboardOverviewPage() {
     cafe.totalRewardsRedeemed || 0,
   );
 
-  const now = new Date();
-  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfPreviousMonth = new Date(
-    now.getFullYear(),
-    now.getMonth() - 1,
-    1,
-  );
-  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - 7);
-  const startOfThirtyDays = new Date(now);
-  startOfThirtyDays.setDate(now.getDate() - 30);
+  const startOfCurrentMonth = now
+    ? new Date(now.getFullYear(), now.getMonth(), 1)
+    : null;
+  const startOfPreviousMonth = now
+    ? new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    : null;
+  const startOfNextMonth = now
+    ? new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    : null;
+  const startOfWeek = now ? new Date(now) : null;
+  if (startOfWeek) startOfWeek.setDate(now.getDate() - 7);
+  const startOfThirtyDays = now ? new Date(now) : null;
+  if (startOfThirtyDays) startOfThirtyDays.setDate(now.getDate() - 30);
 
   const getCustomerJoinDate = (customer) => {
     const raw =
@@ -93,21 +100,27 @@ export default function DashboardOverviewPage() {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   };
 
-  const currentMonthCustomers = customers.filter((customer) => {
-    const joinDate = getCustomerJoinDate(customer);
-    return (
-      joinDate && joinDate >= startOfCurrentMonth && joinDate < startOfNextMonth
-    );
-  }).length;
+  const currentMonthCustomers = now
+    ? customers.filter((customer) => {
+        const joinDate = getCustomerJoinDate(customer);
+        return (
+          joinDate &&
+          joinDate >= startOfCurrentMonth &&
+          joinDate < startOfNextMonth
+        );
+      }).length
+    : 0;
 
-  const previousMonthCustomers = customers.filter((customer) => {
-    const joinDate = getCustomerJoinDate(customer);
-    return (
-      joinDate &&
-      joinDate >= startOfPreviousMonth &&
-      joinDate < startOfCurrentMonth
-    );
-  }).length;
+  const previousMonthCustomers = now
+    ? customers.filter((customer) => {
+        const joinDate = getCustomerJoinDate(customer);
+        return (
+          joinDate &&
+          joinDate >= startOfPreviousMonth &&
+          joinDate < startOfCurrentMonth
+        );
+      }).length
+    : 0;
 
   const monthlyCustomerGrowth =
     previousMonthCustomers > 0
@@ -119,18 +132,24 @@ export default function DashboardOverviewPage() {
       : currentMonthCustomers > 0
         ? 100
         : 0;
-  const monthlyCustomerGrowthLabel = `${monthlyCustomerGrowth > 0 ? "+" : ""}${monthlyCustomerGrowth}% this month`;
+  const monthlyCustomerGrowthLabel = now
+    ? `${monthlyCustomerGrowth > 0 ? "+" : ""}${monthlyCustomerGrowth}% this month`
+    : "Calculating...";
 
-  const weeklyStampDelta = activities
-    .filter((activity) => {
-      const activityDate = new Date(
-        activity.createdAt || activity.timestamp || activity.date,
-      );
-      if (Number.isNaN(activityDate.getTime())) return false;
-      return activityDate >= startOfWeek && (activity.stampsDelta || 0) > 0;
-    })
-    .reduce((sum, activity) => sum + (activity.stampsDelta || 0), 0);
-  const weeklyStampLabel = `${weeklyStampDelta > 0 ? "+" : ""}${weeklyStampDelta} this week`;
+  const weeklyStampDelta = now
+    ? activities
+        .filter((activity) => {
+          const activityDate = new Date(
+            activity.createdAt || activity.timestamp || activity.date,
+          );
+          if (Number.isNaN(activityDate.getTime())) return false;
+          return activityDate >= startOfWeek && (activity.stampsDelta || 0) > 0;
+        })
+        .reduce((sum, activity) => sum + (activity.stampsDelta || 0), 0)
+    : 0;
+  const weeklyStampLabel = now
+    ? `${weeklyStampDelta > 0 ? "+" : ""}${weeklyStampDelta} this week`
+    : "Calculating...";
 
   const conversionRate =
     totalStampsIssued > 0
@@ -138,18 +157,22 @@ export default function DashboardOverviewPage() {
       : "0.0";
 
   const activeCustomerIdsLast30Days = new Set(
-    activities
-      .filter((activity) => {
-        const activityDate = new Date(
-          activity.createdAt || activity.timestamp || activity.date,
-        );
-        if (Number.isNaN(activityDate.getTime())) return false;
-        return activityDate >= startOfThirtyDays;
-      })
-      .map((activity) => activity.customerId || activity.customerName)
-      .filter(Boolean),
+    now
+      ? activities
+          .filter((activity) => {
+            const activityDate = new Date(
+              activity.createdAt || activity.timestamp || activity.date,
+            );
+            if (Number.isNaN(activityDate.getTime())) return false;
+            return activityDate >= startOfThirtyDays;
+          })
+          .map((activity) => activity.customerId || activity.customerName)
+          .filter(Boolean)
+      : [],
   );
-  const activeRateDeltaLabel = `${activeCustomerIdsLast30Days.size} active in 30d`;
+  const activeRateDeltaLabel = now
+    ? `${activeCustomerIdsLast30Days.size} active in 30d`
+    : "Calculating...";
 
   return (
     <div className="space-y-7">

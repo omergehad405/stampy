@@ -1,10 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useParams } from "next/navigation";
 import { API_BASE } from "@/app/lib/apiClient";
 
 export default function UnsubscribePage() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          lang="en"
+          className="flex min-h-screen items-center justify-center bg-[#F2EBDA] p-5 text-[#3B2418]"
+        >
+          <p>Loading email preferences...</p>
+        </main>
+      }
+    >
+      <UnsubscribeContent />
+    </Suspense>
+  );
+}
+
+function UnsubscribeContent() {
   const { token } = useParams();
   const [status, setStatus] = useState("ready");
   const [message, setMessage] = useState("");
