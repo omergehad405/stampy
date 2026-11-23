@@ -107,10 +107,10 @@ const aggregateRedeemedRewards = async (cafeId, start, end) =>
     usedAt: { $gte: start, $lt: end },
   });
 
-const fillVisitDates = (visits, start, end) => {
+const fillVisitDates = (visits, start, end, timezone = CAIRO_TIMEZONE) => {
   const visitsByDate = new Map(visits.map((visit) => [visit.date, visit.visits]));
   const dateFormatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: CAIRO_TIMEZONE,
+    timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -159,7 +159,12 @@ const getSummaryStats = async (cafeId, start, end, previousStart) => {
   );
 };
 
-const getVisitsOverTime = async (cafeId, start, end) =>
+const getVisitsOverTime = async (
+  cafeId,
+  start,
+  end,
+  timezone = CAIRO_TIMEZONE
+) =>
   Activity.aggregate([
     {
       $match: {
@@ -174,7 +179,7 @@ const getVisitsOverTime = async (cafeId, start, end) =>
           $dateToString: {
             format: "%Y-%m-%d",
             date: "$createdAt",
-            timezone: CAIRO_TIMEZONE,
+            timezone,
           },
         },
         visits: { $sum: 1 },
@@ -184,7 +189,7 @@ const getVisitsOverTime = async (cafeId, start, end) =>
     { $project: { _id: 0, date: "$_id", visits: 1 } },
   ]);
 
-const getPeakHours = async (cafeId, start, end) =>
+const getPeakHours = async (cafeId, start, end, timezone = CAIRO_TIMEZONE) =>
   Activity.aggregate([
     {
       $match: {
@@ -195,10 +200,10 @@ const getPeakHours = async (cafeId, start, end) =>
     },
     {
       $addFields: {
-        cairoDate: {
+        localDate: {
           $dateToParts: {
             date: "$createdAt",
-            timezone: CAIRO_TIMEZONE,
+            timezone,
           },
         },
       },
@@ -206,8 +211,8 @@ const getPeakHours = async (cafeId, start, end) =>
     {
       $group: {
         _id: {
-          weekday: "$cairoDate.dayOfWeek",
-          hour: "$cairoDate.hour",
+          weekday: "$localDate.dayOfWeek",
+          hour: "$localDate.hour",
         },
         visits: { $sum: 1 },
       },
@@ -411,6 +416,7 @@ const getDashboardAnalytics = async ({
   previousStart,
   atRiskDays,
   now,
+  timezone = CAIRO_TIMEZONE,
 }) => {
   const [
     stats,
@@ -422,8 +428,8 @@ const getDashboardAnalytics = async ({
     topCustomers,
   ] = await Promise.all([
     getSummaryStats(cafeId, start, end, previousStart),
-    getVisitsOverTime(cafeId, start, end),
-    getPeakHours(cafeId, start, end),
+    getVisitsOverTime(cafeId, start, end, timezone),
+    getPeakHours(cafeId, start, end, timezone),
     getReturnAndCustomerBreakdown(cafeId, start, end),
     getRewardsFunnel(cafeId, start, end),
     getAtRiskCustomers(cafeId, atRiskDays, now),
@@ -432,7 +438,8 @@ const getDashboardAnalytics = async ({
 
   return {
     stats,
-    visitsOverTime: fillVisitDates(visitsOverTime, start, end),
+    visitsOverTime: fillVisitDates(visitsOverTime, start, end, timezone),
+    timezone,
     peakHours,
     ...customerMetrics,
     rewardsFunnel,

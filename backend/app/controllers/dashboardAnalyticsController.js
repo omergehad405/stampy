@@ -31,6 +31,7 @@ const getAnalytics = async (req, res) => {
     const end = now;
     const start = new Date(now.getTime() - duration);
     const previousStart = new Date(start.getTime() - duration);
+    const timezone = req.cafe.openingHours?.timezone || "Africa/Cairo";
     const data = await getDashboardAnalytics({
       cafeId: req.cafe._id,
       start,
@@ -38,6 +39,7 @@ const getAnalytics = async (req, res) => {
       previousStart,
       atRiskDays,
       now,
+      timezone,
     });
 
     return res.status(200).json({

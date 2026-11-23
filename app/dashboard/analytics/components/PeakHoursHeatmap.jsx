@@ -12,7 +12,11 @@ const WEEKDAYS = [
   "Saturday",
 ];
 
-export default function PeakHoursHeatmap({ data = [], isLoading }) {
+export default function PeakHoursHeatmap({
+  data = [],
+  timezone = "local",
+  isLoading,
+}) {
   const values = new Map(
     data.map((cell) => [`${cell.weekday}-${cell.hour}`, cell.visits])
   );
@@ -21,7 +25,7 @@ export default function PeakHoursHeatmap({ data = [], isLoading }) {
   return (
     <SectionCard
       title="Peak hours and days"
-      description="Visits by weekday and hour in Africa/Cairo time"
+      description={`Visits by weekday and hour in ${timezone} time`}
     >
       {isLoading ? (
         <SectionSkeleton rows={8} />
