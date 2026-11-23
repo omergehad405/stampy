@@ -1,5 +1,6 @@
 import MarketingHeader from "./components/MarketingHeader";
 import MarketingFooter from "./components/MarketingFooter";
+import MarketingAgentTools from "./components/MarketingAgentTools";
 
 const SITE_URL = "https://notchloyalty.com";
 const OG_IMAGE = `${SITE_URL}/og-image.png`;
@@ -77,6 +78,7 @@ export default function MarketingLayout({ children }) {
       <MarketingHeader />
       <div className="flex-1">{children}</div>
       <MarketingFooter />
+      <MarketingAgentTools />
     </div>
   );
 }

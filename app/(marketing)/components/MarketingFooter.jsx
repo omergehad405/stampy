@@ -3,17 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FaInstagram, FaXTwitter, FaLinkedinIn } from "react-icons/fa6";
-import { LuCoffee, LuHeart } from "react-icons/lu";
 import { BRAND, FOOTER_LINKS } from "../content";
 
 export default function MarketingFooter() {
-  const socialIcons = {
-    instagram: FaInstagram,
-    x: FaXTwitter,
-    linkedin: FaLinkedinIn,
-  };
-
   return (
     <footer className="relative mt-20 border-t border-(--mainColor)/15 bg-(--mainColor)/5 text-(--mainColor) transition-colors">
       {/* Visual Perforation Motif (Punch card dotted line) */}
@@ -46,10 +38,9 @@ export default function MarketingFooter() {
               {BRAND.description}
             </p>
 
-            <div className="flex items-center gap-2.5 pt-2">
-              {FOOTER_LINKS.socials.map((soc) => {
-                const IconComponent = socialIcons[soc.icon] || LuCoffee;
-                return (
+            {FOOTER_LINKS.socials.length > 0 && (
+              <div className="flex items-center gap-2.5 pt-2">
+                {FOOTER_LINKS.socials.map((soc) => (
                   <a
                     key={soc.name}
                     href={soc.href}
@@ -58,11 +49,11 @@ export default function MarketingFooter() {
                     aria-label={soc.name}
                     className="flex h-9 w-9 items-center justify-center rounded-full border border-(--mainColor)/15 text-(--mainColor)/75 transition hover:border-(--mainColor) hover:bg-(--mainColor) hover:text-(--bgColor)"
                   >
-                    <IconComponent className="h-4 w-4" />
+                    {soc.name}
                   </a>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Column: Product */}

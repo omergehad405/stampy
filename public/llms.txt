@@ -1,0 +1,21 @@
+# Notch
+
+> Notch is a digital loyalty and growth platform for independent cafes in Egypt. Customers collect QR-based visit stamps and rewards, while cafes manage loyalty programs, online menus, and discovery.
+
+## Website
+
+- Home: https://notchloyalty.com/
+- About: https://notchloyalty.com/about
+- Features: https://notchloyalty.com/features
+- How it works: https://notchloyalty.com/how-it-works
+- Pricing: https://notchloyalty.com/pricing
+
+## Contact
+
+- Cafe partnerships and support: https://notchloyalty.com/contact
+- Email: mailto:info@notchloyalty.com
+
+## Policies
+
+- Privacy policy: https://notchloyalty.com/privacy
+- Terms of service: https://notchloyalty.com/terms

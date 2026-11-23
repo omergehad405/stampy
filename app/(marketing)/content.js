@@ -27,6 +27,7 @@ export const FOOTER_LINKS = {
     { label: "Cafe Dashboard", href: "/login?as=cafe" },
   ],
   community: [
+    { label: "About Notch", href: "/about" },
     { label: "Partner Cafes in Egypt", href: "/contact" },
     { label: "Apply Your Cafe", href: "/contact" },
     { label: "Customer Login", href: "/login?as=customer" },
@@ -35,11 +36,7 @@ export const FOOTER_LINKS = {
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms of Service", href: "/terms" },
   ],
-  socials: [
-    { name: "Instagram", href: "https://instagram.com", icon: "instagram" },
-    { name: "Twitter / X", href: "https://x.com", icon: "x" },
-    { name: "LinkedIn", href: "https://linkedin.com", icon: "linkedin" },
-  ],
+  socials: [],
 };
 
 export const HERO_CONTENT = {
