@@ -45,7 +45,9 @@ export default function DashboardAnalyticsPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-(--mainColor)/65">
-          Peak hours use Africa/Cairo local time.
+          Metrics use the selected date range. Stamps issued are gross grants
+          and are not reduced when customers redeem rewards. Peak hours use
+          Africa/Cairo local time.
         </p>
         <RangeSelector value={range} onChange={setRange} />
       </div>

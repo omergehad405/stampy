@@ -13,38 +13,91 @@ const SAMPLE_SIZE_MINIMUM =
     : 10;
 
 const aggregateActivitySummary = async (cafeId, start, end) => {
-  const [summary] = await Activity.aggregate([
-    {
-      $match: {
-        cafeId,
-        type: "stamp",
-        createdAt: { $gte: start, $lt: end },
-      },
-    },
-    {
-      $group: {
-        _id: "$customerId",
-        visits: { $sum: 1 },
-        stampsIssued: { $sum: { $max: ["$stampsDelta", 0] } },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        visits: { $sum: "$visits" },
-        customers: {
-          $sum: { $cond: [{ $ne: ["$_id", null] }, 1, 0] },
+  const [summary, stampsIssued] = await Promise.all([
+    Activity.aggregate([
+      {
+        $match: {
+          cafeId,
+          type: "stamp",
+          createdAt: { $gte: start, $lt: end },
         },
-        stampsIssued: { $sum: "$stampsIssued" },
       },
-    },
+      {
+        $group: {
+          _id: "$customerId",
+          visits: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          visits: { $sum: "$visits" },
+          customers: {
+            $sum: { $cond: [{ $ne: ["$_id", null] }, 1, 0] },
+          },
+        },
+      },
+    ]),
+    aggregateStampsIssued(cafeId, start, end),
   ]);
 
   return {
     visits: summary?.visits || 0,
     customers: summary?.customers || 0,
-    stampsIssued: summary?.stampsIssued || 0,
+    stampsIssued,
   };
+};
+
+const aggregateStampsIssued = async (cafeId, start, end) => {
+  const [periodSummary, legacySummary] = await Promise.all([
+    Activity.aggregate([
+      {
+        $match: {
+          cafeId,
+          type: { $in: ["stamp", "join"] },
+          createdAt: { $gte: start, $lt: end },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $max: ["$stampsDelta", 0] } },
+        },
+      },
+    ]),
+    Activity.aggregate([
+      {
+        $match: {
+          cafeId,
+          type: { $in: ["stamp", "join", "redemption"] },
+          customerId: { $ne: null },
+          createdAt: { $lt: end },
+        },
+      },
+      { $sort: { createdAt: 1, _id: 1 } },
+      {
+        $group: {
+          _id: "$customerId",
+          firstActivityType: { $first: "$type" },
+          firstActivityDate: { $first: "$createdAt" },
+          firstActivityStampsDelta: {
+            $first: { $ifNull: ["$stampsDelta", 0] },
+          },
+        },
+      },
+      // Older enrollment activities recorded the granted stamp as a zero delta.
+      {
+        $match: {
+          firstActivityType: "join",
+          firstActivityDate: { $gte: start },
+          firstActivityStampsDelta: { $lte: 0 },
+        },
+      },
+      { $count: "total" },
+    ]),
+  ]);
+
+  return (periodSummary[0]?.total || 0) + (legacySummary[0]?.total || 0);
 };
 
 const aggregateRedeemedRewards = async (cafeId, start, end) =>
@@ -259,22 +312,8 @@ const getReturnAndCustomerBreakdown = async (cafeId, start, end) => {
 };
 
 const getRewardsFunnel = async (cafeId, start, end) => {
-  const [stamps, earned, redeemed] = await Promise.all([
-    Activity.aggregate([
-      {
-        $match: {
-          cafeId,
-          type: "stamp",
-          createdAt: { $gte: start, $lt: end },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: { $max: ["$stampsDelta", 0] } },
-        },
-      },
-    ]),
+  const [stampsIssued, earned, redeemed] = await Promise.all([
+    aggregateStampsIssued(cafeId, start, end),
     Redemption.countDocuments({
       cafeId,
       createdAt: { $gte: start, $lt: end },
@@ -285,8 +324,6 @@ const getRewardsFunnel = async (cafeId, start, end) => {
       createdAt: { $gte: start, $lt: end },
     }),
   ]);
-
-  const stampsIssued = stamps[0]?.total || 0;
 
   return {
     stampsIssued,
@@ -403,6 +440,7 @@ const getDashboardAnalytics = async ({
     topCustomers,
     hasData:
       stats.visits.value > 0 ||
+      stats.stampsIssued.value > 0 ||
       stats.rewardsRedeemed.value > 0 ||
       rewardsFunnel.rewardsEarned > 0 ||
       atRiskCustomers.length > 0,

@@ -544,19 +544,21 @@ const joinCafe = async (req, res) => {
       (c) => c.userId && c.userId.toString() === user._id.toString()
     );
 
+    const initialStampIssued = existingUserIndex < 0 ? 1 : 0;
     let userMembership;
 
     if (existingUserIndex >= 0) {
       userMembership = user.cafes[existingUserIndex];
     } else {
+      const joinedAt = new Date();
       userMembership = {
         cafeId: cafe._id,
-        joinedAt: new Date(),
+        joinedAt,
         stamps: 1,
         totalVisits: 1,
         lifetimeStamps: 1,
         rewardsRedeemedCount: 0,
-        lastVisitDate: new Date(),
+        lastVisitDate: joinedAt,
       };
       user.cafes.push(userMembership);
       user.joinedCafes = user.cafes.length;
@@ -568,16 +570,29 @@ const joinCafe = async (req, res) => {
     if (existingCafeCustomerIndex < 0) {
       cafe.customers.push({
         userId: user._id,
-        joinedAt: new Date(),
-        stamps: userMembership.stamps || 1,
-        totalVisits: 1,
-        lifetimeStamps: 1,
-        rewardsRedeemedCount: 0,
-        lastVisitDate: new Date(),
+        joinedAt: userMembership.joinedAt || new Date(),
+        stamps: userMembership.stamps ?? 0,
+        totalVisits: userMembership.totalVisits ?? 0,
+        lifetimeStamps: userMembership.lifetimeStamps ?? 0,
+        rewardsRedeemedCount: userMembership.rewardsRedeemedCount ?? 0,
+        lastVisitDate: userMembership.lastVisitDate || null,
         status: "active",
       });
       cafe.customerCount = cafe.customers.length;
-      cafe.totalStampsIssued = (cafe.totalStampsIssued || 0) + 1;
+    } else if (initialStampIssued) {
+      const cafeCustomer = cafe.customers[existingCafeCustomerIndex];
+      cafeCustomer.stamps = userMembership.stamps;
+      cafeCustomer.totalVisits = userMembership.totalVisits;
+      cafeCustomer.lifetimeStamps = userMembership.lifetimeStamps;
+      cafeCustomer.lastVisitDate = userMembership.lastVisitDate;
+      cafeCustomer.status = "active";
+    }
+
+    if (initialStampIssued) {
+      cafe.totalStampsIssued = (cafe.totalStampsIssued || 0) + initialStampIssued;
+    }
+
+    if (existingCafeCustomerIndex < 0 || initialStampIssued) {
       await cafe.save();
     }
 
@@ -588,9 +603,11 @@ const joinCafe = async (req, res) => {
         title: "New Member Enrolled",
         customerName: user.name,
         customerId: user._id,
-        stampsDelta: 0,
+        stampsDelta: initialStampIssued,
         staffName: "System",
-        note: "Customer enrolled in cafe loyalty program",
+        note: initialStampIssued
+          ? "Customer enrolled and received an initial stamp"
+          : "Customer enrollment checked",
       });
     } catch (actErr) {
       console.warn("[joinCafe] Could not record activity:", actErr.message);
