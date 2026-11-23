@@ -70,6 +70,8 @@ activitySchema.set("toJSON", {
   },
 });
 
+activitySchema.index({ cafeId: 1, type: 1, createdAt: -1 });
+
 const Activity =
   mongoose.models.Activity || mongoose.model("Activity", activitySchema);
 

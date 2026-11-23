@@ -23,7 +23,7 @@ Notch is structured as a full-stack unified Node.js application combining **Next
   - `backend/app/models/`: Mongoose schemas for Users, Cafes, Rewards, Redemptions, Plans, Announcements, and Activity.
   - `backend/app/controllers/`: Business logic and database operations for Auth, Cafes, Rewards, Admin, and Dashboard.
   - `backend/app/routing/`: Express route definitions.
-  - `backend/app/middlewares/`: Authentication and role-based access control (`authMiddleware.js`).
+  - `backend/app/middlewares/`: Authentication, role-based access control, and subscription feature enforcement.
   - `backend/utils/`: JWT token generator and Nodemailer transactional email utility.
   - `backend/scripts/`: Migration, seeding, and automated endpoint verification scripts.
 
@@ -85,7 +85,7 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | :--- | :--- |
 | `backend/config/db.js` | Establishes and manages the Mongoose connection to MongoDB with connection pooling and caching. |
 | `backend/utils/generateToken.js` | Generates signed JSON Web Tokens (JWT) for authenticated customer, staff, and admin sessions. |
-| `backend/utils/sendEmail.js` | Configures Nodemailer to dispatch transactional emails (e.g., password reset links, verification codes). |
+| `backend/utils/sendEmail.js` | Configures the shared Nodemailer transport for transactional email and cafe email campaigns. |
 | `backend/.env.example` | Template demonstrating required environment variable keys for the backend. |
 | `backend/routes/authRoutes.js` | Compatibility shim re-exporting `backend/app/routing/authRoutes.js`. |
 
@@ -94,15 +94,17 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | :--- | :--- |
 | `backend/app/expressApp.js` | Express app initialization. Configures CORS rules, body parsers, cookie parser, health-check endpoint (`/api/health`), and mounts all API routers. |
 | `backend/app/middlewares/authMiddleware.js` | Middleware functions: `protect` (verifies JWT from Bearer header or cookie), `adminOnly` (restricts to role `admin`), `cafeStaffOnly` (restricts to cafe staff/owners), and subscription plan checks. |
+| `backend/app/middlewares/planFeatureMiddleware.js` | Resolves the authenticated cafe and enforces active subscription-plan feature entitlements for protected dashboard APIs. |
 
 #### Database Models (`backend/app/models/`)
 | File | Purpose |
 | :--- | :--- |
 | `backend/app/models/User.js` | Mongoose schema for all users (customers, staff, admins): credentials, profile, member code, personal QR code payload, and role definitions. |
-| `backend/app/models/Cafe.js` | Mongoose schema for cafes: name, slug, logo, cover image, stamp card configuration, address, opening hours, social links, subscription status, and linked staff accounts. |
+| `backend/app/models/Cafe.js` | Mongoose schema for cafes: name, slug, logo, cover image, stamp card configuration, address, opening hours, social links, subscription status, linked staff accounts, and per-customer email unsubscribe status. |
 | `backend/app/models/Reward.js` | Mongoose schema for cafe loyalty rewards: title, stamp cost, description, validity dates, stock limits, and active status. |
-| `backend/app/models/Redemption.js` | Mongoose schema recording reward redemptions: customer ID, cafe ID, reward ID, redemption code/QR, status (`pending`, `completed`, `cancelled`), and completion timestamps. |
-| `backend/app/models/Plan.js` | Mongoose schema for business subscription plans: plan name, pricing, tier limits (max customers, staff accounts, rewards). |
+| `backend/app/models/Redemption.js` | Mongoose schema recording timestamped reward claims and fulfillment: customer ID, cafe ID, reward ID, redemption code/QR, status, and `usedAt`, with cafe/date indexes for analytics. |
+| `backend/app/models/Plan.js` | Mongoose schema for business subscription plans: plan name, pricing, tier limits, and feature entitlements including Notifications and Analytics. |
+| `backend/app/models/EmailCampaign.js` | Stores cafe-scoped email campaign content, delivery counts, status, and timestamps (not individual recipients). |
 | `backend/app/models/Announcement.js` | Mongoose schema for system announcements displayed to customers or cafe dashboards. |
 | `backend/app/models/Activity.js` | Mongoose schema recording audit history: stamp grants, reward redemptions, staff actions, and visit timestamps. |
 
@@ -115,7 +117,10 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | `backend/app/controllers/adminCafeController.js` | Admin cafe management: view all cafes, approve/reject applications, edit cafe details, suspend cafes, and view cafe metrics. |
 | `backend/app/controllers/adminCustomerController.js` | Admin customer management: view all registered customers, inspect stamp balances, adjust customer records, or block users. |
 | `backend/app/controllers/adminPlanController.js` | Admin subscription management: create, update, or remove subscription tiers and pricing plans. |
+| `backend/app/controllers/dashboardNotificationController.js` | Cafe-scoped subscriber counts, email campaign history/status, background delivery, and public unsubscribe processing. |
+| `backend/app/controllers/dashboardAnalyticsController.js` | Validates analytics query options and returns cafe-scoped analytics for the authenticated staff member. |
 | `backend/app/controllers/adminAnnouncementController.js` | Admin announcement management: create, publish, and delete system banners and notices. |
+| `backend/app/services/dashboardAnalyticsService.js` | MongoDB aggregation functions for cafe visit, retention, reward, heatmap, and at-risk customer metrics; `ANALYTICS_MIN_SAMPLE_SIZE` sets the ratio sample threshold (default 10). |
 
 #### Routing (`backend/app/routing/`)
 | File | Purpose |
@@ -128,6 +133,8 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | `backend/app/routing/adminCafeRoutes.js` | Routes for `/api/admin/cafes` (admin-level cafe CRUD and approvals). |
 | `backend/app/routing/adminCustomerRoutes.js` | Routes for `/api/admin/customers` (admin customer inspections). |
 | `backend/app/routing/adminPlanRoutes.js` | Routes for `/api/admin/plans` (admin subscription plan controls). |
+| `backend/app/routing/dashboardNotificationRoutes.js` | Plan-gated `/api/dashboard/notifications` campaign APIs plus the public email unsubscribe endpoint. |
+| `backend/app/routing/dashboardAnalyticsRoutes.js` | Authenticated, analytics-plan-gated `/api/dashboard/analytics` endpoint. |
 | `backend/app/routing/adminAnnouncementRoutes.js` | Routes for `/api/admin/announcements` (admin announcement creation & management). |
 
 #### Database Scripts (`backend/scripts/`)
@@ -183,7 +190,7 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | `app/lib/apiClient.js` | Centralized fetch wrapper handling `API_BASE` resolution, auth header attachment (`Bearer <token>`), and error formatting. |
 | `app/lib/authApi.js` | Client-side API functions for user register, login, logout, getMe, updateProfile, forgotPassword, and resetPassword. |
 | `app/lib/cafeApi.js` | Customer API functions: get cafes list, get cafe by slug, join cafe, leave cafe, redeem reward, and get redemptions. |
-| `app/lib/dashboardApi.js` | Staff/Business API functions: scan customer QR, award stamp, complete reward redemption, fetch cafe customers, update cafe settings. |
+| `app/lib/dashboardApi.js` | Staff/Business API functions: scan customer QR, award stamp, complete reward redemption, fetch cafe customers, update cafe settings, manage notification campaigns, and fetch analytics. |
 | `app/lib/adminApi.js` | Platform Admin API functions: fetch system stats, approve/manage cafes, manage customers, manage plans, manage announcements. |
 
 ---
@@ -307,8 +314,16 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | `app/dashboard/customers/page.js` | Customer directory: list of joined patrons, visit histories, stamp counts, and search filter. |
 | `app/dashboard/rewards/page.js` | Rewards manager: create, edit, activate/deactivate cafe loyalty rewards and set stamp costs. |
 | `app/dashboard/activity/page.js` | Full audit log of visit scans, stamps awarded, staff member identifiers, and redemptions. |
+| `app/dashboard/analytics/page.js` | Arabic, RTL cafe analytics page with plan-locked, loading, error, and empty states. |
+| `app/dashboard/analytics/hooks/useAnalytics.js` | Fetches analytics data for the selected period and at-risk inactivity threshold. |
+| `app/dashboard/analytics/utils.js` | Shared Arabic number/date/percentage formatting and heatmap color helpers. |
+| `app/dashboard/analytics/components/` | Analytics sections: summary cards, visits line chart, peak-hours heatmap, return rate, rewards funnel, at-risk customers, top customers, range selector, empty state, and locked state. |
 | `app/dashboard/users/page.js` | Staff management: invite, edit, or revoke barista/staff access accounts. |
-| `app/dashboard/settings/page.js` | Cafe configuration: update cafe name, address, hours, stamp card target (e.g. 8 or 10 stamps), and branding. |
+| `app/dashboard/settings/page.js` | Settings page composition and tab navigation for staff profile, security, and notifications. |
+| `app/dashboard/settings/components/AccountSettingsTab.jsx` | Staff account details and avatar editor. |
+| `app/dashboard/settings/components/SecuritySettingsTab.jsx` | Staff password and security form. |
+| `app/dashboard/settings/components/NotificationCampaignTab.jsx` | Plan-gated Arabic email campaign composer, status polling, and campaign history. |
+| `app/unsubscribe/[token]/page.jsx` | Public confirmation page for unsubscribing from a cafe's email campaigns. |
 | `app/dashboard/profile/page.js` | Barista/manager personal profile settings and password change. |
 
 #### Dashboard Components & Data (`app/dashboard/components/` & `data/`)

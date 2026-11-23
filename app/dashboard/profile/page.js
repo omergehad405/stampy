@@ -1,53 +1,155 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useCallback } from "react";
-import {
-  LuStore,
-  LuExternalLink,
-  LuSave,
-  LuRotateCcw,
-  LuCircleCheck,
-  LuShieldCheck,
-  LuClock,
-  LuMapPin,
-  LuPhone,
-  LuMail,
-  LuGlobe,
-  LuInstagram,
-  LuFacebook,
-  LuUtensils,
-  LuPlus,
-  LuTrash2,
-  LuImage,
-  LuUpload,
-  LuLink,
-  LuQrCode,
-  LuDownload,
-  LuCopy,
-  LuCheck,
-  LuInfo,
-} from "react-icons/lu";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { LuRotateCcw, LuSave } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
-import PlanLockedFeature from "../components/PlanLockedFeature";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
-import QRCodeImage from "@/app/components/ui/QRCodeImage";
+import BasicInfoTab from "./components/BasicInfoTab";
+import AboutTab from "./components/AboutTab";
+import LocationTab from "./components/LocationTab";
+import HoursTab from "./components/HoursTab";
+import ContactTab from "./components/ContactTab";
+import SocialTab from "./components/SocialTab";
+import MenuTab from "./components/MenuTab";
+import QrTab from "./components/QrTab";
+
+const WEEK_DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, idx) => {
+  const totalMinutes = idx * 30;
+  const hours24 = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const period = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = hours24 % 12 || 12;
+  const value = `${hours24.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
+  const label = `${hours12}:${minutes.toString().padStart(2, "0")} ${period}`;
+  return { value, label };
+});
+
+const extractWhatsAppNumber = (whatsAppData) => {
+  const handle = whatsAppData?.handle || "";
+  const existingUrl = whatsAppData?.url || "";
+
+  if (handle.trim()) return handle;
+  if (!existingUrl.trim()) return "";
+
+  const waMatch = existingUrl.match(/wa\.me\/([^?]+)/i);
+  if (waMatch?.[1]) return waMatch[1];
+
+  return existingUrl.replace(/[^\d+]/g, "");
+};
+
+const buildWhatsAppUrl = (phoneNumber) => {
+  const cleaned = (phoneNumber || "").replace(/[^\d]/g, "");
+  return cleaned ? `https://wa.me/${cleaned}` : "";
+};
+
+const sanitizeSchedule = (schedule) => {
+  if (!Array.isArray(schedule) || schedule.length === 0) return [];
+  return schedule.map((item, idx) => ({
+    day: WEEK_DAYS.includes(item?.day)
+      ? item.day
+      : WEEK_DAYS[idx % WEEK_DAYS.length],
+    open: item?.open || "07:30",
+    close: item?.close || "19:00",
+  }));
+};
+
+const buildProfileForm = (cafe) => ({
+  name: cafe?.name || "",
+  tagline: cafe?.tagline || "",
+  category: cafe?.category || "",
+  establishedYear: cafe?.establishedYear || 2021,
+  coverImage: cafe?.coverImage || "",
+  logoImage: cafe?.logoImage || "",
+  isVerified: cafe?.isVerified || false,
+  about: {
+    shortDescription: cafe?.about?.shortDescription || "",
+    fullDescription: cafe?.about?.fullDescription || "",
+    highlights: cafe?.about?.highlights ? [...cafe.about.highlights] : [],
+  },
+  location: {
+    address: cafe?.location?.address || "",
+    district: cafe?.location?.district || "",
+    city: cafe?.location?.city || "",
+    postcode: cafe?.location?.postcode || "",
+    fullAddress: cafe?.location?.fullAddress || "",
+    directionsHint: cafe?.location?.directionsHint || "",
+    googleMapsUrl: cafe?.location?.googleMapsUrl || "",
+    googleMapsReviewUrl: cafe?.location?.googleMapsReviewUrl || "",
+  },
+  openingHours: {
+    timezone: cafe?.openingHours?.timezone || "Europe/London",
+    holidayNotice: cafe?.openingHours?.holidayNotice || "",
+    schedule: sanitizeSchedule(cafe?.openingHours?.schedule),
+  },
+  contact: {
+    phone: cafe?.contact?.phone || "",
+    displayPhone: cafe?.contact?.displayPhone || "",
+    email: cafe?.contact?.email || "",
+  },
+  website: {
+    url: cafe?.website?.url || "",
+    displayUrl: cafe?.website?.displayUrl || "",
+  },
+  socialMedia: {
+    instagram: {
+      handle: cafe?.socialMedia?.instagram?.handle || "",
+      url: cafe?.socialMedia?.instagram?.url || "",
+    },
+    facebook: {
+      handle: cafe?.socialMedia?.facebook?.handle || "",
+      url: cafe?.socialMedia?.facebook?.url || "",
+    },
+    tiktok: {
+      handle: cafe?.socialMedia?.tiktok?.handle || "",
+      url: cafe?.socialMedia?.tiktok?.url || "",
+    },
+    whatsapp: {
+      handle: extractWhatsAppNumber(cafe?.socialMedia?.whatsapp),
+      url: buildWhatsAppUrl(extractWhatsAppNumber(cafe?.socialMedia?.whatsapp)),
+    },
+  },
+  menuPreview: {
+    isAvailable: cafe?.menuPreview?.isAvailable ?? true,
+    note: cafe?.menuPreview?.note || "",
+    categories: cafe?.menuPreview?.categories
+      ? cafe.menuPreview.categories.map((c) => ({ ...c }))
+      : [],
+  },
+});
 
 export default function DashboardCafeProfilePage() {
   const { cafe, updateCafeProfile, hasFeature } = useDashboardStore();
 
-  const [activeTab, setActiveTab] = useState("basic"); // 'basic' | 'about' | 'location' | 'hours' | 'contact' | 'social' | 'menu' | 'qr'
+  const [activeTab, setActiveTab] = useState("basic");
   const [isSaving, setIsSaving] = useState(false);
-
-  // QR tab state
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [newHighlight, setNewHighlight] = useState("");
+  const [logoMode, setLogoMode] = useState("url");
+  const [coverMode, setCoverMode] = useState("url");
+  const [profileForm, setProfileForm] = useState(() => buildProfileForm(cafe));
 
-  // Derive the full URL to the cafe's public info page (client-side only)
+  const logoFileRef = useRef(null);
+  const coverFileRef = useRef(null);
+
+  const scheduleRows = sanitizeSchedule(profileForm.openingHours.schedule);
+
   const cafeInfoUrl = useMemo(() => {
     if (!cafe?.slug) return "";
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined")
       return `${window.location.origin}/cafe/${cafe.slug}/info`;
-    }
     return `/cafe/${cafe.slug}/info`;
   }, [cafe?.slug]);
 
@@ -58,151 +160,52 @@ export default function DashboardCafeProfilePage() {
       setCopiedUrl(true);
       setTimeout(() => setCopiedUrl(false), 2000);
     } catch {
-      /* clipboard not available */
+      // Ignore clipboard failures in unsupported browsers.
     }
   }, [cafeInfoUrl]);
 
-  const cafeSlug = cafe?.slug;
   const handleDownloadQr = useCallback(() => {
     const img = document.getElementById("dashboard-cafe-qr-img");
     if (!img || !img.src) return;
     const link = document.createElement("a");
     link.href = img.src;
-    link.download = `${cafeSlug || "cafe"}-Notch-qr.png`;
+    link.download = `${cafe?.slug || "cafe"}-Notch-qr.png`;
     link.click();
-  }, [cafeSlug]);
+  }, [cafe?.slug]);
 
-  // Image upload refs & mode
-  const logoFileRef = useRef(null);
-  const coverFileRef = useRef(null);
-  const [logoMode, setLogoMode] = useState("url"); // 'url' | 'file'
-  const [coverMode, setCoverMode] = useState("url"); // 'url' | 'file'
-
-  // Form State initialized from live cafe store
-  const [profileForm, setProfileForm] = useState(() => ({
-    name: cafe.name || "",
-    tagline: cafe.tagline || "",
-    category: cafe.category || "",
-    establishedYear: cafe.establishedYear || 2021,
-    coverImage: cafe.coverImage || "",
-    logoImage: cafe.logoImage || "",
-    isVerified: cafe.isVerified || false,
-
-    // About
-    about: {
-      shortDescription: cafe.about?.shortDescription || "",
-      fullDescription: cafe.about?.fullDescription || "",
-      highlights: cafe.about?.highlights ? [...cafe.about.highlights] : [],
-    },
-
-    // Location
-    location: {
-      address: cafe.location?.address || "",
-      district: cafe.location?.district || "",
-      city: cafe.location?.city || "",
-      postcode: cafe.location?.postcode || "",
-      fullAddress: cafe.location?.fullAddress || "",
-      directionsHint: cafe.location?.directionsHint || "",
-      googleMapsUrl: cafe.location?.googleMapsUrl || "",
-    },
-
-    // Opening hours
-    openingHours: {
-      timezone: cafe.openingHours?.timezone || "Europe/London",
-      holidayNotice: cafe.openingHours?.holidayNotice || "",
-      schedule: cafe.openingHours?.schedule
-        ? cafe.openingHours.schedule.map((s) => ({ ...s }))
-        : [
-          { day: "Monday", open: "07:30", close: "19:00", isClosed: false },
-          { day: "Tuesday", open: "07:30", close: "19:00", isClosed: false },
-          { day: "Wednesday", open: "07:30", close: "19:00", isClosed: false },
-          { day: "Thursday", open: "07:30", close: "20:00", isClosed: false },
-          { day: "Friday", open: "07:30", close: "21:00", isClosed: false },
-          { day: "Saturday", open: "08:30", close: "21:00", isClosed: false },
-          { day: "Sunday", open: "08:30", close: "18:00", isClosed: false },
-        ],
-    },
-
-    // Contact
-    contact: {
-      phone: cafe.contact?.phone || "",
-      displayPhone: cafe.contact?.displayPhone || "",
-      email: cafe.contact?.email || "",
-    },
-
-    // Website
-    website: {
-      url: cafe.website?.url || "",
-      displayUrl: cafe.website?.displayUrl || "",
-    },
-
-    // Social Media
-    socialMedia: {
-      instagram: {
-        handle: cafe.socialMedia?.instagram?.handle || "",
-        url: cafe.socialMedia?.instagram?.url || "",
-      },
-      facebook: {
-        handle: cafe.socialMedia?.facebook?.handle || "",
-        url: cafe.socialMedia?.facebook?.url || "",
-      },
-      tiktok: {
-        handle: cafe.socialMedia?.tiktok?.handle || "",
-        url: cafe.socialMedia?.tiktok?.url || "",
-      },
-      whatsapp: {
-        handle: cafe.socialMedia?.whatsapp?.handle || "",
-        url: cafe.socialMedia?.whatsapp?.url || "",
-      },
-    },
-
-    // Menu Categories
-    menuPreview: {
-      isAvailable: cafe.menuPreview?.isAvailable ?? true,
-      note: cafe.menuPreview?.note || "",
-      categories: cafe.menuPreview?.categories
-        ? cafe.menuPreview.categories.map((c) => ({ ...c }))
-        : [],
-    },
-  }));
-
-  const [newHighlight, setNewHighlight] = useState("");
-
-  // Handle Save
   const handleSave = async (e) => {
     e?.preventDefault();
     setIsSaving(true);
+    try {
+      const whatsappNumber = profileForm.socialMedia?.whatsapp?.handle || "";
+      const payload = {
+        ...profileForm,
+        socialMedia: {
+          ...profileForm.socialMedia,
+          whatsapp: {
+            ...(profileForm.socialMedia?.whatsapp || {}),
+            handle: whatsappNumber,
+            url: buildWhatsAppUrl(whatsappNumber),
+          },
+        },
+      };
 
-    // Simulate short network delay
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
-    updateCafeProfile(profileForm);
-    setIsSaving(false);
-    toast.success("Cafe profile updated successfully! Changes are live on customer pages.");
+      await updateCafeProfile(payload);
+      toast.success(
+        "Cafe profile updated successfully! Changes are live on customer pages.",
+      );
+    } catch (error) {
+      toast.error(error?.message || "Failed to save cafe profile.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Reset to current cafe data
   const handleReset = () => {
-    setProfileForm({
-      ...cafe,
-      about: { ...cafe.about, highlights: [...(cafe.about?.highlights || [])] },
-      location: { ...cafe.location },
-      openingHours: {
-        ...cafe.openingHours,
-        schedule: (cafe.openingHours?.schedule || []).map((s) => ({ ...s })),
-      },
-      contact: { ...cafe.contact },
-      website: { ...cafe.website },
-      socialMedia: { ...cafe.socialMedia },
-      menuPreview: {
-        ...cafe.menuPreview,
-        categories: (cafe.menuPreview?.categories || []).map((c) => ({ ...c })),
-      },
-    });
+    setProfileForm(buildProfileForm(cafe));
     toast.info("Changes reset to saved values.");
   };
 
-  // Add/Remove Highlights
   const addHighlight = () => {
     if (!newHighlight.trim()) return;
     setProfileForm((prev) => ({
@@ -225,10 +228,9 @@ export default function DashboardCafeProfilePage() {
     }));
   };
 
-  // Schedule hours update
   const updateScheduleItem = (index, field, value) => {
     setProfileForm((prev) => {
-      const schedule = [...prev.openingHours.schedule];
+      const schedule = sanitizeSchedule(prev.openingHours.schedule);
       schedule[index] = { ...schedule[index], [field]: value };
       return {
         ...prev,
@@ -237,7 +239,33 @@ export default function DashboardCafeProfilePage() {
     });
   };
 
-  // Menu Category Add / Remove
+  const addScheduleRow = () => {
+    const usedDays = new Set(scheduleRows.map((row) => row.day));
+    const firstAvailableDay =
+      WEEK_DAYS.find((day) => !usedDays.has(day)) || "Monday";
+
+    setProfileForm((prev) => ({
+      ...prev,
+      openingHours: {
+        ...prev.openingHours,
+        schedule: [
+          ...prev.openingHours.schedule,
+          { day: firstAvailableDay, open: "07:30", close: "19:00" },
+        ],
+      },
+    }));
+  };
+
+  const removeScheduleRow = (index) => {
+    setProfileForm((prev) => ({
+      ...prev,
+      openingHours: {
+        ...prev.openingHours,
+        schedule: prev.openingHours.schedule.filter((_, idx) => idx !== index),
+      },
+    }));
+  };
+
   const addMenuCategory = () => {
     const newCat = {
       id: `cat-${Date.now()}`,
@@ -270,7 +298,7 @@ export default function DashboardCafeProfilePage() {
       menuPreview: {
         ...prev.menuPreview,
         categories: prev.menuPreview.categories.map((c) =>
-          c.id === id ? { ...c, [field]: value } : c
+          c.id === id ? { ...c, [field]: value } : c,
         ),
       },
     }));
@@ -294,7 +322,7 @@ export default function DashboardCafeProfilePage() {
         description="Edit the public information, opening hours, story, and digital menu shown to customers on the Notch app."
         breadcrumbs={[{ label: "Cafe Profile" }]}
         actions={
-          <div className="flex items-center gap-2">
+          <>
             <button
               onClick={handleReset}
               type="button"
@@ -307,1217 +335,110 @@ export default function DashboardCafeProfilePage() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-1.5 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-sm hover:bg-(--secondColor)/90 transition cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-sm hover:bg-(--secondColor)/90 transition cursor-pointer disabled:opacity-70"
             >
               <LuSave className="h-4 w-4" />
               <span>{isSaving ? "Saving..." : "Save Changes"}</span>
             </button>
-          </div>
+          </>
         }
       />
 
-      {/* Tabs Bar */}
       <div className="flex gap-1.5 overflow-x-auto rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-2 shadow-2xs">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition ${activeTab === tab.key
-              ? "bg-(--mainColor) text-(--secondColor) shadow-xs"
-              : "text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-              }`}
+            className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold transition ${
+              activeTab === tab.key
+                ? "bg-(--mainColor) text-(--secondColor) shadow-xs"
+                : "text-(--bgColor)/70 hover:bg-(--bgColor)/15"
+            }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Tab Panels */}
       <div className="rounded-2xl sm:rounded-3xl border border-(--bgColor)/15 bg-(--mainColor) text-(--bgColor) p-6 shadow-xs">
-        {/* TAB 1: BASIC INFORMATION & BRANDING */}
         {activeTab === "basic" && (
-          <div className="space-y-6">
-            <div className="border-b border-(--bgColor)/15 pb-3">
-              <h3 className="font-bold text-sm text-(--bgColor)">
-                Basic Identity & Media
-              </h3>
-              <p className="text-xs text-(--bgColor)/60">
-                Primary business name, branding photography, and category tag.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Cafe Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={profileForm.name}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, name: e.target.value })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs font-bold text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Tagline / Subheading
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.tagline}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, tagline: e.target.value })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Category
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.category}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, category: e.target.value })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Established Year
-                </label>
-                <input
-                  type="number"
-                  value={profileForm.establishedYear}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      establishedYear: Number(e.target.value),
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-            </div>
-
-            {/* Verification status notice */}
-            <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs text-emerald-900">
-              <LuShieldCheck className="h-5 w-5 text-emerald-700" />
-              <div>
-                <span className="font-bold">Verified Partner Badge: Active</span>
-                <p className="text-[11px] text-emerald-800">
-                  Verification status is granted by Notch compliance and displayed publicly on your store profile.
-                </p>
-              </div>
-            </div>
-
-            {/* Visual Assets (Cover & Logo) */}
-            <div className="grid grid-cols-1 gap-6 border-t border-(--bgColor)/15 pt-6 md:grid-cols-2">
-              {/* Logo Image */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-(--bgColor)">
-                  Logo Image
-                </label>
-
-                {/* Mode toggle */}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setLogoMode("url")}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${logoMode === "url"
-                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                      }`}
-                  >
-                    <LuLink className="h-3.5 w-3.5" />
-                    Paste URL
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLogoMode("file");
-                      setTimeout(() => logoFileRef.current?.click(), 50);
-                    }}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${logoMode === "file"
-                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                      }`}
-                  >
-                    <LuUpload className="h-3.5 w-3.5" />
-                    Upload from Device
-                  </button>
-                </div>
-
-                {/* URL input */}
-                {logoMode === "url" && (
-                  <input
-                    type="url"
-                    value={profileForm.logoImage}
-                    onChange={(e) =>
-                      setProfileForm({ ...profileForm, logoImage: e.target.value })
-                    }
-                    placeholder="https://..."
-                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                  />
-                )}
-
-                {/* Hidden file input */}
-                <input
-                  ref={logoFileRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      setProfileForm({ ...profileForm, logoImage: ev.target.result });
-                      setLogoMode("file");
-                    };
-                    reader.readAsDataURL(file);
-                  }}
-                />
-
-                {/* Upload prompt */}
-                {logoMode === "file" && !profileForm.logoImage && (
-                  <button
-                    type="button"
-                    onClick={() => logoFileRef.current?.click()}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-(--bgColor)/20 bg-(--bgColor)/10 py-5 text-xs font-semibold text-(--bgColor)/70 hover:border-(--mainColor)/40"
-                  >
-                    <LuUpload className="h-5 w-5" />
-                    Choose logo from device
-                  </button>
-                )}
-
-                {/* Preview */}
-                <div className="flex items-center gap-3 pt-1">
-                  {profileForm.logoImage ? (
-                    <>
-                      <img
-                        src={profileForm.logoImage}
-                        alt="Logo preview"
-                        className="h-16 w-16 rounded-xl object-cover border-2 border-(--bgColor)/20"
-                      />
-                      <div className="text-[11px] text-(--bgColor)/60 space-y-1">
-                        <p>Recommended: Square 1:1 (400×400px)</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfileForm({ ...profileForm, logoImage: "" });
-                            setLogoMode("url");
-                            if (logoFileRef.current) logoFileRef.current.value = "";
-                          }}
-                          className="text-rose-700 font-semibold hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <span className="text-[11px] text-(--bgColor)/50">No logo set yet.</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Cover Image */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-(--bgColor)">
-                  Hero Cover Image
-                </label>
-
-                {/* Mode toggle */}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCoverMode("url")}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${coverMode === "url"
-                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                      }`}
-                  >
-                    <LuLink className="h-3.5 w-3.5" />
-                    Paste URL
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCoverMode("file");
-                      setTimeout(() => coverFileRef.current?.click(), 50);
-                    }}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold border transition ${coverMode === "file"
-                      ? "bg-(--mainColor) text-(--secondColor) border-(--mainColor)"
-                      : "border-(--bgColor)/20 text-(--bgColor)/70 hover:bg-(--bgColor)/15"
-                      }`}
-                  >
-                    <LuUpload className="h-3.5 w-3.5" />
-                    Upload from Device
-                  </button>
-                </div>
-
-                {/* URL input */}
-                {coverMode === "url" && (
-                  <input
-                    type="url"
-                    value={profileForm.coverImage}
-                    onChange={(e) =>
-                      setProfileForm({ ...profileForm, coverImage: e.target.value })
-                    }
-                    placeholder="https://..."
-                    className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                  />
-                )}
-
-                {/* Hidden file input */}
-                <input
-                  ref={coverFileRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      setProfileForm({ ...profileForm, coverImage: ev.target.result });
-                      setCoverMode("file");
-                    };
-                    reader.readAsDataURL(file);
-                  }}
-                />
-
-                {/* Upload prompt */}
-                {coverMode === "file" && !profileForm.coverImage && (
-                  <button
-                    type="button"
-                    onClick={() => coverFileRef.current?.click()}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-(--bgColor)/20 bg-(--bgColor)/10 py-5 text-xs font-semibold text-(--bgColor)/70 hover:border-(--mainColor)/40"
-                  >
-                    <LuUpload className="h-5 w-5" />
-                    Choose cover photo from device
-                  </button>
-                )}
-
-                {/* Preview */}
-                <div className="pt-1">
-                  {profileForm.coverImage ? (
-                    <>
-                      <img
-                        src={profileForm.coverImage}
-                        alt="Cover preview"
-                        className="h-24 w-full rounded-xl object-cover border border-(--bgColor)/20"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProfileForm({ ...profileForm, coverImage: "" });
-                          setCoverMode("url");
-                          if (coverFileRef.current) coverFileRef.current.value = "";
-                        }}
-                        className="mt-1.5 text-xs font-semibold text-rose-700 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </>
-                  ) : (
-                    <span className="text-[11px] text-(--bgColor)/50">No cover image set yet.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <BasicInfoTab
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+            logoMode={logoMode}
+            setLogoMode={setLogoMode}
+            coverMode={coverMode}
+            setCoverMode={setCoverMode}
+            logoFileRef={logoFileRef}
+            coverFileRef={coverFileRef}
+          />
         )}
 
-        {/* TAB 2: ABOUT & HIGHLIGHTS */}
         {activeTab === "about" && (
-          <div className="space-y-6">
-            <div className="border-b border-(--bgColor)/15 pb-3">
-              <h3 className="font-bold text-sm text-(--bgColor)">
-                Story & Cafe Features
-              </h3>
-              <p className="text-xs text-(--bgColor)/60">
-                Craft the narrative customer read when discovering your cafe.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                Short Description (Card Teaser)
-              </label>
-              <textarea
-                rows={2}
-                value={profileForm.about.shortDescription}
-                onChange={(e) =>
-                  setProfileForm({
-                    ...profileForm,
-                    about: {
-                      ...profileForm.about,
-                      shortDescription: e.target.value,
-                    },
-                  })
-                }
-                className="w-full rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                Full Cafe Story
-              </label>
-              <textarea
-                rows={5}
-                value={profileForm.about.fullDescription}
-                onChange={(e) =>
-                  setProfileForm({
-                    ...profileForm,
-                    about: {
-                      ...profileForm.about,
-                      fullDescription: e.target.value,
-                    },
-                  })
-                }
-                className="w-full rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-              />
-            </div>
-
-            {/* Highlights Tag Manager */}
-            <div>
-              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                Key Features & Amenities
-              </label>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {profileForm.about.highlights.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="flex items-center gap-1.5 rounded-full border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-1 text-xs font-medium text-(--bgColor)"
-                  >
-                    <span>{tag}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeHighlight(idx)}
-                      className="text-(--bgColor)/50 hover:text-rose-700"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex gap-2 max-w-sm">
-                <input
-                  type="text"
-                  value={newHighlight}
-                  onChange={(e) => setNewHighlight(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addHighlight()}
-                  placeholder="e.g. Pet-Friendly Patio"
-                  className="h-9 flex-1 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={addHighlight}
-                  className="rounded-xl bg-(--mainColor) px-3 py-1.5 text-xs font-bold text-(--secondColor)"
-                >
-                  Add Tag
-                </button>
-              </div>
-            </div>
-          </div>
+          <AboutTab
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+            newHighlight={newHighlight}
+            setNewHighlight={setNewHighlight}
+            addHighlight={addHighlight}
+            removeHighlight={removeHighlight}
+          />
         )}
 
-        {/* TAB 3: LOCATION & MAP */}
         {activeTab === "location" && (
-          <div className="space-y-6">
-            <div className="border-b border-(--bgColor)/15 pb-3">
-              <h3 className="font-bold text-sm text-(--bgColor)">
-                Address & Navigation
-              </h3>
-              <p className="text-xs text-(--bgColor)/60">
-                Physical premises location, postal details, and Google Maps URL.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Street Address
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.location.address}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      location: {
-                        ...profileForm.location,
-                        address: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  District / Neighborhood
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.location.district}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      location: {
-                        ...profileForm.location,
-                        district: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  City
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.location.city}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      location: { ...profileForm.location, city: e.target.value },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Postcode / Zip
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.location.postcode}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      location: {
-                        ...profileForm.location,
-                        postcode: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Full Formatted Address
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.location.fullAddress}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      location: {
-                        ...profileForm.location,
-                        fullAddress: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Directions Hint / Landmark
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.location.directionsHint}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      location: {
-                        ...profileForm.location,
-                        directionsHint: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Google Maps URL
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={profileForm.location.googleMapsUrl}
-                    onChange={(e) =>
-                      setProfileForm({
-                        ...profileForm,
-                        location: {
-                          ...profileForm.location,
-                          googleMapsUrl: e.target.value,
-                        },
-                      })
-                    }
-                    className="flex-1 h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                  />
-                  {profileForm.location.googleMapsUrl && (
-                    <a
-                      href={profileForm.location.googleMapsUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/10"
-                    >
-                      <LuExternalLink className="h-3.5 w-3.5" />
-                      <span>Test Map Link</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <LocationTab
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+          />
         )}
 
-        {/* TAB 4: OPENING HOURS */}
         {activeTab === "hours" && (
-          <div className="space-y-6">
-            <div className="border-b border-(--bgColor)/15 pb-3">
-              <h3 className="font-bold text-sm text-(--bgColor)">
-                Weekly Operating Schedule
-              </h3>
-              <p className="text-xs text-(--bgColor)/60">
-                Configure opening and closing times for each day of the week.
-              </p>
-            </div>
-
-            <div className="space-y-2.5">
-              {profileForm.openingHours.schedule.map((dayItem, idx) => (
-                <div
-                  key={dayItem.day}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-3 text-xs gap-3"
-                >
-                  <div className="flex items-center gap-3 w-36">
-                    <span className="font-bold text-(--bgColor)">
-                      {dayItem.day}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-(--bgColor)">
-                      <input
-                        type="checkbox"
-                        checked={!dayItem.isClosed}
-                        onChange={(e) =>
-                          updateScheduleItem(idx, "isClosed", !e.target.checked)
-                        }
-                        className="rounded border-(--bgColor)/20 text-(--bgColor)"
-                      />
-                      <span>{dayItem.isClosed ? "Closed" : "Open"}</span>
-                    </label>
-
-                    {!dayItem.isClosed && (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="time"
-                          value={dayItem.open}
-                          onChange={(e) =>
-                            updateScheduleItem(idx, "open", e.target.value)
-                          }
-                          className="h-8 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2 font-mono text-xs text-(--bgColor)"
-                        />
-                        <span className="text-(--bgColor)/60">to</span>
-                        <input
-                          type="time"
-                          value={dayItem.close}
-                          onChange={(e) =>
-                            updateScheduleItem(idx, "close", e.target.value)
-                          }
-                          className="h-8 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2 font-mono text-xs text-(--bgColor)"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                Holiday Notice
-              </label>
-              <input
-                type="text"
-                value={profileForm.openingHours.holidayNotice}
-                onChange={(e) =>
-                  setProfileForm({
-                    ...profileForm,
-                    openingHours: {
-                      ...profileForm.openingHours,
-                      holidayNotice: e.target.value,
-                    },
-                  })
-                }
-                placeholder="e.g. Open on Bank Holidays (Sunday hours apply)"
-                className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-              />
-            </div>
-          </div>
+          <HoursTab
+            scheduleRows={scheduleRows}
+            addScheduleRow={addScheduleRow}
+            handleSave={handleSave}
+            updateScheduleItem={updateScheduleItem}
+            removeScheduleRow={removeScheduleRow}
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+            timeOptions={TIME_OPTIONS}
+            weekDays={WEEK_DAYS}
+          />
         )}
 
-        {/* TAB 5: CONTACT & WEBSITE */}
         {activeTab === "contact" && (
-          <div className="space-y-6">
-            <div className="border-b border-(--bgColor)/15 pb-3">
-              <h3 className="font-bold text-sm text-(--bgColor)">
-                Contact Channels & Website
-              </h3>
-              <p className="text-xs text-(--bgColor)/60">
-                Official phone, email, and web domain.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Phone (Dialable)
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.contact.phone}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      contact: {
-                        ...profileForm.contact,
-                        phone: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Phone (Display Format)
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.contact.displayPhone}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      contact: {
-                        ...profileForm.contact,
-                        displayPhone: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Contact Email
-                </label>
-                <input
-                  type="email"
-                  value={profileForm.contact.email}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      contact: {
-                        ...profileForm.contact,
-                        email: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Official Website URL
-                </label>
-                <input
-                  type="url"
-                  value={profileForm.website.url}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      website: {
-                        ...profileForm.website,
-                        url: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-            </div>
-          </div>
+          <ContactTab
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+          />
         )}
 
-        {/* TAB 6: SOCIAL MEDIA */}
         {activeTab === "social" && (
-          <div className="space-y-6">
-            <div className="border-b border-(--bgColor)/15 pb-3">
-              <h3 className="font-bold text-sm text-(--bgColor)">
-                Social Media Accounts
-              </h3>
-              <p className="text-xs text-(--bgColor)/60">
-                Connect your social media presence for customer engagement.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {/* Instagram */}
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Instagram Handle
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.socialMedia.instagram?.handle || ""}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      socialMedia: {
-                        ...profileForm.socialMedia,
-                        instagram: {
-                          ...profileForm.socialMedia.instagram,
-                          handle: e.target.value,
-                        },
-                      },
-                    })
-                  }
-                  placeholder="@coffeehouselondon"
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Instagram URL
-                </label>
-                <input
-                  type="url"
-                  value={profileForm.socialMedia.instagram?.url || ""}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      socialMedia: {
-                        ...profileForm.socialMedia,
-                        instagram: {
-                          ...profileForm.socialMedia.instagram,
-                          url: e.target.value,
-                        },
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              {/* Facebook */}
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Facebook Page Handle
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.socialMedia.facebook?.handle || ""}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      socialMedia: {
-                        ...profileForm.socialMedia,
-                        facebook: {
-                          ...profileForm.socialMedia.facebook,
-                          handle: e.target.value,
-                        },
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  Facebook URL
-                </label>
-                <input
-                  type="url"
-                  value={profileForm.socialMedia.facebook?.url || ""}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      socialMedia: {
-                        ...profileForm.socialMedia,
-                        facebook: {
-                          ...profileForm.socialMedia.facebook,
-                          url: e.target.value,
-                        },
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              {/* TikTok */}
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  TikTok Handle
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.socialMedia.tiktok?.handle || ""}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      socialMedia: {
-                        ...profileForm.socialMedia,
-                        tiktok: {
-                          ...profileForm.socialMedia.tiktok,
-                          handle: e.target.value,
-                        },
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                  WhatsApp Contact Link
-                </label>
-                <input
-                  type="url"
-                  value={profileForm.socialMedia.whatsapp?.url || ""}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      socialMedia: {
-                        ...profileForm.socialMedia,
-                        whatsapp: {
-                          ...profileForm.socialMedia.whatsapp,
-                          url: e.target.value,
-                        },
-                      },
-                    })
-                  }
-                  className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs text-(--bgColor) outline-none focus:border-(--secondColor)"
-                />
-              </div>
-            </div>
-          </div>
+          <SocialTab
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+          />
         )}
 
-        {/* TAB 7: DIGITAL MENU */}
         {activeTab === "menu" && (
-          !hasFeature("digital_menu") ? (
-            <PlanLockedFeature
-              featureKey="digital_menu"
-              featureName="Digital Menu"
-              description="The Digital Menu showcase is not included in your current subscription plan. Upgrade your plan to display categories and items on your public Notch customer page."
-            />
-          ) : (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-(--bgColor)/15 pb-3">
-                <div>
-                  <h3 className="font-bold text-sm text-(--bgColor)">
-                    Digital Menu Items
-                  </h3>
-                  <p className="text-xs text-(--bgColor)/60">
-                    Manage menu items displayed in the customer menu preview.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={addMenuCategory}
-                  className="flex items-center gap-1.5 rounded-xl bg-(--mainColor) px-3 py-1.5 text-xs font-bold text-(--secondColor)"
-                >
-                  <LuPlus className="h-4 w-4" />
-                  <span>Add Item</span>
-                </button>
-              </div>
-
-              <div className="space-y-3.5">
-                {profileForm.menuPreview.categories.map((cat, idx) => (
-                  <div
-                    key={cat.id || idx}
-                    className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 p-4 text-xs space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-(--bgColor)">
-                        Item #{idx + 1}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeMenuCategory(cat.id)}
-                        className="text-rose-700 hover:text-rose-900 font-semibold"
-                      >
-                        <LuTrash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="block font-bold text-(--bgColor) mb-1">
-                          Item Title
-                        </label>
-                        <input
-                          type="text"
-                          value={cat.title}
-                          onChange={(e) =>
-                            updateMenuCategory(cat.id, "title", e.target.value)
-                          }
-                          placeholder="e.g. Flat White"
-                          className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-(--bgColor) mb-1">
-                          Item Price
-                        </label>
-                        <input
-                          type="text"
-                          value={cat.price}
-                          onChange={(e) =>
-                            updateMenuCategory(cat.id, "price", e.target.value)
-                          }
-                          placeholder="e.g. £3.50"
-                          className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label className="block font-bold text-(--bgColor) mb-1">
-                          Item Description
-                        </label>
-                        <input
-                          type="text"
-                          value={cat.description}
-                          onChange={(e) =>
-                            updateMenuCategory(cat.id, "description", e.target.value)
-                          }
-                          placeholder="e.g. Smooth double shot with steamed milk"
-                          className="w-full h-9 rounded-lg border border-(--bgColor)/20 bg-(--bgColor)/10 px-2.5 text-xs text-(--bgColor) outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
+          <MenuTab
+            hasFeature={hasFeature}
+            profileForm={profileForm}
+            addMenuCategory={addMenuCategory}
+            removeMenuCategory={removeMenuCategory}
+            updateMenuCategory={updateMenuCategory}
+          />
         )}
-        {/* TAB 8: CAFE QR CODE */}
+
         {activeTab === "qr" && (
-          <div className="space-y-6">
-            <div className="border-b border-(--bgColor)/15 pb-3">
-              <h3 className="font-bold text-sm text-(--bgColor)">
-                Cafe Public QR Code
-              </h3>
-              <p className="text-xs text-(--bgColor)/60">
-                Share this QR code with customers. When scanned, it opens your cafe&apos;s public info page on Notch.
-              </p>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-8 items-start">
-              {/* QR Code display card */}
-              <div className="flex flex-col items-center gap-4 shrink-0">
-                <div className="relative bg-(--bgColor)/10 rounded-3xl border-2 border-(--bgColor)/20 p-6 shadow-sm flex items-center justify-center">
-                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-(--mainColor) flex items-center justify-center shadow">
-                    <LuQrCode className="w-4 h-4 text-(--secondColor)" />
-                  </div>
-                  {cafeInfoUrl ? (
-                    <QRCodeImage
-                      id="dashboard-cafe-qr-img"
-                      value={cafeInfoUrl}
-                      size={220}
-                      alt={`${cafe?.name || "Cafe"} Notch QR Code`}
-                      darkColor="#1B120C"
-                      lightColor="#FFFFFF"
-                    />
-                  ) : (
-                    <div
-                      style={{ width: 220, height: 220 }}
-                      className="flex items-center justify-center rounded-2xl bg-(--bgColor)/10 text-xs text-(--bgColor)/50 text-center px-4"
-                    >
-                      Cafe slug not set. Save a cafe profile first.
-                    </div>
-                  )}
-                </div>
-
-                {cafe?.name && (
-                  <div className="text-center space-y-0.5">
-                    <p className="text-sm font-bold text-(--bgColor)">{cafe.name}</p>
-                    <p className="text-xs text-(--bgColor)/50">Powered by Notch</p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 w-full" style={{ maxWidth: 232 }}>
-                  <button
-                    type="button"
-                    onClick={handleDownloadQr}
-                    disabled={!cafeInfoUrl}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-(--mainColor) px-3 py-2.5 text-xs font-bold text-(--secondColor) hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                  >
-                    <LuDownload className="h-3.5 w-3.5" />
-                    Download
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCopyUrl}
-                    disabled={!cafeInfoUrl}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-2.5 text-xs font-bold text-(--bgColor) hover:bg-(--bgColor)/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                  >
-                    {copiedUrl ? (
-                      <>
-                        <LuCheck className="h-3.5 w-3.5 text-emerald-600" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <LuCopy className="h-3.5 w-3.5" />
-                        Copy URL
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Info panel */}
-              <div className="flex-1 space-y-5 min-w-0">
-                {/* URL display */}
-                <div>
-                  <label className="block text-xs font-bold text-(--bgColor) mb-1.5">
-                    QR Code Destination URL
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 flex items-center text-xs text-(--bgColor)/80 font-mono truncate select-all">
-                      {cafeInfoUrl || (
-                        <span className="text-(--bgColor)/40 italic">No slug set yet</span>
-                      )}
-                    </div>
-                    {cafeInfoUrl && (
-                      <a
-                        href={cafeInfoUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-1.5 h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/15 transition shrink-0"
-                      >
-                        <LuExternalLink className="h-3.5 w-3.5" />
-                        Preview
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                {/* Usage instructions */}
-                <div className="rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-4 space-y-3">
-                  <h4 className="text-xs font-bold text-(--bgColor) flex items-center gap-1.5">
-                    <LuInfo className="h-3.5 w-3.5 text-(--bgColor)/60" />
-                    How to use this QR code
-                  </h4>
-                  <ul className="space-y-2 text-xs text-(--bgColor)/70 leading-relaxed">
-                    <li className="flex items-start gap-2">
-                      <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
-                      Print it and display it at your counter, tables, or window.
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
-                      Customers scan it with their phone camera — no app required.
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
-                      They land on your public Notch page: opening hours, location, about, menu preview, and your loyalty program.
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
-                      From there they can join your loyalty card and start collecting stamps.
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Status notice */}
-                {!cafe?.slug ? (
-                  <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900">
-                    <LuInfo className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p>
-                      Your cafe does not have a public slug yet. Save your cafe profile with a name and the system will generate one automatically.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs text-emerald-900">
-                    <LuCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">QR code is ready.</span>
-                      <p className="text-[11px] text-emerald-800 mt-0.5">
-                        Public page slug: <span className="font-mono font-semibold">{cafe.slug}</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <QrTab
+            cafe={cafe}
+            cafeInfoUrl={cafeInfoUrl}
+            handleDownloadQr={handleDownloadQr}
+            handleCopyUrl={handleCopyUrl}
+            copiedUrl={copiedUrl}
+          />
         )}
-      </div>
-
-      {/* Sticky Save Confirmation Footer */}
-      <div className="flex items-center justify-between rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-4 shadow-2xs">
-        <div className="flex items-center gap-2 text-xs text-(--bgColor)/70">
-          <LuCircleCheck className="h-4 w-4 text-emerald-600" />
-          <span>Save changes when you are ready to update the live profile.</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-4 py-2 text-xs font-semibold text-(--bgColor)"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="rounded-xl bg-(--mainColor) px-5 py-2 text-xs font-bold text-(--secondColor) shadow-sm hover:opacity-95"
-          >
-            {isSaving ? "Saving..." : "Save Cafe Profile"}
-          </button>
-        </div>
       </div>
     </div>
   );

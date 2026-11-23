@@ -12,6 +12,8 @@ const cafeRoutes = require("./routing/cafeRoutes");
 const dashboardCafeRoutes = require("./routing/dashboardCafeRoutes");
 const planRoutes = require("./routing/planRoutes");
 const contactRoutes = require("./routing/contactRoutes");
+const dashboardNotificationRoutes = require("./routing/dashboardNotificationRoutes");
+const dashboardAnalyticsRoutes = require("./routing/dashboardAnalyticsRoutes");
 
 function createExpressApp() {
   const app = express();
@@ -79,6 +81,8 @@ function createExpressApp() {
   app.use("/api/cafes", cafeRoutes);
   app.use("/api/dashboard/cafe", dashboardCafeRoutes);
   app.use("/api/dashboard/profile", dashboardCafeRoutes);
+  app.use("/api/dashboard/notifications", dashboardNotificationRoutes);
+  app.use("/api/dashboard/analytics", dashboardAnalyticsRoutes);
 
   return app;
 }

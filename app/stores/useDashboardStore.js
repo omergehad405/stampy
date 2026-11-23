@@ -1,7 +1,10 @@
 "use client";
 
 import { create } from "zustand";
-import { CAFES_CATALOG, updateCafeCatalogEntry } from "../(customer)/cafe/data/cafesCatalog";
+import {
+  CAFES_CATALOG,
+  updateCafeCatalogEntry,
+} from "../(customer)/cafe/data/cafesCatalog";
 import { useLoyaltyStore } from "./useLoyaltyStore";
 import {
   apiGetRewards,
@@ -54,6 +57,7 @@ const EMPTY_CAFE = {
     fullAddress: "",
     directionsHint: "",
     googleMapsUrl: "",
+    googleMapsReviewUrl: "",
   },
   openingHours: {
     timezone: "Europe/London",
@@ -121,7 +125,12 @@ export const useDashboardStore = create((set, get) => ({
   },
 
   // === VISITS & STAMPS ACTIONS ===
-  recordVisitAndStamps: ({ customerId, stampsCount = 1, note = "", staffName = "Staff Member" }) => {
+  recordVisitAndStamps: ({
+    customerId,
+    stampsCount = 1,
+    note = "",
+    staffName = "Staff Member",
+  }) => {
     const { customers, activities, settings } = get();
     const customer = customers.find((c) => c.id === customerId);
 
@@ -132,15 +141,23 @@ export const useDashboardStore = create((set, get) => ({
     const todayStr = new Date().toISOString().split("T")[0];
     const alreadyVisitedToday = customer.lastVisitDate === todayStr;
 
-    if (alreadyVisitedToday && settings.enforceDailyVisit && !note.includes("[Override]")) {
+    if (
+      alreadyVisitedToday &&
+      settings.enforceDailyVisit &&
+      !note.includes("[Override]")
+    ) {
       return {
         success: false,
         warning: true,
-        error: "This customer has already recorded a visit today. Use manager override if this is intentional.",
+        error:
+          "This customer has already recorded a visit today. Use manager override if this is intentional.",
       };
     }
 
-    const newStamps = Math.min(settings.stampTarget, customer.stamps + stampsCount);
+    const newStamps = Math.min(
+      settings.stampTarget,
+      customer.stamps + stampsCount,
+    );
     const updatedCustomer = {
       ...customer,
       stamps: newStamps,
@@ -164,7 +181,9 @@ export const useDashboardStore = create((set, get) => ({
     };
 
     set({
-      customers: customers.map((c) => (c.id === customerId ? updatedCustomer : c)),
+      customers: customers.map((c) =>
+        c.id === customerId ? updatedCustomer : c,
+      ),
       activities: [newActivity, ...activities],
     });
 
@@ -177,7 +196,11 @@ export const useDashboardStore = create((set, get) => ({
   },
 
   // === REDEEM REWARD ACTION ===
-  redeemCustomerReward: ({ customerId, rewardId, staffName = "Staff Member" }) => {
+  redeemCustomerReward: ({
+    customerId,
+    rewardId,
+    staffName = "Staff Member",
+  }) => {
     const { customers, rewards, activities } = get();
     const customer = customers.find((c) => c.id === customerId);
     const reward = rewards.find((r) => r.id === rewardId);
@@ -200,7 +223,9 @@ export const useDashboardStore = create((set, get) => ({
     };
 
     const updatedRewards = rewards.map((r) =>
-      r.id === rewardId ? { ...r, redemptionsCount: (r.redemptionsCount || 0) + 1 } : r
+      r.id === rewardId
+        ? { ...r, redemptionsCount: (r.redemptionsCount || 0) + 1 }
+        : r,
     );
 
     const newActivity = {
@@ -217,7 +242,9 @@ export const useDashboardStore = create((set, get) => ({
     };
 
     set({
-      customers: customers.map((c) => (c.id === customerId ? updatedCustomer : c)),
+      customers: customers.map((c) =>
+        c.id === customerId ? updatedCustomer : c,
+      ),
       rewards: updatedRewards,
       activities: [newActivity, ...activities],
     });
@@ -251,7 +278,10 @@ export const useDashboardStore = create((set, get) => ({
         set((state) => ({ rewards: [reward, ...state.rewards] }));
         return { success: true, reward };
       }
-      return { success: false, error: res.message || "Failed to create reward" };
+      return {
+        success: false,
+        error: res.message || "Failed to create reward",
+      };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -264,12 +294,15 @@ export const useDashboardStore = create((set, get) => ({
         const updated = res.data.reward;
         set((state) => ({
           rewards: state.rewards.map((r) =>
-            r.id === rewardId || r._id === rewardId ? updated : r
+            r.id === rewardId || r._id === rewardId ? updated : r,
           ),
         }));
         return { success: true, reward: updated };
       }
-      return { success: false, error: res.message || "Failed to update reward" };
+      return {
+        success: false,
+        error: res.message || "Failed to update reward",
+      };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -280,11 +313,16 @@ export const useDashboardStore = create((set, get) => ({
       const res = await apiDeleteReward(rewardId);
       if (res.success) {
         set((state) => ({
-          rewards: state.rewards.filter((r) => r.id !== rewardId && r._id !== rewardId),
+          rewards: state.rewards.filter(
+            (r) => r.id !== rewardId && r._id !== rewardId,
+          ),
         }));
         return { success: true };
       }
-      return { success: false, error: res.message || "Failed to delete reward" };
+      return {
+        success: false,
+        error: res.message || "Failed to delete reward",
+      };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -297,12 +335,15 @@ export const useDashboardStore = create((set, get) => ({
         const updated = res.data.reward;
         set((state) => ({
           rewards: state.rewards.map((r) =>
-            r.id === rewardId || r._id === rewardId ? updated : r
+            r.id === rewardId || r._id === rewardId ? updated : r,
           ),
         }));
         return { success: true, reward: updated };
       }
-      return { success: false, error: res.message || "Failed to toggle status" };
+      return {
+        success: false,
+        error: res.message || "Failed to toggle status",
+      };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -335,25 +376,44 @@ export const useDashboardStore = create((set, get) => ({
         id: serverCafe.id || serverCafe._id || state.cafe.id,
         name: serverCafe.name || state.cafe.name,
         slug: serverCafe.slug || state.cafe.slug,
-        tagline: serverCafe.tagline !== undefined ? serverCafe.tagline : state.cafe.tagline,
+        tagline:
+          serverCafe.tagline !== undefined
+            ? serverCafe.tagline
+            : state.cafe.tagline,
         category: serverCafe.category || state.cafe.category,
-        establishedYear: serverCafe.establishedYear || state.cafe.establishedYear || 2021,
+        establishedYear:
+          serverCafe.establishedYear || state.cafe.establishedYear || 2021,
         status: serverCafe.status || state.cafe.status,
-        isActive: serverCafe.isActive !== undefined ? serverCafe.isActive : state.cafe.isActive,
-        isVerified: serverCafe.isVerified !== undefined ? serverCafe.isVerified : state.cafe.isVerified,
+        isActive:
+          serverCafe.isActive !== undefined
+            ? serverCafe.isActive
+            : state.cafe.isActive,
+        isVerified:
+          serverCafe.isVerified !== undefined
+            ? serverCafe.isVerified
+            : state.cafe.isVerified,
         stampTarget: serverCafe.stampTarget || state.cafe.stampTarget || 10,
         customerCount: serverCafe.customerCount ?? state.cafe.customerCount,
-        totalStampsIssued: serverCafe.totalStampsIssued ?? state.cafe.totalStampsIssued,
-        totalRewardsRedeemed: serverCafe.totalRewardsRedeemed ?? state.cafe.totalRewardsRedeemed,
+        totalStampsIssued:
+          serverCafe.totalStampsIssued ?? state.cafe.totalStampsIssued,
+        totalRewardsRedeemed:
+          serverCafe.totalRewardsRedeemed ?? state.cafe.totalRewardsRedeemed,
         coverImage: serverCafe.coverImage || state.cafe.coverImage,
-        coverImageAlt: serverCafe.coverImageAlt !== undefined ? serverCafe.coverImageAlt : state.cafe.coverImageAlt,
+        coverImageAlt:
+          serverCafe.coverImageAlt !== undefined
+            ? serverCafe.coverImageAlt
+            : state.cafe.coverImageAlt,
         logoImage: serverCafe.logoImage || state.cafe.logoImage,
-        logoAlt: serverCafe.logoAlt !== undefined ? serverCafe.logoAlt : state.cafe.logoAlt,
+        logoAlt:
+          serverCafe.logoAlt !== undefined
+            ? serverCafe.logoAlt
+            : state.cafe.logoAlt,
         accentColor: serverCafe.accentColor || state.cafe.accentColor,
         about: {
           ...state.cafe.about,
           ...(serverCafe.about || {}),
-          highlights: serverCafe.about?.highlights || state.cafe.about?.highlights || [],
+          highlights:
+            serverCafe.about?.highlights || state.cafe.about?.highlights || [],
         },
         location: {
           ...state.cafe.location,
@@ -362,7 +422,10 @@ export const useDashboardStore = create((set, get) => ({
         openingHours: {
           ...state.cafe.openingHours,
           ...(serverCafe.openingHours || {}),
-          schedule: serverCafe.openingHours?.schedule || state.cafe.openingHours?.schedule || [],
+          schedule:
+            serverCafe.openingHours?.schedule ||
+            state.cafe.openingHours?.schedule ||
+            [],
         },
         contact: {
           ...state.cafe.contact,
@@ -379,9 +442,15 @@ export const useDashboardStore = create((set, get) => ({
         menuPreview: {
           ...state.cafe.menuPreview,
           ...(serverCafe.menuPreview || {}),
-          categories: serverCafe.menuPreview?.categories || state.cafe.menuPreview?.categories || [],
+          categories:
+            serverCafe.menuPreview?.categories ||
+            state.cafe.menuPreview?.categories ||
+            [],
         },
-        currentPlan: serverCafe.currentPlan !== undefined ? serverCafe.currentPlan : state.cafe.currentPlan,
+        currentPlan:
+          serverCafe.currentPlan !== undefined
+            ? serverCafe.currentPlan
+            : state.cafe.currentPlan,
       };
 
       return {
@@ -414,8 +483,10 @@ export const useDashboardStore = create((set, get) => ({
     const { cafe, customers, rewards, staffMembers } = get();
     const plan = cafe?.currentPlan;
 
-    const joiningDate = cafe?.createdAt || cafe?.joiningDate || cafe?.subscriptionStart || null;
-    const subscriptionStart = cafe?.subscriptionStart || cafe?.createdAt || null;
+    const joiningDate =
+      cafe?.createdAt || cafe?.joiningDate || cafe?.subscriptionStart || null;
+    const subscriptionStart =
+      cafe?.subscriptionStart || cafe?.createdAt || null;
     const billingPeriod = plan?.billingPeriod || "month";
 
     // Calculate or resolve expiry date
@@ -445,8 +516,11 @@ export const useDashboardStore = create((set, get) => ({
       }
     }
 
-    const isExpiringSoon = daysRemaining !== null && daysRemaining <= 7 && daysRemaining >= 0;
-    const isExpired = (daysRemaining !== null && daysRemaining < 0) || cafe?.subscriptionStatus === "past_due";
+    const isExpiringSoon =
+      daysRemaining !== null && daysRemaining <= 7 && daysRemaining >= 0;
+    const isExpired =
+      (daysRemaining !== null && daysRemaining < 0) ||
+      cafe?.subscriptionStatus === "past_due";
 
     if (!plan) {
       return {
@@ -478,17 +552,19 @@ export const useDashboardStore = create((set, get) => ({
       plan.features?.some(
         (f) =>
           f.toLowerCase().includes("unlimited_customers") ||
-          f.toLowerCase().includes("unlimited customers")
+          f.toLowerCase().includes("unlimited customers"),
       );
     const isUnlimitedRewards =
       Boolean(plan.isUnlimitedRewards) ||
       plan.features?.some(
         (f) =>
           f.toLowerCase().includes("unlimited_rewards") ||
-          f.toLowerCase().includes("unlimited rewards")
+          f.toLowerCase().includes("unlimited rewards"),
       );
 
-    const maxCustomers = isUnlimitedCustomers ? null : (plan.maxCustomers ?? 50);
+    const maxCustomers = isUnlimitedCustomers
+      ? null
+      : (plan.maxCustomers ?? 50);
     const maxRewards = isUnlimitedRewards ? null : (plan.maxRewards ?? 3);
     const maxStaff = plan.maxStaff ?? 1;
 
@@ -514,9 +590,13 @@ export const useDashboardStore = create((set, get) => ({
       rewardsCount,
       staffCount,
       isCustomersLimitReached:
-        !isUnlimitedCustomers && maxCustomers !== null && customersCount >= maxCustomers,
+        !isUnlimitedCustomers &&
+        maxCustomers !== null &&
+        customersCount >= maxCustomers,
       isRewardsLimitReached:
-        !isUnlimitedRewards && maxRewards !== null && rewardsCount >= maxRewards,
+        !isUnlimitedRewards &&
+        maxRewards !== null &&
+        rewardsCount >= maxRewards,
       isStaffLimitReached: maxStaff !== null && staffCount >= maxStaff,
       subscriptionStatus: cafe?.subscriptionStatus || "active",
     };
@@ -527,7 +607,10 @@ export const useDashboardStore = create((set, get) => ({
       const data = await apiUpdateCafeProfile(updatedFields);
       if (data.success && data.data?.cafe) {
         get().setCafe(data.data.cafe);
-        updateCafeCatalogEntry(data.data.cafe.slug || "coffee-house", data.data.cafe);
+        updateCafeCatalogEntry(
+          data.data.cafe.slug || "coffee-house",
+          data.data.cafe,
+        );
         return { success: true, cafe: data.data.cafe };
       }
       throw new Error(data.message || "Failed to update cafe profile.");
@@ -552,7 +635,9 @@ export const useDashboardStore = create((set, get) => ({
             role: s.roleLabel || s.role,
             roleKey: s.roleKey,
             status: s.isActive ? "active" : "inactive",
-            joinedDate: s.createdAt ? new Date(s.createdAt).toISOString().split("T")[0] : "Recently",
+            joinedDate: s.createdAt
+              ? new Date(s.createdAt).toISOString().split("T")[0]
+              : "Recently",
             avatar:
               s.avatar ||
               "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
@@ -563,7 +648,10 @@ export const useDashboardStore = create((set, get) => ({
         });
       }
     } catch (e) {
-      console.warn("[Dashboard Store] Could not fetch server staff list:", e.message);
+      console.warn(
+        "[Dashboard Store] Could not fetch server staff list:",
+        e.message,
+      );
     }
   },
 
@@ -599,7 +687,10 @@ export const useDashboardStore = create((set, get) => ({
         return { success: true, staff: newStaff };
       }
     } catch (err) {
-      console.warn("[Dashboard Store] createStaff server error, using local fallback:", err.message);
+      console.warn(
+        "[Dashboard Store] createStaff server error, using local fallback:",
+        err.message,
+      );
     }
 
     const { staffMembers } = get();
@@ -611,7 +702,8 @@ export const useDashboardStore = create((set, get) => ({
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
       lastActive: "Never",
       canManageStaff: staffData.roleKey === "owner",
-      canEditCafe: staffData.roleKey === "owner" || staffData.roleKey === "manager",
+      canEditCafe:
+        staffData.roleKey === "owner" || staffData.roleKey === "manager",
       canManageRewards: staffData.roleKey !== "barista",
       ...staffData,
     };
@@ -624,18 +716,26 @@ export const useDashboardStore = create((set, get) => ({
       await apiUpdateCafeStaff(staffId, {
         name: updatedData.name,
         phone: updatedData.phone,
-        role: updatedData.roleKey === "manager" ? "cafeManager" : updatedData.roleKey === "barista" ? "cafeBarista" : undefined,
+        role:
+          updatedData.roleKey === "manager"
+            ? "cafeManager"
+            : updatedData.roleKey === "barista"
+              ? "cafeBarista"
+              : undefined,
         isActive: updatedData.status === "active",
         password: updatedData.password || undefined,
       });
     } catch (e) {
-      console.warn("[Dashboard Store] updateStaff server error, using local fallback:", e.message);
+      console.warn(
+        "[Dashboard Store] updateStaff server error, using local fallback:",
+        e.message,
+      );
     }
 
     const { staffMembers } = get();
     set({
       staffMembers: staffMembers.map((s) =>
-        s.id === staffId ? { ...s, ...updatedData } : s
+        s.id === staffId ? { ...s, ...updatedData } : s,
       ),
     });
     return { success: true };
@@ -645,7 +745,10 @@ export const useDashboardStore = create((set, get) => ({
     try {
       await apiDeleteCafeStaff(staffId);
     } catch (e) {
-      console.warn("[Dashboard Store] deleteStaff server error, using local fallback:", e.message);
+      console.warn(
+        "[Dashboard Store] deleteStaff server error, using local fallback:",
+        e.message,
+      );
     }
 
     const { staffMembers } = get();
@@ -664,12 +767,15 @@ export const useDashboardStore = create((set, get) => ({
     try {
       await apiUpdateCafeStaff(staffId, { isActive: nextStatus === "active" });
     } catch (e) {
-      console.warn("[Dashboard Store] toggleStaffStatus server error:", e.message);
+      console.warn(
+        "[Dashboard Store] toggleStaffStatus server error:",
+        e.message,
+      );
     }
 
     set({
       staffMembers: staffMembers.map((s) =>
-        s.id === staffId ? { ...s, status: nextStatus } : s
+        s.id === staffId ? { ...s, status: nextStatus } : s,
       ),
     });
   },
@@ -716,7 +822,10 @@ export const useDashboardStore = create((set, get) => ({
       set({ activities, isLoadingActivities: false, activitiesLoaded: true });
       return { success: true, activities };
     } catch (err) {
-      console.warn("[Dashboard Store] Failed to fetch activities:", err.message);
+      console.warn(
+        "[Dashboard Store] Failed to fetch activities:",
+        err.message,
+      );
       set({ isLoadingActivities: false });
       return { success: false, error: err.message };
     }
@@ -725,13 +834,18 @@ export const useDashboardStore = create((set, get) => ({
   updateCustomer: async (customerId, data) => {
     const { customers } = get();
     set({
-      customers: customers.map((c) => (c.id === customerId ? { ...c, ...data } : c)),
+      customers: customers.map((c) =>
+        c.id === customerId ? { ...c, ...data } : c,
+      ),
     });
 
     try {
       await apiUpdateCustomerStamps(customerId, data);
     } catch (err) {
-      console.warn("[Dashboard Store] Failed to persist customer update:", err.message);
+      console.warn(
+        "[Dashboard Store] Failed to persist customer update:",
+        err.message,
+      );
     }
 
     return { success: true };

@@ -473,7 +473,7 @@ function UnifiedLoginContent() {
 
             {/* General Error Message */}
             {errorMessage && !roleMismatch && (
-              <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/15 p-3 text-xs text-rose-800 dark:text-rose-200">
+              <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/15 p-3 text-xs text-(--mainColor)">
                 {errorMessage}
               </div>
             )}

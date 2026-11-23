@@ -7,6 +7,8 @@ const AVAILABLE_FEATURES = [
   "promotional_campaigns",
   "unlimited_customers",
   "unlimited_rewards",
+  "notifications",
+  "analytics",
   // Human-readable labels
   "Digital Menu",
   "Activity History Page",
@@ -14,6 +16,8 @@ const AVAILABLE_FEATURES = [
   "Promotional Campaigns",
   "Unlimited Customers",
   "Unlimited Rewards",
+  "Notifications",
+  "Analytics",
 ];
 
 const planSchema = new mongoose.Schema(

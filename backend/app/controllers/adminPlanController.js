@@ -8,6 +8,8 @@ const CANONICAL_FEATURES = [
   "promotional_campaigns",
   "unlimited_customers",
   "unlimited_rewards",
+  "notifications",
+  "analytics",
 ];
 
 /**
@@ -30,6 +32,10 @@ const FEATURE_MAP = {
   unlimited_rewards: "unlimited_rewards",
   "unlimited rewards": "unlimited_rewards",
   "unlimited reward tiers": "unlimited_rewards",
+  notifications: "notifications",
+  "email notifications": "notifications",
+  analytics: "analytics",
+  "analytics page": "analytics",
 };
 
 /**

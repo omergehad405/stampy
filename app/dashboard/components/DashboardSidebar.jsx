@@ -11,6 +11,7 @@ import {
   LuStore,
   LuUserCheck,
   LuHistory,
+  LuActivity,
   LuSettings,
   LuLogOut,
   LuX,
@@ -91,6 +92,13 @@ export default function DashboardSidebar({ isOpen, onClose }) {
       icon: LuHistory,
       isActive: pathname.startsWith("/dashboard/activity"),
       roles: ["owner", "manager", "barista"],
+    },
+    {
+      label: "Analytics",
+      href: "/dashboard/analytics",
+      icon: LuActivity,
+      isActive: pathname.startsWith("/dashboard/analytics"),
+      roles: ["owner", "manager"],
     },
     {
       label: "Settings",

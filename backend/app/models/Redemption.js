@@ -84,6 +84,9 @@ redemptionSchema.set("toJSON", {
   },
 });
 
+redemptionSchema.index({ cafeId: 1, createdAt: -1 });
+redemptionSchema.index({ cafeId: 1, usedAt: -1 });
+
 const Redemption =
   mongoose.models.Redemption || mongoose.model("Redemption", redemptionSchema);
 

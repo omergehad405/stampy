@@ -113,6 +113,10 @@ const cafeSchema = new mongoose.Schema(
           enum: ["active", "inactive"],
           default: "active",
         },
+        emailUnsubscribed: {
+          type: Boolean,
+          default: false,
+        },
         favoriteItem: {
           type: String,
           default: "",

@@ -504,8 +504,71 @@ async function sendContactInquiryEmail({ cafeName, ownerName, email, phone, city
   return { adminInfo };
 }
 
+const escapeHtml = (value) =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+function generateCafeCampaignHtml({ cafeName, customerName, body, unsubscribeUrl }) {
+  const safeBody = escapeHtml(body).replace(/\r\n|\r|\n/g, "<br>");
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:24px;background:#F2EBDA;font-family:Arial,sans-serif;color:#3B2418;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border:1px solid #e8dfca;border-radius:16px;overflow:hidden;">
+    <header style="padding:24px;background:#3B2418;color:#F2EBDA;text-align:center;">
+      <h1 style="margin:0;color:#8EC5FF;font-size:24px;">${escapeHtml(cafeName)}</h1>
+    </header>
+    <main style="padding:28px;line-height:1.8;text-align:left;">
+      <p>Hello ${escapeHtml(customerName || "Customer")},</p>
+      <p>${safeBody}</p>
+    </main>
+    <footer style="padding:18px 24px;background:#F2EBDA;border-top:1px solid #e8dfca;text-align:center;font-size:12px;line-height:1.7;">
+      You are receiving this email because you subscribed to emails from ${escapeHtml(cafeName)} on Notch.
+      <br><a href="${escapeHtml(unsubscribeUrl)}" style="color:#3B2418;">Unsubscribe from this cafe's emails</a>
+    </footer>
+  </div>
+</body>
+</html>`;
+}
+
+async function sendCafeCampaignEmail({
+  email,
+  customerName,
+  cafeName,
+  subject,
+  body,
+  unsubscribeUrl,
+}) {
+  const transporter = await getTransporter();
+  const fromAddress =
+    process.env.EMAIL_FROM ||
+    process.env.SMTP_FROM ||
+    (process.env.SMTP_USER
+      ? `"Notch Loyalty" <${process.env.SMTP_USER}>`
+      : '"Notch Loyalty" <info@notchloyalty.com>');
+  const greetingName = customerName || "Customer";
+
+  return transporter.sendMail({
+    from: fromAddress,
+    to: email,
+    subject,
+    text: `Hello ${greetingName},\n\n${body}\n\nYou are receiving this email because you subscribed to emails from ${cafeName} on Notch.\nUnsubscribe from this cafe's emails: ${unsubscribeUrl}`,
+    html: generateCafeCampaignHtml({
+      cafeName,
+      customerName,
+      body,
+      unsubscribeUrl,
+    }),
+  });
+}
+
 module.exports = {
   sendPasswordResetEmail,
   sendContactInquiryEmail,
+  sendCafeCampaignEmail,
   getTransporter,
 };

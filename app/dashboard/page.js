@@ -10,10 +10,6 @@ import {
   LuQrCode,
   LuStore,
   LuArrowUpRight,
-  LuCalendar,
-  LuClock,
-  LuCircleCheck,
-  LuSparkles,
   LuLoader,
 } from "react-icons/lu";
 import DashboardPageHeader from "./components/DashboardPageHeader";
@@ -49,24 +45,111 @@ export default function DashboardOverviewPage() {
   const activeCustomers = customers.filter((c) => c.status === "active").length;
   const totalStampsIssued =
     customers.length > 0
-      ? customers.reduce((acc, c) => acc + (c.lifetimeStamps || c.stamps || 0), 0)
+      ? customers.reduce(
+          (acc, c) => acc + (c.lifetimeStamps || c.stamps || 0),
+          0,
+        )
       : cafe.totalStampsIssued || 0;
-  const totalRewardsRedeemed =
-    customers.length > 0
-      ? customers.reduce((acc, c) => acc + (c.rewardsRedeemedCount || 0), 0)
-      : cafe.totalRewardsRedeemed || 0;
+  const customerRewardsRedeemed = customers.reduce(
+    (acc, c) => acc + (c.rewardsRedeemedCount || 0),
+    0,
+  );
+  const uniqueRedemptionKeys = new Set(
+    activities
+      .filter((activity) => activity.type === "redemption")
+      .map(
+        (activity) =>
+          activity?.metadata?.redemptionId ||
+          activity?.metadata?.code ||
+          activity.id,
+      )
+      .filter(Boolean),
+  );
+  const activityRewardsRedeemed = uniqueRedemptionKeys.size;
+  const totalRewardsRedeemed = Math.max(
+    customerRewardsRedeemed,
+    activityRewardsRedeemed,
+    cafe.totalRewardsRedeemed || 0,
+  );
 
-  // 7-day visit trend sample data for visualization
-  const weeklyTrends = [
-    { day: "Mon", visits: 28, stamps: 34 },
-    { day: "Tue", visits: 35, stamps: 41 },
-    { day: "Wed", visits: 42, stamps: 49 },
-    { day: "Thu", visits: 39, stamps: 45 },
-    { day: "Fri", visits: 62, stamps: 74 },
-    { day: "Sat", visits: 78, stamps: 95 },
-    { day: "Sun", visits: 54, stamps: 62 },
-  ];
-  const maxVisits = Math.max(...weeklyTrends.map((t) => t.visits));
+  const now = new Date();
+  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfPreviousMonth = new Date(
+    now.getFullYear(),
+    now.getMonth() - 1,
+    1,
+  );
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - 7);
+  const startOfThirtyDays = new Date(now);
+  startOfThirtyDays.setDate(now.getDate() - 30);
+
+  const getCustomerJoinDate = (customer) => {
+    const raw =
+      customer?.registeredDate || customer?.createdAt || customer?.joinedAt;
+    if (!raw) return null;
+    const parsed = new Date(raw);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const currentMonthCustomers = customers.filter((customer) => {
+    const joinDate = getCustomerJoinDate(customer);
+    return (
+      joinDate && joinDate >= startOfCurrentMonth && joinDate < startOfNextMonth
+    );
+  }).length;
+
+  const previousMonthCustomers = customers.filter((customer) => {
+    const joinDate = getCustomerJoinDate(customer);
+    return (
+      joinDate &&
+      joinDate >= startOfPreviousMonth &&
+      joinDate < startOfCurrentMonth
+    );
+  }).length;
+
+  const monthlyCustomerGrowth =
+    previousMonthCustomers > 0
+      ? Math.round(
+          ((currentMonthCustomers - previousMonthCustomers) /
+            previousMonthCustomers) *
+            100,
+        )
+      : currentMonthCustomers > 0
+        ? 100
+        : 0;
+  const monthlyCustomerGrowthLabel = `${monthlyCustomerGrowth > 0 ? "+" : ""}${monthlyCustomerGrowth}% this month`;
+
+  const weeklyStampDelta = activities
+    .filter((activity) => {
+      const activityDate = new Date(
+        activity.createdAt || activity.timestamp || activity.date,
+      );
+      if (Number.isNaN(activityDate.getTime())) return false;
+      return activityDate >= startOfWeek && (activity.stampsDelta || 0) > 0;
+    })
+    .reduce((sum, activity) => sum + (activity.stampsDelta || 0), 0);
+  const weeklyStampLabel = `${weeklyStampDelta > 0 ? "+" : ""}${weeklyStampDelta} this week`;
+
+  const conversionRate =
+    totalStampsIssued > 0
+      ? ((totalRewardsRedeemed / totalStampsIssued) * 100).toFixed(1)
+      : "0.0";
+
+  const activeCustomerIdsLast30Days = new Set(
+    activities
+      .filter((activity) => {
+        const activityDate = new Date(
+          activity.createdAt || activity.timestamp || activity.date,
+        );
+        if (Number.isNaN(activityDate.getTime())) return false;
+        return activityDate >= startOfThirtyDays;
+      })
+      .map((activity) => activity.customerId || activity.customerName)
+      .filter(Boolean),
+  );
+  const activeRateDeltaLabel = `${activeCustomerIdsLast30Days.size} active in 30d`;
 
   return (
     <div className="space-y-7">
@@ -92,23 +175,23 @@ export default function DashboardOverviewPage() {
         <DashboardMetricCard
           title="Total Customers"
           value={totalCustomers}
-          change="+14% this month"
-          changeType="positive"
+          change={monthlyCustomerGrowthLabel}
+          changeType={monthlyCustomerGrowth >= 0 ? "positive" : "negative"}
           icon={LuUsers}
           subtitle={`${activeCustomers} active members visited recently`}
         />
         <DashboardMetricCard
           title="Stamps Issued"
           value={totalStampsIssued}
-          change="+28 this week"
-          changeType="positive"
+          change={weeklyStampLabel}
+          changeType={weeklyStampDelta >= 0 ? "positive" : "negative"}
           icon={LuStamp}
           subtitle="Cumulative stamps rewarded to date"
         />
         <DashboardMetricCard
           title="Rewards Redeemed"
           value={totalRewardsRedeemed}
-          change="8.4% conversion"
+          change={`${conversionRate}% conversion`}
           changeType="neutral"
           icon={LuGift}
           subtitle={`${rewards.filter((r) => r.isActive).length} active rewards in catalog`}
@@ -116,8 +199,8 @@ export default function DashboardOverviewPage() {
         <DashboardMetricCard
           title="Active Rate"
           value={`${Math.round((activeCustomers / (totalCustomers || 1)) * 100)}%`}
-          change="+5.2%"
-          changeType="positive"
+          change={activeRateDeltaLabel}
+          changeType="neutral"
           icon={LuActivity}
           subtitle="Retention over the last 30 days"
         />
@@ -141,7 +224,8 @@ export default function DashboardOverviewPage() {
               Scan Customer Visit
             </h3>
             <p className="mt-1 text-xs text-(--bgColor)/75">
-              Open the barista scanner to scan customer QR codes and credit stamps instantly.
+              Open the barista scanner to scan customer QR codes and credit
+              stamps instantly.
             </p>
           </div>
           <div className="mt-4 flex items-center gap-1 text-xs font-bold text-(--secondColor)">
@@ -229,9 +313,12 @@ export default function DashboardOverviewPage() {
         ) : activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center text-xs text-(--bgColor)/60">
             <LuActivity className="h-7 w-7 mb-2 text-(--bgColor)/30" />
-            <span className="font-bold text-(--bgColor)/80">No counter activity recorded yet</span>
+            <span className="font-bold text-(--bgColor)/80">
+              No counter activity recorded yet
+            </span>
             <span className="text-[11px] text-(--bgColor)/50 mt-0.5 max-w-sm">
-              Visits and stamp redemptions confirmed by baristas will appear here immediately.
+              Visits and stamp redemptions confirmed by baristas will appear
+              here immediately.
             </span>
           </div>
         ) : (
@@ -248,18 +335,22 @@ export default function DashboardOverviewPage() {
               </thead>
               <tbody className="divide-y divide-(--bgColor)/15">
                 {activities.slice(0, 5).map((act) => (
-                  <tr key={act.id} className="hover:bg-(--bgColor)/5 transition">
+                  <tr
+                    key={act.id}
+                    className="hover:bg-(--bgColor)/5 transition"
+                  >
                     <td className="px-5 py-3.5 font-bold text-(--bgColor)">
                       {act.customerName}
                     </td>
                     <td className="px-5 py-3.5">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px] ${act.type === "redemption"
-                          ? "bg-purple-400/20 text-purple-200 border border-purple-400/30"
-                          : act.type === "join"
-                            ? "bg-blue-400/20 text-blue-200 border border-blue-400/30"
-                            : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/30"
-                          }`}
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold text-[11px] ${
+                          act.type === "redemption"
+                            ? "bg-purple-400/20 text-purple-200 border border-purple-400/30"
+                            : act.type === "join"
+                              ? "bg-blue-400/20 text-blue-200 border border-blue-400/30"
+                              : "bg-emerald-400/20 text-emerald-200 border border-emerald-400/30"
+                        }`}
                       >
                         {act.title}
                       </span>
@@ -274,7 +365,9 @@ export default function DashboardOverviewPage() {
                               : "text-(--bgColor)"
                         }
                       >
-                        {act.stampsDelta > 0 ? `+${act.stampsDelta}` : act.stampsDelta}
+                        {act.stampsDelta > 0
+                          ? `+${act.stampsDelta}`
+                          : act.stampsDelta}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-(--bgColor)/75 font-medium">

@@ -27,6 +27,16 @@ const FEATURE_CONFIG = [
     desc: "Public menu items & pricing preview",
   },
   {
+    id: "notifications",
+    label: "Notifications",
+    desc: "Email campaigns for subscribed cafe customers",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    desc: "Cafe visits, customer retention, and rewards performance",
+  },
+  {
     id: "activity_history",
     label: "Activity History Page",
     desc: "Real-time timeline of customer visits and redemptions",
@@ -139,6 +149,10 @@ export default function AdminSubscriptionsPage() {
           lower.includes("menu")
         )
           return "digital_menu";
+        if (lower === "notifications" || lower === "email notifications")
+          return "notifications";
+        if (lower === "analytics" || lower === "analytics page")
+          return "analytics";
         if (
           lower === "activity_history" ||
           lower.includes("activity")

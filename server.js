@@ -3,7 +3,13 @@ const expressApp = require("./backend/app/expressApp");
 const next = require("next");
 const connectDB = require("./backend/config/db");
 
-const dev = process.env.NODE_ENV !== "production";
+const isDevelopmentScript = ["dev", "dev:all"].includes(
+  process.env.npm_lifecycle_event
+);
+const dev = isDevelopmentScript || process.env.NODE_ENV !== "production";
+if (isDevelopmentScript) {
+  process.env.NODE_ENV = "development";
+}
 const PORT = parseInt(process.env.PORT, 10) || 5000;
 const hostname = "0.0.0.0";
 

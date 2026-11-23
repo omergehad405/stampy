@@ -185,6 +185,83 @@ export async function apiGetCafeActivities() {
   return data.data?.activities || [];
 }
 
+export async function apiGetDashboardAnalytics({ range = "30d", atRiskDays = 14 } = {}) {
+  const query = new URLSearchParams({
+    range,
+    atRiskDays: String(atRiskDays),
+  });
+  const res = await fetch(
+    `${API_BASE}/api/dashboard/analytics?${query.toString()}`,
+    {
+      cache: "no-store",
+      headers: getAuthHeaders(),
+      credentials: "include",
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) {
+    const error = new Error(data.message || "Unable to load analytics.");
+    error.status = res.status;
+    throw error;
+  }
+  return data.data;
+}
+
+const NOTIFICATIONS_BASE = `${API_BASE}/api/dashboard/notifications/email`;
+
+async function requestNotificationApi(url, options = {}) {
+  let res;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: getAuthHeaders(options.headers || {}),
+      credentials: "include",
+    });
+  } catch {
+    throw new Error("Unable to connect to the server. Please try again.");
+  }
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Unable to complete the request. Please try again.");
+  }
+  if (!res.ok) {
+    const error = new Error(data.message || "Unable to complete the request.");
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+}
+
+export async function apiGetNotificationRecipientCount() {
+  return requestNotificationApi(`${NOTIFICATIONS_BASE}/recipients`, {
+    cache: "no-store",
+  });
+}
+
+export async function apiGetNotificationCampaigns() {
+  return requestNotificationApi(`${NOTIFICATIONS_BASE}/campaigns`, {
+    cache: "no-store",
+  });
+}
+
+export async function apiGetNotificationCampaignStatus(campaignId) {
+  return requestNotificationApi(
+    `${NOTIFICATIONS_BASE}/campaigns/${encodeURIComponent(campaignId)}`,
+    { cache: "no-store" }
+  );
+}
+
+export async function apiSendNotificationCampaign({ subject, body }) {
+  return requestNotificationApi(NOTIFICATIONS_BASE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subject, body }),
+  });
+}
+
 /**
  * Staff management API endpoints
  */
