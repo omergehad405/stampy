@@ -36,9 +36,19 @@ import {
 } from "./content";
 
 export const metadata = {
-  title: "Notch - The Growth Platform for Independent Cafes in Egypt",
+  title: "Notch – Turn Cafe Visitors into Regulars | Egypt",
   description:
-    "Turn one-time visitors into loyal regulars and get discovered by new coffee enthusiasts across Egypt. A simple QR repeat-reward engine, online digital menus, and free discovery exposure.",
+    "Discover a new way for cafes in Egypt to reward returning customers. Personal QR codes, digital stamp rewards, free Discover exposure, and an online menu — all in one platform.",
+  alternates: {
+    canonical: "https://notchloyalty.com",
+  },
+  openGraph: {
+    title: "Notch – Turn Cafe Visitors into Regulars | Egypt",
+    description:
+      "Reward returning customers with digital stamps, get discovered in Discover, and manage your online menu. Free for coffee lovers, transparent plans for cafes.",
+    url: "https://notchloyalty.com",
+    type: "website",
+  },
 };
 
 export default function MarketingHomePage() {

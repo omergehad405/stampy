@@ -2,8 +2,10 @@ import Link from "next/link";
 import { BRAND } from "../content";
 
 export const metadata = {
-  title: "Terms of Service | Notch",
-  description: "Terms of service and cafe platform usage rules for Notch.",
+  title: "Terms of Service",
+  description:
+    "Terms and conditions governing use of the Notch platform for cafe owners, baristas, and customers in Egypt.",
+  robots: { index: false, follow: false },
 };
 
 export default function TermsPage() {

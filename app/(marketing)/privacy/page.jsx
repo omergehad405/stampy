@@ -2,8 +2,10 @@ import Link from "next/link";
 import { BRAND } from "../content";
 
 export const metadata = {
-  title: "Privacy Policy | Notch",
-  description: "Privacy policy and data protection details for Notch.",
+  title: "Privacy Policy",
+  description:
+    "How Notch collects, uses, and protects your data as a customer or cafe partner in Egypt.",
+  robots: { index: false, follow: false },
 };
 
 export default function PrivacyPage() {

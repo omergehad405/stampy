@@ -26,9 +26,19 @@ import {
 } from "../content";
 
 export const metadata = {
-  title: "Platform Features for Cafes in Egypt | Notch",
+  title: "Platform Features for Egyptian Cafes",
   description:
-    "Explore Notch features: repeat-customer reward engine, 1-second QR scanner terminal, customer directory, online digital menus, and free Discover exposure.",
+    "Everything your cafe needs to grow: QR-based digital stamp rewards, a web barista scanner, searchable customer directory, free Discover exposure for new customers, and an online digital menu. Explore all Notch features.",
+  alternates: {
+    canonical: "https://notchloyalty.com/features",
+  },
+  openGraph: {
+    title: "Platform Features for Egyptian Cafes | Notch",
+    description:
+      "QR digital stamps, barista scanner terminal, Discover exposure, online menu, customer directory, rewards manager, and staff accounts – all in one platform built for cafes in Egypt.",
+    url: "https://notchloyalty.com/features",
+    type: "website",
+  },
 };
 
 export default function FeaturesPage() {

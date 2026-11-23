@@ -16,8 +16,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Notch - Digital Loyalty Card",
-  description: "Digital loyalty cards for cafes",
+  title: {
+    template: "%s | Notch",
+    default: "Notch – Digital Loyalty & Growth Platform for Cafes in Egypt",
+  },
+  description:
+    "Notch helps cafes in Egypt turn one-time visitors into loyal regulars. QR-based digital stamps, free Discover exposure, and an online menu — all in one platform.",
+  metadataBase: new URL("https://notchloyalty.com"),
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png" }],
+  },
+  robots: {
+    index: false, // App routes (dashboard, profile, etc.) should not be indexed
+    follow: false,
+  },
 };
 
 export default function RootLayout({ children }) {
