@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useEffect } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 import {
   LuStore,
   LuMail,
@@ -20,32 +19,90 @@ import {
   LuShieldCheck,
   LuArrowLeft,
   LuCoffee,
+  LuLoader,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import AdminPageHeader from "../../components/AdminPageHeader";
 import AdminBadge from "../../components/AdminBadge";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useAdminStore } from "@/app/stores/useAdminStore";
+import { apiAdminGetCafe } from "@/app/lib/adminApi";
 
 export default function AdminCafeDetailPage({ params }) {
   const unwrappedParams = use(params);
-  const router = useRouter();
-  const { cafes, updateCafeStatus, updateCafeInfo, assignPlanToCafe, plans } = useAdminStore();
+  const { updateCafeStatus, updateCafeInfo, assignPlanToCafe, plans } = useAdminStore();
 
-  const cafeId = unwrappedParams.id;
-  const cafe = cafes.find((c) => c.id === cafeId);
+  const cafeIdentifier = unwrappedParams.id;
+  const [cafeRequest, setCafeRequest] = useState({
+    identifier: null,
+    cafe: null,
+    isLoading: true,
+    error: "",
+  });
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    apiAdminGetCafe(cafeIdentifier)
+      .then((response) => {
+        if (isCurrent && response?.success && response?.data?.cafe) {
+          setCafeRequest({
+            identifier: cafeIdentifier,
+            cafe: response.data.cafe,
+            isLoading: false,
+            error: "",
+          });
+        } else if (isCurrent) {
+          setCafeRequest({
+            identifier: cafeIdentifier,
+            cafe: null,
+            isLoading: false,
+            error: "Cafe details were not returned by the server.",
+          });
+        }
+      })
+      .catch((error) => {
+        if (isCurrent) {
+          setCafeRequest({
+            identifier: cafeIdentifier,
+            cafe: null,
+            isLoading: false,
+            error: error.message || "Failed to load cafe details.",
+          });
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [cafeIdentifier]);
+  const isLoadingCafe =
+    cafeRequest.identifier !== cafeIdentifier || cafeRequest.isLoading;
+  const cafe =
+    cafeRequest.identifier === cafeIdentifier ? cafeRequest.cafe : null;
+  const cafeLoadError =
+    cafeRequest.identifier === cafeIdentifier ? cafeRequest.error : "";
+  const setCafe = (updatedCafe) =>
+    setCafeRequest((current) => ({
+      ...current,
+      cafe:
+        typeof updatedCafe === "function"
+          ? updatedCafe(current.cafe)
+          : updatedCafe,
+    }));
 
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
-    name: cafe?.name || "",
-    category: cafe?.category || "",
-    tagline: cafe?.tagline || "",
+    name: "",
+    category: "",
+    tagline: "",
+    stampTarget: "",
   });
 
   // Plan Selection Modal
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
-  const [selectedPlanId, setSelectedPlanId] = useState(cafe?.subscriptionPlanId || "plan-free");
+  const [selectedPlanId, setSelectedPlanId] = useState("plan-free");
 
   // Status Confirm Modal
   const [confirmStatusModal, setConfirmStatusModal] = useState({
@@ -54,6 +111,15 @@ export default function AdminCafeDetailPage({ params }) {
     title: "",
     description: "",
   });
+
+  if (isLoadingCafe) {
+    return (
+      <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-10 text-sm text-(--mainColor)/70">
+        <LuLoader className="h-5 w-5 animate-spin" />
+        Loading cafe details...
+      </div>
+    );
+  }
 
   if (!cafe) {
     return (
@@ -67,7 +133,7 @@ export default function AdminCafeDetailPage({ params }) {
         </Link>
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-800">
           <h3 className="font-bold">Cafe Not Found</h3>
-          <p className="mt-1 text-xs">The requested cafe identifier ({cafeId}) does not exist.</p>
+          <p className="mt-1 text-xs">{cafeLoadError || `No cafe was found for "${cafeIdentifier}".`}</p>
         </div>
       </div>
     );
@@ -87,9 +153,14 @@ export default function AdminCafeDetailPage({ params }) {
     });
   };
 
-  const confirmStatusExecution = () => {
-    const res = updateCafeStatus(cafe.id, confirmStatusModal.newStatus);
+  const confirmStatusExecution = async () => {
+    const res = await updateCafeStatus(cafe.id, confirmStatusModal.newStatus);
     if (res.success) {
+      setCafe((current) => ({
+        ...current,
+        status: confirmStatusModal.newStatus,
+        isActive: confirmStatusModal.newStatus === "active",
+      }));
       toast.success(`Cafe status updated to ${confirmStatusModal.newStatus}`);
     } else {
       toast.error(res.error || "Update failed");
@@ -97,22 +168,33 @@ export default function AdminCafeDetailPage({ params }) {
     setConfirmStatusModal({ isOpen: false, newStatus: "", title: "", description: "" });
   };
 
-  const handleSaveInfo = (e) => {
+  const handleSaveInfo = async (e) => {
     e.preventDefault();
-    updateCafeInfo(cafe.id, {
+    const updates = {
       name: editFormData.name,
       category: editFormData.category,
       tagline: editFormData.tagline,
       stampTarget: Number(editFormData.stampTarget),
-    });
-    setIsEditModalOpen(false);
-    toast.success("Cafe information updated successfully");
+    };
+    const result = await updateCafeInfo(cafe.id, updates);
+    if (result.success) {
+      setCafe((current) => ({ ...current, ...updates }));
+      setIsEditModalOpen(false);
+      toast.success("Cafe information updated successfully");
+    } else {
+      toast.error(result.error || "Failed to update cafe information.");
+    }
   };
 
-  const handleSavePlan = () => {
-    assignPlanToCafe(cafe.id, selectedPlanId);
-    setIsPlanModalOpen(false);
-    toast.success("Subscription plan updated");
+  const handleSavePlan = async () => {
+    const result = await assignPlanToCafe(cafe.id, selectedPlanId);
+    if (result.success) {
+      setCafe((current) => ({ ...current, subscriptionPlanId: selectedPlanId }));
+      setIsPlanModalOpen(false);
+      toast.success("Subscription plan updated");
+    } else {
+      toast.error(result.error || "Failed to update subscription plan.");
+    }
   };
 
   return (
@@ -125,7 +207,15 @@ export default function AdminCafeDetailPage({ params }) {
         actions={
           <div className="flex flex-wrap items-center gap-2.5">
             <button
-              onClick={() => setIsEditModalOpen(true)}
+              onClick={() => {
+                setEditFormData({
+                  name: cafe.name || "",
+                  category: cafe.category || "",
+                  tagline: cafe.tagline || "",
+                  stampTarget: String(cafe.stampTarget ?? ""),
+                });
+                setIsEditModalOpen(true);
+              }}
               className="flex items-center gap-1.5 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3.5 py-2 text-xs font-bold text-(--mainColor) hover:bg-[#eee3d1] transition shadow-2xs"
             >
               <LuPencil className="h-3.5 w-3.5" />
@@ -291,10 +381,10 @@ export default function AdminCafeDetailPage({ params }) {
             {/* Configured Rewards Tiers */}
             <div className="mt-5">
               <span className="text-xs font-bold text-(--mainColor)/70 block mb-2">
-                Active Reward Tiers
+                Configured Rewards
               </span>
               {(cafe.rewards || []).length === 0 ? (
-                <p className="text-xs text-(--mainColor)/60 italic">No rewards configured yet.</p>
+                <p className="text-xs text-(--mainColor)/60 italic">No rewards configured.</p>
               ) : (
                 <div className="space-y-2">
                   {cafe.rewards.map((r) => (
@@ -309,9 +399,12 @@ export default function AdminCafeDetailPage({ params }) {
                           <span className="text-[11px] text-(--mainColor)/60">{r.description}</span>
                         </div>
                       </div>
-                      <span className="rounded-lg bg-(--secondColor)/30 px-2.5 py-1 font-bold text-(--mainColor)">
-                        {r.stampsRequired} Stamps
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <AdminBadge status={r.status} />
+                        <span className="rounded-lg bg-(--secondColor)/30 px-2.5 py-1 font-bold text-(--mainColor)">
+                          {r.stampsRequired} Stamps
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -359,7 +452,10 @@ export default function AdminCafeDetailPage({ params }) {
             </div>
 
             <button
-              onClick={() => setIsPlanModalOpen(true)}
+              onClick={() => {
+                setSelectedPlanId(cafe.subscriptionPlanId || "plan-free");
+                setIsPlanModalOpen(true);
+              }}
               className="mt-5 w-full flex items-center justify-center gap-1.5 rounded-xl bg-(--mainColor) py-2 text-xs font-bold text-(--secondColor) hover:opacity-95 transition"
             >
               <LuCreditCard className="h-4 w-4" />
@@ -417,8 +513,9 @@ export default function AdminCafeDetailPage({ params }) {
                 <label className="font-semibold text-(--mainColor) block mb-1">Stamp Target (Cards)</label>
                 <input
                   type="number"
-                  min="3"
-                  max="20"
+                  required
+                  min="1"
+                  step="1"
                   value={editFormData.stampTarget}
                   onChange={(e) => setEditFormData({ ...editFormData, stampTarget: e.target.value })}
                   className="w-full h-9 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-3 text-xs text-(--mainColor) outline-none"

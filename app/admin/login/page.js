@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
               Admin Email Address
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--bgColor)/50">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--mainColor)/60">
                 <LuMail className="h-4 w-4" />
               </span>
               <input
@@ -83,7 +83,8 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-11 rounded-xl border border-[#e3d7c0] bg-[#f5ecdd] pl-10 pr-3 text-sm text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none transition focus:border-(--mainColor) focus:ring-2 focus:ring-(--secondColor)/40"
+                placeholder="email address"
+                className="w-full h-11 rounded-xl border border-(--bgColor) bg-(--bgColor) pl-10 pr-3 text-sm text-(--mainColor) placeholder:text-(--mainColor) outline-none transition focus:border-(--mainColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
             </div>
           </div>
@@ -94,7 +95,7 @@ export default function AdminLoginPage() {
               Password
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--bgColor)/50">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-(--mainColor)/60">
                 <LuLock className="h-4 w-4" />
               </span>
               <input
@@ -102,8 +103,8 @@ export default function AdminLoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full h-11 rounded-xl border border-[#e3d7c0] bg-[#f5ecdd] pl-10 pr-10 text-sm text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none transition focus:border-(--mainColor) focus:ring-2 focus:ring-(--secondColor)/40"
+                placeholder="Password"
+                className="w-full h-11 rounded-xl border border-(--bgColor) bg-(--bgColor) pl-10 pr-10 text-sm text-(--mainColor) placeholder:text-(--mainColor) outline-none transition focus:border-(--mainColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
               <button
                 type="button"
@@ -140,8 +141,6 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-
-
         {/* Navigation Links */}
         <div className="flex flex-col items-center gap-2 pt-1">
           <Link
@@ -161,7 +160,8 @@ export default function AdminLoginPage() {
         {/* Security Notice */}
         <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-center text-[11px] text-amber-800 leading-relaxed">
           <LuShield className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />
-          This portal is restricted to authorized Notch platform administrators only.
+          This portal is restricted to authorized Notch platform administrators
+          only.
         </div>
       </div>
     </div>

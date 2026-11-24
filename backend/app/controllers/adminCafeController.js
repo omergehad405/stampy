@@ -2,6 +2,10 @@ const User = require("../models/User");
 const Cafe = require("../models/Cafe");
 const mongoose = require("mongoose");
 const { Plan } = require("../models/Plan");
+const Reward = require("../models/Reward");
+const Redemption = require("../models/Redemption");
+const Activity = require("../models/Activity");
+const EmailCampaign = require("../models/EmailCampaign");
 /**
  * Generate a URL-friendly, unique slug from cafe name
  */
@@ -65,6 +69,51 @@ const getAllCafes = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error fetching cafes.",
+    });
+  }
+};
+
+/**
+ * @desc    Get one cafe and its persisted loyalty-program data (Admin only)
+ * @route   GET /api/admin/cafes/:id
+ */
+const getCafeByIdentifier = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = mongoose.isValidObjectId(id)
+      ? { $or: [{ _id: id }, { slug: id.toLowerCase() }] }
+      : { slug: id.toLowerCase() };
+    const cafe = await Cafe.findOne(query);
+
+    if (!cafe) {
+      return res.status(404).json({
+        success: false,
+        message: "Cafe not found.",
+      });
+    }
+
+    const [rewards, redeemedRewards] = await Promise.all([
+      Reward.find({ cafeId: cafe._id }).sort({ requiredStamps: 1 }),
+      Redemption.countDocuments({ cafeId: cafe._id, status: "used" }),
+    ]);
+
+    const serializedCafe = cafe.toJSON();
+    serializedCafe.customerCount = cafe.customers.length;
+    serializedCafe.totalRewardsRedeemed = redeemedRewards;
+    serializedCafe.registrationDate = cafe.createdAt
+      ? new Date(cafe.createdAt).toISOString().split("T")[0]
+      : null;
+    serializedCafe.rewards = rewards.map((reward) => reward.toJSON());
+
+    return res.status(200).json({
+      success: true,
+      data: { cafe: serializedCafe },
+    });
+  } catch (error) {
+    console.error("[Admin Cafe] GetCafeByIdentifier error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching cafe details.",
     });
   }
 };
@@ -276,7 +325,16 @@ const updateCafeStatus = async (req, res) => {
 const updateCafe = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, tagline, category, subscriptionPlanId, ownerName, email, phone } = req.body;
+    const {
+      name,
+      tagline,
+      category,
+      subscriptionPlanId,
+      ownerName,
+      email,
+      phone,
+      stampTarget,
+    } = req.body;
 
     const cafe = await Cafe.findById(id);
     if (!cafe) {
@@ -289,6 +347,16 @@ const updateCafe = async (req, res) => {
     if (name && name.trim()) cafe.name = name.trim();
     if (tagline !== undefined) cafe.tagline = tagline.trim();
     if (category !== undefined) cafe.category = category.trim();
+    if (stampTarget !== undefined) {
+      const parsedStampTarget = Number(stampTarget);
+      if (!Number.isInteger(parsedStampTarget) || parsedStampTarget < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Stamp target must be a positive whole number.",
+        });
+      }
+      cafe.stampTarget = parsedStampTarget;
+    }
     if (subscriptionPlanId !== undefined) {
       const trimmedPlan = subscriptionPlanId.trim();
       if (trimmedPlan !== cafe.subscriptionPlanId) {
@@ -350,9 +418,108 @@ const updateCafe = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Delete a cafe and its cafe-owned records (Admin only)
+ * @route   DELETE /api/admin/cafes/:id
+ */
+const deleteCafe = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid cafe ID.",
+    });
+  }
+
+  let session;
+  let cafeName = "";
+  let cafeNotFound = false;
+
+  try {
+    session = await mongoose.startSession();
+    await session.withTransaction(async () => {
+      const cafe = await Cafe.findById(id).session(session);
+      if (!cafe) {
+        cafeNotFound = true;
+        return;
+      }
+
+      cafeName = cafe.name;
+      const staffRoles = ["cafeOwner", "cafeManager", "cafeBarista"];
+      const affectedCustomers = await User.find({
+        role: "user",
+        "cafes.cafeId": cafe._id,
+      }).session(session);
+
+      await Redemption.deleteMany({ cafeId: cafe._id }, { session });
+      await Activity.deleteMany({ cafeId: cafe._id }, { session });
+      await Reward.deleteMany({ cafeId: cafe._id }, { session });
+      await EmailCampaign.deleteMany({ cafeId: cafe._id }, { session });
+
+      const redemptionTotals = await Redemption.aggregate([
+        {
+          $match: {
+            customerId: { $in: affectedCustomers.map((customer) => customer._id) },
+            status: { $in: ["pending", "used"] },
+          },
+        },
+        { $group: { _id: "$customerId", count: { $sum: 1 } } },
+      ]).session(session);
+      const redeemedCountByCustomer = new Map(
+        redemptionTotals.map((item) => [item._id.toString(), item.count])
+      );
+      for (const customer of affectedCustomers) {
+        customer.cafes = customer.cafes.filter(
+          (membership) => membership.cafeId.toString() !== cafe._id.toString()
+        );
+        customer.joinedCafes = customer.cafes.length;
+        customer.totalStamps = customer.cafes.reduce(
+          (total, membership) => total + (membership.stamps || 0),
+          0
+        );
+        customer.redeemedRewards =
+          redeemedCountByCustomer.get(customer._id.toString()) || 0;
+        await customer.save({ session });
+      }
+
+      await User.deleteMany(
+        {
+          role: { $in: staffRoles },
+          $or: [{ cafeId: cafe._id }, { _id: cafe.owner?.userId }],
+        },
+        { session }
+      );
+
+      await Cafe.deleteOne({ _id: cafe._id }, { session });
+    });
+
+    if (cafeNotFound) {
+      return res.status(404).json({
+        success: false,
+        message: "Cafe not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Cafe "${cafeName}" and its records were deleted.`,
+    });
+  } catch (error) {
+    console.error("[Admin Cafe] DeleteCafe error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to delete cafe and its records. Check the database and try again.",
+    });
+  } finally {
+    if (session) await session.endSession();
+  }
+};
+
 module.exports = {
   getAllCafes,
+  getCafeByIdentifier,
   createCafe,
   updateCafeStatus,
   updateCafe,
+  deleteCafe,
 };

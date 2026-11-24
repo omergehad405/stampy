@@ -5,10 +5,12 @@ import { CAFES_CATALOG, registerCafeCatalogEntry } from "../(customer)/cafe/data
 import { useDashboardAuthStore } from "./useDashboardAuthStore";
 import {
   apiAdminGetCafes,
+  apiAdminDeleteCafe,
   apiAdminCreateCafe,
   apiAdminUpdateCafeStatus,
   apiAdminUpdateCafe,
   apiAdminGetCustomers,
+  apiAdminDeleteCustomer,
   apiAdminUpdateCustomerStatus,
   apiAdminGetPlans,
   apiAdminGetPlanFeatures,
@@ -199,9 +201,12 @@ export const useAdminStore = create((set, get) => ({
 
   updateCafeStatus: async (cafeId, newStatus, adminName = "Platform Admin") => {
     try {
-      await apiAdminUpdateCafeStatus(cafeId, newStatus);
+      const res = await apiAdminUpdateCafeStatus(cafeId, newStatus);
+      if (!res?.success) {
+        return { success: false, error: res?.message || "Failed to update cafe status." };
+      }
     } catch (err) {
-      console.warn("Failed to update status on server:", err.message);
+      return { success: false, error: err.message || "Failed to update cafe status." };
     }
 
     const { cafes, auditLog } = get();
@@ -226,9 +231,12 @@ export const useAdminStore = create((set, get) => ({
 
   updateCafeInfo: async (cafeId, updatedData) => {
     try {
-      await apiAdminUpdateCafe(cafeId, updatedData);
+      const res = await apiAdminUpdateCafe(cafeId, updatedData);
+      if (!res?.success) {
+        return { success: false, error: res?.message || "Failed to update cafe information." };
+      }
     } catch (err) {
-      console.warn("Failed to update cafe info on server:", err.message);
+      return { success: false, error: err.message || "Failed to update cafe information." };
     }
 
     const { cafes, auditLog } = get();
@@ -245,6 +253,33 @@ export const useAdminStore = create((set, get) => ({
       auditLog: [newAuditEntry, ...auditLog],
     });
     return { success: true };
+  },
+
+  deleteCafe: async (cafeId) => {
+    try {
+      const res = await apiAdminDeleteCafe(cafeId);
+      if (!res?.success) {
+        return { success: false, error: res?.message || "Failed to delete cafe." };
+      }
+
+      const { cafes, auditLog } = get();
+      const cafe = cafes.find((item) => item.id === cafeId || item._id === cafeId);
+      const newAuditEntry = {
+        id: `audit-${Date.now()}`,
+        action: "CAFE_DELETED",
+        description: `Cafe '${cafe?.name || cafeId}' and its records were deleted`,
+        adminName: "Platform Admin",
+        timestamp: new Date().toISOString(),
+        metadata: { cafeId },
+      };
+      set({
+        cafes: cafes.filter((item) => item.id !== cafeId && item._id !== cafeId),
+        auditLog: [newAuditEntry, ...auditLog],
+      });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message || "Failed to delete cafe." };
+    }
   },
 
   assignPlanToCafe: async (cafeId, planId) => {
@@ -343,6 +378,37 @@ export const useAdminStore = create((set, get) => ({
       auditLog: [newAuditEntry, ...auditLog],
     });
     return { success: true };
+  },
+
+  deleteCustomer: async (customerId) => {
+    try {
+      const res = await apiAdminDeleteCustomer(customerId);
+      if (!res?.success) {
+        return { success: false, error: res?.message || "Failed to delete customer." };
+      }
+
+      const { customers, auditLog } = get();
+      const customer = customers.find(
+        (item) => item.id === customerId || item._id === customerId
+      );
+      const newAuditEntry = {
+        id: `audit-${Date.now()}`,
+        action: "CUSTOMER_DELETED",
+        description: `Customer '${customer?.name || customerId}' and their records were deleted`,
+        adminName: "Platform Admin",
+        timestamp: new Date().toISOString(),
+        metadata: { customerId },
+      };
+      set({
+        customers: customers.filter(
+          (item) => item.id !== customerId && item._id !== customerId
+        ),
+        auditLog: [newAuditEntry, ...auditLog],
+      });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message || "Failed to delete customer." };
+    }
   },
 
   // ── Plan Actions ──────────────────────────────────────────────────────

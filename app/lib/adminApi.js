@@ -19,6 +19,37 @@ export async function apiAdminGetCafes() {
   return data;
 }
 
+export async function apiAdminGetCafe(cafeIdentifier) {
+  const response = await fetch(
+    `${API_BASE}/api/admin/cafes/${encodeURIComponent(cafeIdentifier)}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+      credentials: "include",
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch cafe details.");
+  }
+  return data;
+}
+
+export async function apiAdminDeleteCafe(cafeId) {
+  const response = await fetch(`${API_BASE}/api/admin/cafes/${cafeId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete cafe.");
+  }
+  return data;
+}
+
 export async function apiAdminCreateCafe({
   name,
   ownerName,
@@ -111,6 +142,37 @@ export async function apiAdminUpdateCustomerStatus(customerId, status) {
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || "Failed to update customer status.");
+  }
+  return data;
+}
+
+export async function apiAdminDeleteCustomer(customerId) {
+  const response = await fetch(`${API_BASE}/api/admin/customers/${customerId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete customer.");
+  }
+  return data;
+}
+
+export async function apiAdminGetAnalytics(range) {
+  const response = await fetch(
+    `${API_BASE}/api/admin/analytics?range=${encodeURIComponent(range)}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+      credentials: "include",
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch analytics.");
   }
   return data;
 }

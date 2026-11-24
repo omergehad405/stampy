@@ -223,7 +223,7 @@ export default function AdminOverviewPage() {
                     />
                     <div className="min-w-0">
                       <Link
-                        href={`/admin/cafes/${cafe.id}`}
+                        href={`/admin/cafes/${cafe.slug}`}
                         className="truncate text-xs font-bold text-(--mainColor) hover:underline block"
                       >
                         {cafe.name}
@@ -333,7 +333,7 @@ export default function AdminOverviewPage() {
                   {recentCafes.map((c) => (
                     <div key={c.id} className="flex items-center justify-between rounded-lg bg-[#f5ecdd] p-2 text-xs">
                       <div className="min-w-0 pr-2">
-                        <Link href={`/admin/cafes/${c.id}`} className="font-bold text-(--mainColor) truncate block hover:underline">
+                        <Link href={`/admin/cafes/${c.slug}`} className="font-bold text-(--mainColor) truncate block hover:underline">
                           {c.name}
                         </Link>
                         <span className="text-[10px] text-(--mainColor)/60">{c.registrationDate}</span>

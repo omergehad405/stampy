@@ -1,4 +1,8 @@
 const User = require("../models/User");
+const Cafe = require("../models/Cafe");
+const Activity = require("../models/Activity");
+const Redemption = require("../models/Redemption");
+const mongoose = require("mongoose");
 
 /**
  * Helper to serialize MongoDB User document into Customer response format
@@ -142,8 +146,71 @@ const updateCustomerStatus = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Delete a customer account and its loyalty records (Admin only)
+ * @route   DELETE /api/admin/customers/:id
+ */
+const deleteCustomer = async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid customer ID.",
+    });
+  }
+
+  let session;
+  let customerNotFound = false;
+
+  try {
+    session = await mongoose.startSession();
+    await session.withTransaction(async () => {
+      const customer = await User.findOne({ _id: id, role: "user" }).session(session);
+      if (!customer) {
+        customerNotFound = true;
+        return;
+      }
+
+      await Activity.deleteMany({ customerId: customer._id }, { session });
+      await Redemption.deleteMany({ customerId: customer._id }, { session });
+
+      const cafes = await Cafe.find({ "customers.userId": customer._id }).session(session);
+      for (const cafe of cafes) {
+        cafe.customers = cafe.customers.filter(
+          (membership) => membership.userId.toString() !== customer._id.toString()
+        );
+        cafe.customerCount = cafe.customers.length;
+        await cafe.save({ session });
+      }
+
+      await User.deleteOne({ _id: customer._id, role: "user" }, { session });
+    });
+
+    if (customerNotFound) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer account and loyalty records were deleted.",
+    });
+  } catch (error) {
+    console.error("[Admin Customers] DeleteCustomer error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to delete customer and their records. Check the database and try again.",
+    });
+  } finally {
+    if (session) await session.endSession();
+  }
+};
+
 module.exports = {
   getAllCustomers,
   getCustomerById,
   updateCustomerStatus,
+  deleteCustomer,
 };

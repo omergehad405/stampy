@@ -24,6 +24,7 @@ import {
   LuInfo,
   LuPencil,
   LuLoader,
+  LuTrash2,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import AdminPageHeader from "../components/AdminPageHeader";
@@ -39,6 +40,7 @@ export default function AdminCafesPage() {
     createCafe,
     updateCafeInfo,
     assignPlanToCafe,
+    deleteCafe,
     fetchCafes,
     isLoadingCafes,
   } = useAdminStore();
@@ -91,6 +93,12 @@ export default function AdminCafesPage() {
     variant: "danger",
     title: "",
     description: "",
+  });
+  const [deleteCafeModal, setDeleteCafeModal] = useState({
+    isOpen: false,
+    cafeId: null,
+    cafeName: "",
+    isLoading: false,
   });
 
   // Filter and sort cafes
@@ -175,6 +183,23 @@ export default function AdminCafesPage() {
       toast.error(res.error || "Failed to update cafe status");
     }
     setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const handleConfirmCafeDelete = async () => {
+    setDeleteCafeModal((current) => ({ ...current, isLoading: true }));
+    const result = await deleteCafe(deleteCafeModal.cafeId);
+    if (result.success) {
+      toast.success(`Cafe "${deleteCafeModal.cafeName}" and its records were deleted.`);
+      setCurrentPage(1);
+    } else {
+      toast.error(result.error || "Failed to delete cafe.");
+    }
+    setDeleteCafeModal({
+      isOpen: false,
+      cafeId: null,
+      cafeName: "",
+      isLoading: false,
+    });
   };
 
   const handleAddCafeSubmit = async (e) => {
@@ -426,7 +451,7 @@ export default function AdminCafesPage() {
                         />
                         <div className="min-w-0">
                           <Link
-                            href={`/admin/cafes/${cafe.id}`}
+                            href={`/admin/cafes/${cafe.slug}`}
                             className="font-bold text-(--mainColor) hover:underline block truncate max-w-[180px]"
                           >
                             {cafe.name}
@@ -483,7 +508,7 @@ export default function AdminCafesPage() {
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
-                          href={`/admin/cafes/${cafe.id}`}
+                          href={`/admin/cafes/${cafe.slug}`}
                           className="rounded-lg p-1.5 text-(--mainColor)/70 hover:bg-[#ebdcc8] hover:text-(--mainColor) transition"
                           title="View Cafe Details"
                         >
@@ -515,6 +540,21 @@ export default function AdminCafesPage() {
                             <LuCircleCheck className="h-4 w-4" />
                           </button>
                         )}
+                        <button
+                          onClick={() =>
+                            setDeleteCafeModal({
+                              isOpen: true,
+                              cafeId: cafe.id,
+                              cafeName: cafe.name,
+                              isLoading: false,
+                            })
+                          }
+                          className="rounded-lg p-1.5 text-rose-700 hover:bg-rose-100 transition"
+                          title="Delete Cafe and Records"
+                          aria-label={`Delete ${cafe.name} and its records`}
+                        >
+                          <LuTrash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -563,6 +603,23 @@ export default function AdminCafesPage() {
         confirmVariant={confirmModal.variant}
         onConfirm={handleConfirmStatusChange}
         onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
+      <ConfirmModal
+        isOpen={deleteCafeModal.isOpen}
+        title={`Delete ${deleteCafeModal.cafeName}?`}
+        description="This permanently deletes the cafe, its rewards, redemption and visit history, campaigns, and cafe owner/staff accounts. Customer accounts are retained, but their membership in this cafe is removed. This cannot be undone."
+        confirmLabel="Delete Cafe and Records"
+        confirmVariant="danger"
+        isLoading={deleteCafeModal.isLoading}
+        onConfirm={handleConfirmCafeDelete}
+        onCancel={() =>
+          setDeleteCafeModal({
+            isOpen: false,
+            cafeId: null,
+            cafeName: "",
+            isLoading: false,
+          })
+        }
       />
 
       {/* Add New Cafe Modal */}

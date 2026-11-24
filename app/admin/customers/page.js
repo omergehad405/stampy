@@ -13,6 +13,7 @@ import {
   LuCoffee,
   LuStamp,
   LuLoader,
+  LuTrash2,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import AdminPageHeader from "../components/AdminPageHeader";
@@ -21,7 +22,13 @@ import ConfirmModal from "../components/ConfirmModal";
 import { useAdminStore } from "@/app/stores/useAdminStore";
 
 export default function AdminCustomersPage() {
-  const { customers, updateCustomerStatus, fetchCustomers, isLoadingCustomers } = useAdminStore();
+  const {
+    customers,
+    updateCustomerStatus,
+    deleteCustomer,
+    fetchCustomers,
+    isLoadingCustomers,
+  } = useAdminStore();
 
   useEffect(() => {
     fetchCustomers();
@@ -42,6 +49,12 @@ export default function AdminCustomersPage() {
     variant: "danger",
     title: "",
     description: "",
+  });
+  const [deleteCustomerModal, setDeleteCustomerModal] = useState({
+    isOpen: false,
+    customerId: null,
+    customerName: "",
+    isLoading: false,
   });
 
   // Filter and sort
@@ -111,6 +124,23 @@ export default function AdminCustomersPage() {
       toast.error(res.error || "Update failed");
     }
     setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const handleConfirmCustomerDelete = async () => {
+    setDeleteCustomerModal((current) => ({ ...current, isLoading: true }));
+    const result = await deleteCustomer(deleteCustomerModal.customerId);
+    if (result.success) {
+      toast.success(`Customer "${deleteCustomerModal.customerName}" and their records were deleted.`);
+      setCurrentPage(1);
+    } else {
+      toast.error(result.error || "Failed to delete customer.");
+    }
+    setDeleteCustomerModal({
+      isOpen: false,
+      customerId: null,
+      customerName: "",
+      isLoading: false,
+    });
   };
 
   return (
@@ -305,6 +335,21 @@ export default function AdminCustomersPage() {
                             <LuCircleCheck className="h-4 w-4" />
                           </button>
                         )}
+                        <button
+                          onClick={() =>
+                            setDeleteCustomerModal({
+                              isOpen: true,
+                              customerId: c.id,
+                              customerName: c.name,
+                              isLoading: false,
+                            })
+                          }
+                          className="rounded-lg p-1.5 text-rose-700 hover:bg-rose-100 transition"
+                          title="Delete Customer and Records"
+                          aria-label={`Delete ${c.name} and their records`}
+                        >
+                          <LuTrash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -353,6 +398,23 @@ export default function AdminCustomersPage() {
         confirmVariant={confirmModal.variant}
         onConfirm={handleConfirmStatusChange}
         onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
+      <ConfirmModal
+        isOpen={deleteCustomerModal.isOpen}
+        title={`Delete ${deleteCustomerModal.customerName}?`}
+        description="This permanently deletes the customer account, visit and redemption history, and loyalty-card memberships across all cafes. This cannot be undone."
+        confirmLabel="Delete Customer and Records"
+        confirmVariant="danger"
+        isLoading={deleteCustomerModal.isLoading}
+        onConfirm={handleConfirmCustomerDelete}
+        onCancel={() =>
+          setDeleteCustomerModal({
+            isOpen: false,
+            customerId: null,
+            customerName: "",
+            isLoading: false,
+          })
+        }
       />
     </div>
   );

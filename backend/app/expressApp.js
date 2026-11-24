@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routing/authRoutes");
 const adminCafeRoutes = require("./routing/adminCafeRoutes");
 const adminCustomerRoutes = require("./routing/adminCustomerRoutes");
+const adminAnalyticsRoutes = require("./routing/adminAnalyticsRoutes");
 const adminPlanRoutes = require("./routing/adminPlanRoutes");
 const adminAnnouncementRoutes = require("./routing/adminAnnouncementRoutes");
 const announcementRoutes = require("./routing/announcementRoutes");
@@ -74,6 +75,7 @@ function createExpressApp() {
   app.use("/api/announcements", announcementRoutes);
   app.use("/api/admin/cafes", adminCafeRoutes);
   app.use("/api/admin/customers", adminCustomerRoutes);
+  app.use("/api/admin/analytics", adminAnalyticsRoutes);
   app.use("/api/admin/plans", adminPlanRoutes);
   app.use("/api/admin/announcements", adminAnnouncementRoutes);
   app.use("/api/dashboard/rewards", cafeRewardRoutes);
