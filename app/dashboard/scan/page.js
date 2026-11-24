@@ -40,6 +40,7 @@ import {
 export default function DashboardScanPage() {
   const {
     customers,
+    customersLoaded,
     rewards,
     settings,
     fetchCustomers,
@@ -49,6 +50,10 @@ export default function DashboardScanPage() {
     cafe,
   } = useDashboardStore();
   const { currentUser } = useDashboardAuthStore();
+
+  useEffect(() => {
+    if (!customersLoaded) fetchCustomers();
+  }, [customersLoaded, fetchCustomers]);
 
   const limits = getPlanLimits ? getPlanLimits() : null;
   const isExpired = Boolean(limits?.isExpired);

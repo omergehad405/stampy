@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   LuUsers,
   LuSearch,
@@ -20,24 +20,40 @@ import {
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
+import { apiGetCafeCustomersPage } from "@/app/lib/dashboardApi";
 
 export default function DashboardCustomersPage() {
   const {
-    customers,
-    isLoadingCustomers,
-    fetchCustomers,
     settings,
     updateCustomer,
     activities,
   } = useDashboardStore();
 
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // 'all' | 'active' | 'inactive'
   const [sortBy, setSortBy] = useState("stamps"); // 'stamps' | 'name' | 'date' | 'visits'
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const requestKey = JSON.stringify([
+    currentPage,
+    debouncedSearch,
+    statusFilter,
+    sortBy,
+    reloadKey,
+  ]);
+  const [pageResult, setPageResult] = useState({
+    key: null,
+    customers: [],
+    pagination: { page: 1, pageSize: 10, total: 0, totalPages: 0 },
+    error: "",
+  });
+  const isLoadingCustomers = pageResult.key !== requestKey;
+  const customers = isLoadingCustomers ? [] : pageResult.customers;
+  const pagination = isLoadingCustomers
+    ? { page: currentPage, pageSize: 10, total: 0, totalPages: 0 }
+    : pageResult.pagination;
+  const loadError = isLoadingCustomers ? "" : pageResult.error;
 
   // Modal states
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -46,29 +62,46 @@ export default function DashboardCustomersPage() {
   const [adjustAmount, setAdjustAmount] = useState(1);
   const [adjustReason, setAdjustReason] = useState("");
 
-  // Filtered & sorted customers
-  const filteredCustomers = useMemo(() => {
-    return customers
-      .filter((c) => {
-        const matchesSearch =
-          c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.phone?.includes(searchQuery);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setCurrentPage(1);
+      setDebouncedSearch(searchQuery.trim());
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [searchQuery]);
 
-        const matchesStatus =
-          statusFilter === "all" || c.status === statusFilter;
+  useEffect(() => {
+    let active = true;
 
-        return matchesSearch && matchesStatus;
+    apiGetCafeCustomersPage({
+      page: currentPage,
+      search: debouncedSearch,
+      status: statusFilter,
+      sortBy,
+    })
+      .then(({ customers: pageCustomers, pagination: pageInfo }) => {
+        if (!active) return;
+        setPageResult({
+          key: requestKey,
+          customers: pageCustomers,
+          pagination: pageInfo,
+          error: "",
+        });
       })
-      .sort((a, b) => {
-        if (sortBy === "stamps") return b.stamps - a.stamps;
-        if (sortBy === "visits") return b.totalVisits - a.totalVisits;
-        if (sortBy === "name") return a.name.localeCompare(b.name);
-        if (sortBy === "date") return new Date(b.registeredDate) - new Date(a.registeredDate);
-        return 0;
+      .catch((error) => {
+        if (!active) return;
+        setPageResult({
+          key: requestKey,
+          customers: [],
+          pagination: { page: currentPage, pageSize: 10, total: 0, totalPages: 0 },
+          error: error.message || "Failed to fetch cafe customers.",
+        });
       });
-  }, [customers, searchQuery, statusFilter, sortBy]);
+
+    return () => {
+      active = false;
+    };
+  }, [currentPage, debouncedSearch, statusFilter, sortBy, reloadKey, requestKey]);
 
   // Handle Manual Stamp Adjustment
   const handleAdjustStamps = (type) => {
@@ -79,18 +112,28 @@ export default function DashboardCustomersPage() {
       Math.min(settings.stampTarget, selectedCustomer.stamps + delta)
     );
 
-    updateCustomer(selectedCustomer.id, {
+    const updatedCustomer = {
       stamps: newStamps,
       lifetimeStamps:
         type === "add"
           ? selectedCustomer.lifetimeStamps + adjustAmount
           : selectedCustomer.lifetimeStamps,
-    });
+    };
+    updateCustomer(selectedCustomer.id, updatedCustomer);
+    setPageResult((prev) =>
+      prev.key !== requestKey
+        ? prev
+        : {
+            ...prev,
+            customers: prev.customers.map((customer) =>
+              customer.id === selectedCustomer.id
+                ? { ...customer, ...updatedCustomer }
+                : customer,
+            ),
+          },
+    );
 
-    setSelectedCustomer((prev) => ({
-      ...prev,
-      stamps: newStamps,
-    }));
+    setSelectedCustomer((prev) => ({ ...prev, ...updatedCustomer }));
 
     toast.success(
       `Adjusted stamps: ${type === "add" ? "+" : "-"}${adjustAmount} for ${selectedCustomer.name}`
@@ -113,7 +156,10 @@ export default function DashboardCustomersPage() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setSearchQuery(e.target.value);
+            }}
             placeholder="Search by name, email, or code (e.g. Omar, Notch-7842)..."
             className="w-full h-10 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 pl-9 pr-3 text-xs text-(--bgColor) placeholder:text-(--bgColor)/40 outline-none focus:border-(--secondColor)"
           />
@@ -127,7 +173,10 @@ export default function DashboardCustomersPage() {
             <LuFilter className="h-3.5 w-3.5 text-(--secondColor)" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setStatusFilter(e.target.value);
+              }}
               className="rounded-lg border border-(--bgColor)/20 bg-(--mainColor) px-2.5 py-1.5 text-xs font-semibold text-(--bgColor) outline-none cursor-pointer"
             >
               <option value="all">All Statuses</option>
@@ -141,7 +190,10 @@ export default function DashboardCustomersPage() {
             <LuArrowUpDown className="h-3.5 w-3.5 text-(--secondColor)" />
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setSortBy(e.target.value);
+              }}
               className="rounded-lg border border-(--bgColor)/20 bg-(--mainColor) px-2.5 py-1.5 text-xs font-semibold text-(--bgColor) outline-none cursor-pointer"
             >
               <option value="stamps">Most Stamps</option>
@@ -178,8 +230,21 @@ export default function DashboardCustomersPage() {
                     </div>
                   </td>
                 </tr>
-              ) : filteredCustomers.length > 0 ? (
-                filteredCustomers.map((cust) => (
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-sm text-rose-700" role="alert">
+                    <p>{loadError}</p>
+                    <button
+                      type="button"
+                      onClick={() => setReloadKey((key) => key + 1)}
+                      className="mt-3 rounded-lg bg-(--mainColor) px-4 py-2 text-xs font-bold text-(--bgColor) focus-visible:outline-2 focus-visible:outline-offset-2"
+                    >
+                      Retry
+                    </button>
+                  </td>
+                </tr>
+              ) : customers.length > 0 ? (
+                customers.map((cust) => (
                   <tr
                     key={cust.id}
                     onClick={() => setSelectedCustomer(cust)}
@@ -270,6 +335,44 @@ export default function DashboardCustomersPage() {
           </table>
         </div>
       </div>
+
+      {!isLoadingCustomers && !loadError && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-(--bgColor)/15 bg-(--mainColor) p-4 text-(--bgColor) sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-(--bgColor)/70" aria-live="polite">
+            {pagination.total === 0
+              ? "No customers to display"
+              : `Showing ${(pagination.page - 1) * pagination.pageSize + 1}-${Math.min(
+                  pagination.page * pagination.pageSize,
+                  pagination.total,
+                )} of ${pagination.total} customers`}
+          </p>
+          <nav aria-label="Customer pages" className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage <= 1}
+              className="min-h-10 rounded-lg border border-(--bgColor)/20 px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              Previous
+            </button>
+            <span className="min-w-20 text-center text-xs tabular-nums">
+              Page {pagination.page} of {Math.max(pagination.totalPages, 1)}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage((page) =>
+                  Math.min(pagination.totalPages, page + 1),
+                )
+              }
+              disabled={currentPage >= pagination.totalPages}
+              className="min-h-10 rounded-lg border border-(--bgColor)/20 px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              Next
+            </button>
+          </nav>
+        </div>
+      )}
 
       {/* Customer Detail Drawer / Modal */}
       {selectedCustomer && (

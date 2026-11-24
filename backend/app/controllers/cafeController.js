@@ -7,28 +7,37 @@ const Redemption = require("../models/Redemption");
 const Activity = require("../models/Activity");
 const { Plan } = require("../models/Plan");
 
+const CUSTOMER_PAGE_SIZE = 10;
+
 /**
  * Helper to resolve cafe for current authenticated user
  */
-const resolveUserCafe = async (user, queryCafeId) => {
+const resolveUserCafe = async (
+  user,
+  queryCafeId,
+  { excludeCustomers = false } = {}
+) => {
+  const projectCafe = (query) =>
+    excludeCustomers ? query.select("-customers") : query;
+
   if (user.role === "admin" && queryCafeId && mongoose.isValidObjectId(queryCafeId)) {
-    const found = await Cafe.findById(queryCafeId);
+    const found = await projectCafe(Cafe.findById(queryCafeId));
     if (found) return found;
   }
 
   if (user.cafeId) {
-    const found = await Cafe.findById(user.cafeId);
+    const found = await projectCafe(Cafe.findById(user.cafeId));
     if (found) return found;
   }
 
   // Fallback for owner by owner.userId or owner.email
   if (["cafeOwner", "cafeManager", "cafeBarista"].includes(user.role)) {
-    const found = await Cafe.findOne({
+    const found = await projectCafe(Cafe.findOne({
       $or: [
         { "owner.userId": user._id },
         { "owner.email": user.email.toLowerCase() },
       ],
-    });
+    }));
     if (found) {
       if (!user.cafeId && user.save) {
         user.cafeId = found._id;
@@ -40,7 +49,7 @@ const resolveUserCafe = async (user, queryCafeId) => {
 
   // Admin fallback to first cafe
   if (user.role === "admin") {
-    return await Cafe.findOne().sort({ createdAt: 1 });
+    return await projectCafe(Cafe.findOne().sort({ createdAt: 1 }));
   }
 
   return null;
@@ -872,12 +881,250 @@ const getMyMemberships = async (req, res) => {
  */
 const getCafeCustomers = async (req, res) => {
   try {
-    const cafe = await resolveUserCafe(req.user, req.query.cafeId);
+    const isPaginated = req.query.page !== undefined;
+    const cafe = await resolveUserCafe(req.user, req.query.cafeId, {
+      excludeCustomers: isPaginated,
+    });
 
     if (!cafe) {
       return res.status(404).json({
         success: false,
         message: "No cafe found associated with your account.",
+      });
+    }
+
+    if (isPaginated) {
+      const page = Number(req.query.page);
+      const status = req.query.status || "all";
+      const sortBy = req.query.sortBy || "stamps";
+      const allowedSortFields = {
+        stamps: "customers.stamps",
+        visits: "customers.totalVisits",
+        name: "user.name",
+        date: "customers.joinedAt",
+      };
+
+      if (!Number.isInteger(page) || page < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Page must be a positive integer.",
+        });
+      }
+      if (!["all", "active", "inactive"].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid customer status filter.",
+        });
+      }
+      if (!Object.prototype.hasOwnProperty.call(allowedSortFields, sortBy)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid customer sort order.",
+        });
+      }
+
+      const search = String(req.query.search || "").trim().slice(0, 100);
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = {};
+      if (status !== "all") match.dashboardStatus = status;
+      if (escapedSearch) {
+        const searchRegex = new RegExp(escapedSearch, "i");
+        const codeSearch = escapedSearch.replace(/^Notch-/i, "").slice(0, 8);
+        match.$or = [
+          { "user.name": searchRegex },
+          { "user.email": searchRegex },
+          { "user.qrCode": searchRegex },
+          { "user.qrCode": new RegExp(`^${codeSearch}`, "i") },
+          { "user.phone": searchRegex },
+        ];
+      }
+
+      const joinBeforePaging =
+        Boolean(escapedSearch) || status !== "all" || sortBy === "name";
+      const sortDirection = sortBy === "name" ? 1 : -1;
+      const pipeline = [
+        { $match: { _id: cafe._id } },
+        { $unwind: "$customers" },
+      ];
+
+      if (joinBeforePaging) {
+        pipeline.push(
+          {
+            $lookup: {
+              from: "users",
+              localField: "customers.userId",
+              foreignField: "_id",
+              as: "user",
+            },
+          },
+          { $unwind: "$user" },
+          {
+            $addFields: {
+              dashboardStatus: {
+                $ifNull: [
+                  "$customers.status",
+                  {
+                    $cond: [
+                      { $eq: ["$user.isActive", true] },
+                      "active",
+                      "inactive",
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          { $match: match }
+        );
+      } else {
+        pipeline.push({ $match: { "customers.userId": { $ne: null } } });
+      }
+
+      pipeline.push({
+        $facet: {
+          metadata: [{ $count: "total" }],
+          customers: [
+            {
+              $sort: {
+                [allowedSortFields[sortBy]]: sortDirection,
+                [joinBeforePaging ? "user._id" : "customers.userId"]: 1,
+              },
+            },
+            { $skip: (page - 1) * CUSTOMER_PAGE_SIZE },
+            { $limit: CUSTOMER_PAGE_SIZE },
+            ...(!joinBeforePaging
+              ? [
+                  {
+                    $lookup: {
+                      from: "users",
+                      localField: "customers.userId",
+                      foreignField: "_id",
+                      as: "user",
+                    },
+                  },
+                  { $unwind: "$user" },
+                  {
+                    $addFields: {
+                      dashboardStatus: {
+                        $ifNull: [
+                          "$customers.status",
+                          {
+                            $cond: [
+                              { $eq: ["$user.isActive", true] },
+                              "active",
+                              "inactive",
+                            ],
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ]
+              : []),
+            {
+              $project: {
+                _id: 0,
+                id: { $toString: "$user._id" },
+                userId: { $toString: "$user._id" },
+                code: {
+                  $cond: [
+                    { $gt: [{ $strLenCP: { $ifNull: ["$user.qrCode", ""] } }, 12] },
+                    {
+                      $concat: [
+                        "Notch-",
+                        {
+                          $toUpper: {
+                            $substrCP: ["$user.qrCode", 0, 8],
+                          },
+                        },
+                      ],
+                    },
+                    {
+                      $cond: [
+                        { $ne: [{ $ifNull: ["$user.qrCode", ""] }, ""] },
+                        "$user.qrCode",
+                        {
+                          $concat: [
+                            "Notch-",
+                            {
+                              $toUpper: {
+                                $substrCP: [
+                                  { $toString: "$user._id" },
+                                  20,
+                                  4,
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                name: "$user.name",
+                email: "$user.email",
+                phone: { $ifNull: ["$user.phone", "No phone provided"] },
+                avatar: {
+                  $ifNull: [
+                    "$user.avatar",
+                    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                  ],
+                },
+                stamps: { $ifNull: ["$customers.stamps", 0] },
+                totalStamps: { $ifNull: ["$stampTarget", 10] },
+                lifetimeStamps: {
+                  $ifNull: [
+                    "$customers.lifetimeStamps",
+                    { $ifNull: ["$customers.stamps", 0] },
+                  ],
+                },
+                totalVisits: { $ifNull: ["$customers.totalVisits", 0] },
+                rewardsRedeemedCount: {
+                  $ifNull: ["$customers.rewardsRedeemedCount", 0],
+                },
+                status: "$dashboardStatus",
+                registeredDate: {
+                  $dateToString: {
+                    format: "%Y-%m-%d",
+                    date: {
+                      $ifNull: ["$customers.joinedAt", "$user.createdAt"],
+                    },
+                    timezone: "UTC",
+                  },
+                },
+                lastVisitDate: {
+                  $dateToString: {
+                    format: "%Y-%m-%d",
+                    date: "$customers.lastVisitDate",
+                    timezone: "UTC",
+                    onNull: null,
+                  },
+                },
+                favoriteItem: {
+                  $ifNull: ["$customers.favoriteItem", "Loyalty Member"],
+                },
+                notes: { $ifNull: ["$customers.notes", ""] },
+              },
+            },
+          ],
+        },
+      });
+
+      const [result] = await Cafe.aggregate(pipeline);
+
+      const total = result?.metadata?.[0]?.total || 0;
+      return res.status(200).json({
+        success: true,
+        count: total,
+        data: {
+          customers: result?.customers || [],
+          pagination: {
+            page,
+            pageSize: CUSTOMER_PAGE_SIZE,
+            total,
+            totalPages: Math.ceil(total / CUSTOMER_PAGE_SIZE),
+          },
+        },
       });
     }
 

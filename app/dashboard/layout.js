@@ -14,16 +14,15 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isAuthenticated } = useDashboardAuthStore();
-  const { fetchCafeProfile, fetchCustomers, fetchActivities } = useDashboardStore();
+  const { fetchCafeProfile, fetchActivities } = useDashboardStore();
 
   // Pre-fetch live data whenever the staff session is authenticated
   useEffect(() => {
     if (isAuthenticated) {
       fetchCafeProfile();
-      fetchCustomers();
       fetchActivities();
     }
-  }, [isAuthenticated, fetchCafeProfile, fetchCustomers, fetchActivities]);
+  }, [isAuthenticated, fetchCafeProfile, fetchActivities]);
 
   // If on dashboard login page, do not render sidebar or header
   if (pathname === "/dashboard/login") {

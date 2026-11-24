@@ -111,6 +111,33 @@ export async function apiGetCafeCustomers(cafeId = null) {
   return data.data?.customers || [];
 }
 
+export async function apiGetCafeCustomersPage({
+  page = 1,
+  search = "",
+  status = "all",
+  sortBy = "stamps",
+} = {}) {
+  const query = new URLSearchParams({
+    page: String(page),
+    search,
+    status,
+    sortBy,
+  });
+  const res = await fetch(`${CAFE_BASE}/customers?${query.toString()}`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to fetch cafe customers.");
+  }
+  return {
+    customers: data.data?.customers || [],
+    pagination: data.data?.pagination,
+  };
+}
+
 /**
  * Manually adjust a customer's stamps from the cafe dashboard
  */
