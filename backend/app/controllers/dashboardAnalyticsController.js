@@ -8,10 +8,13 @@ const RANGE_DAYS = {
 
 const getAnalytics = async (req, res) => {
   const range = req.query.range || "30d";
-  if (!Object.prototype.hasOwnProperty.call(RANGE_DAYS, range)) {
+  if (
+    range !== "all" &&
+    !Object.prototype.hasOwnProperty.call(RANGE_DAYS, range)
+  ) {
     return res.status(400).json({
       success: false,
-      message: "Invalid range. Choose 7, 30, or 90 days.",
+      message: "Invalid range. Choose 7, 30, 90 days, or all time.",
     });
   }
 
@@ -27,10 +30,24 @@ const getAnalytics = async (req, res) => {
 
   try {
     const now = new Date();
-    const duration = RANGE_DAYS[range] * 24 * 60 * 60 * 1000;
     const end = now;
-    const start = new Date(now.getTime() - duration);
-    const previousStart = new Date(start.getTime() - duration);
+    const registeredAt = req.cafe.createdAt || req.cafe.subscriptionStart;
+    const registrationDate = registeredAt ? new Date(registeredAt) : now;
+    const start =
+      range === "all"
+        ? Number.isNaN(registrationDate.getTime()) ||
+          registrationDate.getTime() > now.getTime()
+          ? now
+          : registrationDate
+        : new Date(
+            now.getTime() - RANGE_DAYS[range] * 24 * 60 * 60 * 1000
+          );
+    const previousStart =
+      range === "all"
+        ? start
+        : new Date(
+            start.getTime() - RANGE_DAYS[range] * 24 * 60 * 60 * 1000
+          );
     const timezone = req.cafe.openingHours?.timezone || "Africa/Cairo";
     const data = await getDashboardAnalytics({
       cafeId: req.cafe._id,

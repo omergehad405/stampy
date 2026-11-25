@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGetDashboardAnalytics } from "@/app/lib/dashboardApi";
 
 export default function useAnalytics() {
-  const [range, setRange] = useState("30d");
+  const [range, setRange] = useState("all");
   const [atRiskDays, setAtRiskDays] = useState(14);
   const [retryCount, setRetryCount] = useState(0);
   const requestKey = `${range}:${atRiskDays}:${retryCount}`;

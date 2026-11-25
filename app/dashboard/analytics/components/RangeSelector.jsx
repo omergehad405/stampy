@@ -1,4 +1,5 @@
 const RANGES = [
+  { value: "all", label: "All time" },
   { value: "7d", label: "7 days" },
   { value: "30d", label: "30 days" },
   { value: "90d", label: "90 days" },

@@ -9,7 +9,7 @@ const CARD_CONFIG = [
   { key: "rewardsRedeemed", label: "Rewards Redeemed", icon: LuGift },
 ];
 
-export default function StatCards({ stats, isLoading }) {
+export default function StatCards({ stats, isLoading, isLifetime }) {
   return (
     <div dir="ltr" lang="en" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {CARD_CONFIG.map(({ key, label, icon: Icon }) => {
@@ -33,7 +33,9 @@ export default function StatCards({ stats, isLoading }) {
                   {formatNumber(stat?.value)}
                 </p>
                 <p className="mt-1 text-[11px] text-(--bgColor)/60">
-                  {formatChange(stat?.changePercent)} compared with the previous period
+                  {isLifetime
+                    ? "Since cafe registration"
+                    : `${formatChange(stat?.changePercent)} compared with the previous period`}
                 </p>
               </>
             )}

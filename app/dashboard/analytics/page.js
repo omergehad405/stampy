@@ -45,9 +45,12 @@ export default function DashboardAnalyticsPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-(--mainColor)/65">
-          Metrics use the selected date range. Stamps issued are gross grants
-          and are not reduced when customers redeem rewards. Peak hours are
-          grouped in {data?.timezone || "the cafe's configured timezone"} time.
+          {range === "all"
+            ? "All-time metrics include recorded activity since cafe registration."
+            : "Metrics use the selected date range."}{" "}
+          Stamps issued are gross grants and are not reduced when customers
+          redeem rewards. Peak hours are grouped in{" "}
+          {data?.timezone || "the cafe's configured timezone"} time.
         </p>
         <RangeSelector value={range} onChange={setRange} />
       </div>
@@ -71,7 +74,11 @@ export default function DashboardAnalyticsPage() {
         <EmptyState />
       ) : (
         <>
-          <StatCards stats={data?.stats} isLoading={isLoading} />
+          <StatCards
+            stats={data?.stats}
+            isLoading={isLoading}
+            isLifetime={range === "all"}
+          />
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             <VisitsChart data={data?.visitsOverTime} isLoading={isLoading} />
             <PeakHoursHeatmap
