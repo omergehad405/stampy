@@ -112,10 +112,8 @@ const awardStamp = async ({
       data = undefined;
       attemptLogged = false;
 
-      const [customer, cafe] = await Promise.all([
-        User.findById(customerId).session(session),
-        Cafe.findById(cafeId).session(session),
-      ]);
+      const customer = await User.findById(customerId).session(session);
+      const cafe = await Cafe.findById(cafeId).session(session);
 
       if (!customer || !cafe || !customer.isActive) {
         result = "rejected";
