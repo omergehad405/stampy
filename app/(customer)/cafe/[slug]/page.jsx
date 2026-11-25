@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { LuQrCode } from "react-icons/lu";
 import { toast } from "react-toastify";
 
@@ -9,6 +9,7 @@ import CafeTopBar from "./CafeTopBar";
 import { useCafeData } from "../data/useCafeData";
 import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import { getAuthToken } from "@/app/lib/apiClient";
+import { apiSelfScanCafe } from "@/app/lib/cafeApi";
 
 import CafeNotFound from "./components/CafeNotFound";
 import PublicCafeHero from "./components/PublicCafeHero";
@@ -23,10 +24,25 @@ import CafeQrCard from "./components/CafeQrCard";
 import QrScrollBadge from "./components/QrScrollBadge";
 import CafeQrModal from "./components/CafeQrModal";
 
+function showStampAwardToast(response, cafe, totalStamps) {
+  const stampCount = response.data?.stamps ?? response.data?.newStamps;
+  const stampTarget = response.data?.stampTarget ?? totalStamps;
+  const cafeName = cafe?.name || "the cafe";
+
+  toast.success(
+    typeof stampCount === "number"
+      ? `🎉 +1 stamp gained! ${stampCount}/${stampTarget} stamps at ${cafeName}.`
+      : `🎉 +1 stamp gained at ${cafeName}!`
+  );
+}
+
 function DedicatedCafePageContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = params?.slug;
+  const scanIntent = searchParams.get("scan") === "1";
+  const joinIntent = searchParams.get("join") === "1";
 
   const { cafe, isLoading } = useCafeData(slug);
   const {
@@ -45,13 +61,107 @@ function DedicatedCafePageContent() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isBadgeHighlighted, setIsBadgeHighlighted] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [scanError, setScanError] = useState("");
+  const [scanNeedsJoin, setScanNeedsJoin] = useState(false);
+  const [scanRetryCount, setScanRetryCount] = useState(0);
   const qrSectionRef = useRef(null);
+  const scanAttemptRef = useRef({ key: "", active: false });
+  const selfScanAwardedStampsRef = useRef(null);
 
   // Active stamps tracking and celebration animation state
   const currentStamps = membership?.stamps ?? 0;
   const totalStamps = membership?.totalStamps ?? cafe?.stampTarget ?? 10;
   const prevStampsRef = useRef(null);
   const [animatingStamps, setAnimatingStamps] = useState([]); // array of slot numbers e.g. [3] or [3, 4]
+
+  useEffect(() => {
+    if (!scanIntent || !slug || isLoading || !cafe || !getAuthToken()) return;
+
+    const attemptKey = `${slug}:${joinIntent}:${scanRetryCount}`;
+    if (scanAttemptRef.current.key === attemptKey) {
+      scanAttemptRef.current.active = true;
+      return () => {
+        if (scanAttemptRef.current.key === attemptKey) {
+          scanAttemptRef.current.active = false;
+        }
+      };
+    }
+    scanAttemptRef.current = { key: attemptKey, active: true };
+    setIsJoining(true);
+    setScanError("");
+    setScanNeedsJoin(false);
+
+    const isCurrentAttempt = () =>
+      scanAttemptRef.current.key === attemptKey &&
+      scanAttemptRef.current.active;
+
+    const recordScan = async () => {
+      try {
+        const authResult = await fetchCurrentUser();
+        if (authResult?.unauthenticated || !getAuthToken()) {
+          return;
+        }
+
+        const response = await apiSelfScanCafe(slug, { join: joinIntent });
+        if (!isCurrentAttempt()) return;
+        selfScanAwardedStampsRef.current =
+          Number(response.data?.stamps ?? response.data?.newStamps) || null;
+
+        try {
+          await fetchCurrentUser();
+        } catch (refreshError) {
+          selfScanAwardedStampsRef.current = null;
+          console.warn("[Cafe QR] Could not refresh customer membership:", refreshError);
+        }
+
+        showStampAwardToast(response, cafe, totalStamps);
+
+        try {
+          await fetchCafeActivities(slug);
+        } catch (refreshError) {
+          console.warn("[Cafe QR] Could not refresh cafe activity:", refreshError);
+        }
+
+        router.replace(`/cafe/${encodeURIComponent(slug)}`);
+      } catch (error) {
+        if (!isCurrentAttempt()) return;
+        selfScanAwardedStampsRef.current = null;
+
+        if (error.code === "JOIN_REQUIRED") {
+          setScanNeedsJoin(true);
+          setScanError("Join this cafe’s loyalty program to collect a stamp.");
+        } else if (error.code === "DAILY_LIMIT" || error.code === "CARD_FULL") {
+          toast.info(error.message);
+          router.replace(`/cafe/${encodeURIComponent(slug)}`);
+        } else if (error.status === 401) {
+          const returnTo = `/cafe/${encodeURIComponent(slug)}?scan=1`;
+          router.push(`/login?next=${encodeURIComponent(returnTo)}`);
+        } else {
+          setScanError(error.message || "Could not record this scan. Please try again.");
+        }
+      } finally {
+        if (isCurrentAttempt()) setIsJoining(false);
+      }
+    };
+
+    recordScan();
+    return () => {
+      if (scanAttemptRef.current.key === attemptKey) {
+        scanAttemptRef.current.active = false;
+      }
+    };
+  }, [
+    cafe,
+    fetchCafeActivities,
+    fetchCurrentUser,
+    isLoading,
+    joinIntent,
+    router,
+    scanIntent,
+    scanRetryCount,
+    slug,
+    totalStamps,
+  ]);
 
   // Fetch real customer cafe activities (visits, stamps, redemptions)
   useEffect(() => {
@@ -95,7 +205,14 @@ function DedicatedCafePageContent() {
       setAnimatingStamps(newSlots);
 
       if (newSlots.length > 0) {
-        toast.success(`🎉 +${newSlots.length} stamp awarded!`);
+        if (
+          selfScanAwardedStampsRef.current !== null &&
+          membership.stamps >= selfScanAwardedStampsRef.current
+        ) {
+          selfScanAwardedStampsRef.current = null;
+        } else {
+          toast.success(`🎉 +${newSlots.length} stamp awarded!`);
+        }
       }
     }
 
@@ -115,6 +232,12 @@ function DedicatedCafePageContent() {
   const handleJoinCafe = async () => {
     const token = getAuthToken();
     if (!isAuthenticated || !token) {
+      if (scanIntent) {
+        const returnTo = `/cafe/${encodeURIComponent(slug)}?scan=1&join=1`;
+        router.push(`/login?next=${encodeURIComponent(returnTo)}`);
+        return;
+      }
+
       if (typeof window !== "undefined") {
         localStorage.setItem(
           "Notch_pending_cafe_join",
@@ -131,7 +254,34 @@ function DedicatedCafePageContent() {
     }
 
     setIsJoining(true);
+    if (scanIntent) {
+      setScanError("");
+      setScanNeedsJoin(false);
+    }
     try {
+      if (scanIntent) {
+        const response = await apiSelfScanCafe(slug, { join: true });
+        selfScanAwardedStampsRef.current =
+          Number(response.data?.stamps ?? response.data?.newStamps) || null;
+        try {
+          await fetchCurrentUser();
+        } catch (refreshError) {
+          selfScanAwardedStampsRef.current = null;
+          console.warn("[Cafe QR] Could not refresh customer membership:", refreshError);
+        }
+
+        showStampAwardToast(response, cafe, totalStamps);
+
+        try {
+          await fetchCafeActivities(slug);
+        } catch (refreshError) {
+          console.warn("[Cafe QR] Could not refresh cafe activity:", refreshError);
+        }
+
+        router.replace(`/cafe/${encodeURIComponent(slug)}`);
+        return;
+      }
+
       const result = await joinCafe(cafe?.id || cafe?._id || slug);
       if (result.success) {
         toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`, {
@@ -142,11 +292,43 @@ function DedicatedCafePageContent() {
         toast.error(result.error || "Failed to join cafe loyalty program.");
       }
     } catch (err) {
-      toast.error(err.message || "Failed to join cafe.");
+      if (err.code === "DAILY_LIMIT" || err.code === "CARD_FULL") {
+        selfScanAwardedStampsRef.current = null;
+        toast.info(err.message);
+        router.replace(`/cafe/${encodeURIComponent(slug)}`);
+      } else {
+        selfScanAwardedStampsRef.current = null;
+        setScanNeedsJoin(false);
+        setScanError(err.message || "Could not record this scan. Please try again.");
+        toast.error(err.message || "Failed to join cafe.");
+      }
     } finally {
       setIsJoining(false);
     }
   };
+
+  const scanFeedback = scanError ? (
+    <div
+      role={scanNeedsJoin ? "status" : "alert"}
+      className="mt-4 rounded-xl border border-(--mainColor)/15 bg-(--bgColor)/80 px-4 py-3 text-sm text-(--mainColor)"
+    >
+      <p>{scanError}</p>
+      {!scanNeedsJoin && (
+        <button
+          type="button"
+          onClick={() => {
+            scanAttemptRef.current = { key: "", active: false };
+            setScanError("");
+            setScanNeedsJoin(false);
+            setScanRetryCount((count) => count + 1);
+          }}
+          className="mt-2 font-bold underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          Try again
+        </button>
+      )}
+    </div>
+  ) : null;
 
   if (!cafe) {
     return <CafeNotFound />;
@@ -156,6 +338,7 @@ function DedicatedCafePageContent() {
     return (
       <div className="w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10 pb-16">
         <CafeTopBar cafe={cafe} />
+        {scanFeedback}
         <PublicCafeHero cafe={cafe} isJoining={isJoining} onJoin={handleJoinCafe} />
         <JoinLoyaltyCard cafe={cafe} isJoining={isJoining} onJoin={handleJoinCafe} />
         <RewardsPreview cafe={cafe} slug={slug} />
@@ -169,6 +352,7 @@ function DedicatedCafePageContent() {
   return (
     <div className="w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10 pb-12">
       <CafeTopBar cafe={cafe} />
+      {scanFeedback}
 
       <div className="md:grid md:grid-cols-12 md:gap-6 lg:gap-10 items-start mt-4 lg:mt-8">
         <div className="md:col-span-7 flex flex-col gap-6">

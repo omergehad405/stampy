@@ -190,8 +190,8 @@ export default function DashboardCafeProfilePage() {
   const cafeInfoUrl = useMemo(() => {
     if (!cafeSlug) return "";
     if (typeof window !== "undefined")
-      return `${window.location.origin}/c/${cafeSlug}`;
-    return `/c/${cafeSlug}`;
+      return `${window.location.origin}/cafe/${encodeURIComponent(cafeSlug)}?scan=1`;
+    return `/cafe/${encodeURIComponent(cafeSlug)}?scan=1`;
   }, [cafeSlug]);
 
   const handleCopyUrl = useCallback(async () => {
