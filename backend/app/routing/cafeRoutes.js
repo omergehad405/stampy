@@ -2,6 +2,8 @@ const express = require("express");
 const {
   getPublicCafes,
   getCafeBySlug,
+  getScanCafe,
+  selfScanCafe,
   joinCafe,
   leaveCafe,
   getMyMemberships,
@@ -9,7 +11,7 @@ const {
   redeemReward,
   getMyRedemptions,
 } = require("../controllers/cafeController");
-const { protect } = require("../middlewares/authMiddleware");
+const { protect, authorize } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
@@ -24,6 +26,8 @@ router.post("/my/redeem", protect, redeemReward);
 // Customer activities for a specific cafe (visits, stamps, redemptions)
 router.get("/:slugOrId/activities", protect, getCustomerActivities);
 router.get("/:slugOrId/my-activities", protect, getCustomerActivities);
+router.get("/:slugOrId/scan", getScanCafe);
+router.post("/:slugOrId/scan", protect, authorize("user"), selfScanCafe);
 
 // Public single cafe details
 router.get("/:slugOrId", getCafeBySlug);

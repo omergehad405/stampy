@@ -10,7 +10,8 @@
     "build": "next build --webpack",
     "start": "node server.js",
     "lint": "eslint",
-    "seed:admin": "node backend/scripts/seedAdmin.js"
+    "seed:admin": "node backend/scripts/seedAdmin.js",
+    "migrate:stamp-sources": "node backend/scripts/backfillStampSources.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.107.1",

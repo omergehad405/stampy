@@ -29,7 +29,6 @@ import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
 import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
-import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 import { useNotificationStore } from "@/app/stores/useNotificationStore";
 import {
   apiScanCustomer,
@@ -44,7 +43,6 @@ export default function DashboardScanPage() {
     rewards,
     settings,
     fetchCustomers,
-    recordVisitAndStamps,
     redeemCustomerReward,
     getPlanLimits,
     cafe,
@@ -67,9 +65,8 @@ export default function DashboardScanPage() {
 
   const [codeInput, setCodeInput] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
-  const [stampsToAdd, setStampsToAdd] = useState(1);
   const [visitNote, setVisitNote] = useState("");
-  const [allowDailyOverride, setAllowDailyOverride] = useState(false);
+  const [isRecordingVisit, setIsRecordingVisit] = useState(false);
 
   // Scanned Customer Centered Verification Modal State
   const [scanModal, setScanModal] = useState(null);
@@ -170,8 +167,6 @@ export default function DashboardScanPage() {
   useEffect(() => {
     setTodayStr(new Date().toISOString().split("T")[0]);
   }, []);
-  const hasVisitedToday = Boolean(todayStr && activeCustomer?.lastVisitDate === todayStr);
-
   // Find rewards this customer can redeem
   const availableRewards = activeCustomer
     ? rewards.filter(
@@ -212,7 +207,15 @@ export default function DashboardScanPage() {
             return;
           }
 
-          const { customer, cafe, isJoined, stamps, totalStamps, alreadyVisitedToday } = res.data;
+          const {
+            customer,
+            cafe,
+            isJoined,
+            stamps,
+            totalStamps,
+            alreadyVisitedToday,
+            cardFull,
+          } = res.data;
 
           // Open the centered confirmation & stamp awarding popup
           setScanModal({
@@ -227,6 +230,7 @@ export default function DashboardScanPage() {
             stamps,
             totalStamps: totalStamps || 10,
             alreadyVisitedToday,
+            cardFull,
             stampsToAward: 1,
             note: "",
             allowOverride: false,
@@ -276,6 +280,7 @@ export default function DashboardScanPage() {
             stamps: localFound.stamps || 0,
             totalStamps: settings.stampTarget || 10,
             alreadyVisitedToday: localFound.lastVisitDate === todayStr,
+            cardFull: localFound.stamps >= (settings.stampTarget || 10),
             stampsToAward: 1,
             note: "",
             allowOverride: false,
@@ -383,13 +388,6 @@ export default function DashboardScanPage() {
         // Refresh dashboard customer list in background
         fetchCustomers();
 
-        // Sync with local customer loyalty store and notifications if in same browser
-        try {
-          useLoyaltyStore.getState().recordVisit(scanModal.cafe?.slug || "coffee-house", count);
-        } catch (e) {
-          console.warn("Could not sync loyalty store:", e);
-        }
-
         try {
           useNotificationStore.getState().addNotification({
             title: "New Stamp Collected!",
@@ -403,78 +401,48 @@ export default function DashboardScanPage() {
         toast.success(`🎉 +${count} stamp(s) awarded to ${customerName}!`);
       }
     } catch (err) {
-      console.warn("Server award error, falling back to local action:", err.message);
-
-      // Fallback local update
-      const localRes = recordVisitAndStamps({
-        customerId: scanModal.customer.id,
-        stampsCount: count,
-        note,
-        staffName: currentUser?.name || "Barista",
-      });
-
       setScanModal((prev) => ({
         ...prev,
         isAwarding: false,
-        isJoined: true,
-        stamps: localRes.newStamps || prev.stamps + count,
-        awardSuccess: {
-          stampsAwarded: count,
-          newStamps: localRes.newStamps || prev.stamps + count,
-          unlockedReward: localRes.unlockedReward,
-        },
+        error: err.message || "Could not award the stamp.",
       }));
-
-      try {
-        useLoyaltyStore.getState().recordVisit(scanModal.cafe?.slug || "coffee-house", count);
-        useNotificationStore.getState().addNotification({
-          title: "New Stamp Collected!",
-          message: `Barista recorded your visit at ${scanModal.cafe?.name || "Café"}! (+${count} Stamp)`,
-          type: "stamp",
-        });
-      } catch (e) {
-        console.warn("Could not sync loyalty store:", e);
-      }
-
-      toast.success(`+${count} stamp(s) recorded!`);
+      toast.error(err.message || "Could not award the stamp.");
     }
   };
 
   // Record visit & add stamp from side panel
-  const handleRecordVisit = () => {
+  const handleRecordVisit = async () => {
     if (!activeCustomer) return;
 
-    const note = allowDailyOverride
-      ? `${visitNote} [Override: Allowed duplicate daily visit]`.trim()
-      : visitNote;
-
-    const res = recordVisitAndStamps({
-      customerId: activeCustomer.id,
-      stampsCount: stampsToAdd,
-      note,
-      staffName: currentUser?.name || "Barista",
-    });
-
-    if (res.success) {
+    setIsRecordingVisit(true);
+    try {
+      const response = await apiAwardCustomerStamp({
+        customerId: activeCustomer.id,
+        stampsCount: 1,
+        note: visitNote,
+      });
+      const newStamps = response.data?.newStamps ?? activeCustomer.stamps + 1;
       setActionSuccessData({
         type: "stamp",
-        message: `Successfully credited +${stampsToAdd} stamp(s) to ${activeCustomer.name}!`,
-        newStamps: res.newStamps,
-        unlockedReward: res.unlockedReward,
+        message: `Successfully credited 1 stamp to ${activeCustomer.name}!`,
+        newStamps,
+        unlockedReward: response.data?.unlockedReward,
       });
       setVisitNote("");
-      setAllowDailyOverride(false);
+      fetchCustomers();
 
       // Push notification
       useNotificationStore.getState().addNotification({
         title: "New Stamp Collected!",
-        message: `Barista credited +${stampsToAdd} stamp(s)! Total: ${res.newStamps} stamps.`,
+        message: `Barista credited 1 stamp! Total: ${newStamps} stamps.`,
         type: "stamp",
       });
 
-      toast.success(`+${stampsToAdd} stamp(s) issued!`);
-    } else {
-      toast.error(res.error || "Could not record visit.");
+      toast.success("1 stamp issued!");
+    } catch (error) {
+      toast.error(error.message || "Could not record visit.");
+    } finally {
+      setIsRecordingVisit(false);
     }
   };
 
@@ -904,13 +872,13 @@ export default function DashboardScanPage() {
                     <button
                       type="button"
                       onClick={handleRecordVisit}
-                      disabled={hasVisitedToday && !allowDailyOverride}
+                      disabled={isRecordingVisit}
                       className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-5 py-2.5 text-xs font-bold text-[#3B2418] shadow-sm transition hover:bg-(--secondColor)/90 disabled:opacity-50 cursor-pointer"
                     >
                       <LuCircleCheck className="h-4 w-4" />
                       <span>
-                        {hasVisitedToday && !allowDailyOverride
-                          ? "Already Visited Today (1 Stamp/Day)"
+                        {isRecordingVisit
+                          ? "Recording Stamp..."
                           : "Confirm Visit & Credit 1 Stamp"}
                       </span>
                     </button>
@@ -1118,12 +1086,17 @@ export default function DashboardScanPage() {
                       />
                     </div>
 
-                    {scanModal.alreadyVisitedToday && (
+                    {scanModal.cardFull ? (
+                      <div className="rounded-xl border border-amber-400/30 bg-amber-400/20 px-3 py-2 text-[11px] text-amber-100 flex items-center gap-2">
+                        <LuTriangleAlert className="w-4 h-4 shrink-0 text-amber-300" />
+                        <span>Your card is complete, redeem your reward at the counter.</span>
+                      </div>
+                    ) : scanModal.alreadyVisitedToday ? (
                       <div className="rounded-xl border border-amber-400/30 bg-amber-400/20 px-3 py-2 text-[11px] text-amber-200 flex items-center gap-2">
                         <LuTriangleAlert className="w-4 h-4 shrink-0 text-amber-300" />
-                        <span>Customer already received today&apos;s visit stamp. (Rule: 1 stamp per calendar day)</span>
+                        <span>Customer already received today&apos;s visit stamp. (Rule: 1 stamp per cafe-local day)</span>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-amber-400/30 bg-amber-400/20 p-4 space-y-2">
@@ -1171,7 +1144,16 @@ export default function DashboardScanPage() {
                 ) : (
                   /* Action Button to Award 1 Stamp */
                   <div className="space-y-3 pt-2">
-                    {scanModal.alreadyVisitedToday ? (
+                    {scanModal.cardFull ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-amber-400/20 border border-amber-400/30 text-amber-100 py-3.5 px-4 font-bold text-sm opacity-80 cursor-not-allowed"
+                      >
+                        <LuTriangleAlert className="w-5 h-5 text-amber-300" />
+                        <span>Card Complete — Redeem at Counter</span>
+                      </button>
+                    ) : scanModal.alreadyVisitedToday ? (
                       <button
                         type="button"
                         disabled

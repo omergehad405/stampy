@@ -8,6 +8,8 @@ import {
   LuExternalLink,
   LuInfo,
   LuQrCode,
+  LuPrinter,
+  LuFileCode,
 } from "react-icons/lu";
 import QRCodeImage from "@/app/components/ui/QRCodeImage";
 
@@ -15,6 +17,8 @@ export default function QrTab({
   cafe,
   cafeInfoUrl,
   handleDownloadQr,
+  handleDownloadQrSvg,
+  handlePrintQr,
   handleCopyUrl,
   copiedUrl,
 }) {
@@ -22,11 +26,11 @@ export default function QrTab({
     <div className="space-y-6">
       <div className="border-b border-(--bgColor)/15 pb-3">
         <h3 className="font-bold text-sm text-(--bgColor)">
-          Cafe Public QR Code
+          Cafe Stamp QR Code
         </h3>
         <p className="text-xs text-(--bgColor)/60">
-          Share this QR code with customers. When scanned, it opens your cafe
-          public info page on Notch.
+          Display this QR code at your cafe. Customers scan it to open your
+          public page and collect one stamp per day.
         </p>
       </div>
 
@@ -62,7 +66,7 @@ export default function QrTab({
             </div>
           )}
 
-          <div className="flex gap-2 w-full" style={{ maxWidth: 232 }}>
+          <div className="grid w-full grid-cols-2 gap-2" style={{ maxWidth: 280 }}>
             <button
               type="button"
               onClick={handleDownloadQr}
@@ -70,7 +74,25 @@ export default function QrTab({
               className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-(--mainColor) px-3 py-2.5 text-xs font-bold text-(--secondColor) hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
               <LuDownload className="h-3.5 w-3.5" />
-              Download
+              Download PNG
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadQrSvg}
+              disabled={!cafeInfoUrl}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-2.5 text-xs font-bold text-(--bgColor) hover:bg-(--bgColor)/15 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <LuFileCode className="h-3.5 w-3.5" />
+              Download SVG
+            </button>
+            <button
+              type="button"
+              onClick={handlePrintQr}
+              disabled={!cafeInfoUrl}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3 py-2.5 text-xs font-bold text-(--bgColor) hover:bg-(--bgColor)/15 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <LuPrinter className="h-3.5 w-3.5" />
+              Print / Save PDF
             </button>
             <button
               type="button"
@@ -136,13 +158,13 @@ export default function QrTab({
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
-                They land on your public Notch page: opening hours, location,
-                about, menu preview, and your loyalty program.
+                They land on your cafe page: opening hours, location, menu,
+                contact details, and loyalty program.
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-(--secondColor) shrink-0" />
-                From there they can join your loyalty card and start collecting
-                stamps.
+                A signed-in member receives one stamp automatically. New
+                customers can join and receive their first stamp.
               </li>
             </ul>
           </div>

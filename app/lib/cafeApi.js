@@ -40,6 +40,40 @@ export async function apiGetCafeBySlug(slugOrId) {
   return data.data?.cafe || null;
 }
 
+export async function apiGetCafeForScan(slug) {
+  if (!slug) throw new Error("Cafe slug is required.");
+  const res = await fetch(`${BASE}/${encodeURIComponent(slug)}/scan`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const error = new Error(data.message || "This cafe is unavailable.");
+    error.status = res.status;
+    throw error;
+  }
+  return data.data?.cafe || null;
+}
+
+export async function apiSelfScanCafe(slug, { join = false } = {}) {
+  if (!slug) throw new Error("Cafe slug is required.");
+  const res = await fetch(`${BASE}/${encodeURIComponent(slug)}/scan`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ join }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const error = new Error(data.message || "Could not record this scan.");
+    error.code = data.code || data.result || "";
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+}
+
 /**
  * Join a cafe loyalty program
  */

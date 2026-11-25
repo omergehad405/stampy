@@ -32,6 +32,14 @@ const activitySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    source: {
+      type: String,
+      enum: ["self_scan", "cafe_manual"],
+    },
+    stampDay: {
+      type: String,
+      match: /^\d{4}-\d{2}-\d{2}$/,
+    },
     staffName: {
       type: String,
       default: "Barista",
@@ -71,6 +79,16 @@ activitySchema.set("toJSON", {
 });
 
 activitySchema.index({ cafeId: 1, type: 1, createdAt: -1 });
+activitySchema.index(
+  { cafeId: 1, customerId: 1, stampDay: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      type: "stamp",
+      stampDay: { $type: "string" },
+    },
+  }
+);
 
 const Activity =
   mongoose.models.Activity || mongoose.model("Activity", activitySchema);

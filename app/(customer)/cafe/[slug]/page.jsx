@@ -184,23 +184,23 @@ function DedicatedCafePageContent() {
             <button
               type="button"
               onClick={() => setIsQrModalOpen(true)}
-              className="w-full flex items-center justify-between p-4 rounded-2xl bg-(--mainColor) text-(--secondColor) shadow-sm hover:opacity-95 active:scale-[0.99] transition cursor-pointer"
+              className="w-full flex items-center justify-between p-4 rounded-2xl border border-(--mainColor)/15 bg-(--mainColor)/5 text-(--mainColor) hover:bg-(--mainColor)/10 active:scale-[0.99] transition cursor-pointer"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-(--secondColor)/20 flex items-center justify-center">
-                  <LuQrCode className="w-6 h-6 text-(--secondColor)" />
+                <div className="w-10 h-10 rounded-xl bg-(--mainColor)/10 flex items-center justify-center">
+                  <LuQrCode className="w-6 h-6 text-(--mainColor)" />
                 </div>
                 <div className="text-left">
                   <h3 className="font-bold text-xs uppercase tracking-wider text-(--secondColor)">
-                    Present to Barista
+                    Personal QR (Staff Fallback)
                   </h3>
-                  <p className="text-[11px] text-(--bgColor)/75">
-                    Tap to open full-screen loyalty QR card
+                  <p className="text-[11px] text-(--mainColor)/65">
+                    Show this if the cafe QR is unavailable
                   </p>
                 </div>
               </div>
-              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-(--secondColor) text-[#3b2418]">
-                Show QR
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-(--mainColor)/10 text-(--mainColor)">
+                Show
               </span>
             </button>
           </div>

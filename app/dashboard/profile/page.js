@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
 import { LuRotateCcw, LuSave } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
@@ -53,6 +54,44 @@ const extractWhatsAppNumber = (whatsAppData) => {
 const buildWhatsAppUrl = (phoneNumber) => {
   const cleaned = (phoneNumber || "").replace(/[^\d]/g, "");
   return cleaned ? `https://wa.me/${cleaned}` : "";
+};
+
+const escapeXml = (value) =>
+  value.replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&apos;",
+    };
+    return entities[character];
+  });
+
+const addCafeNameToQrSvg = (svg, cafeName) => {
+  const viewBoxMatch = svg.match(/viewBox="([\d.\s-]+)"/);
+  if (!viewBoxMatch) throw new Error("Could not prepare the QR code for download.");
+
+  const [x, y, width, height] = viewBoxMatch[1].trim().split(/\s+/).map(Number);
+  const labelHeight = width * 0.2;
+  const renderedHeight = Number(svg.match(/height="([\d.]+)/)?.[1]) || width;
+  const labelHeightInPixels = (labelHeight * renderedHeight) / height;
+  const labelY = y + height;
+  const extendedSvg = svg
+    .replace(
+      /viewBox="[^"]+"/,
+      `viewBox="${x} ${y} ${width} ${height + labelHeight}"`
+    )
+    .replace(
+      /height="[^"]+"/,
+      `height="${renderedHeight + labelHeightInPixels}"`
+    );
+
+  return extendedSvg.replace(
+    "</svg>",
+    `<text x="${x + width / 2}" y="${labelY + width * 0.07}" text-anchor="middle" fill="#3B2418" font-family="Arial, sans-serif" font-size="${width * 0.045}" font-weight="700" textLength="${width * 0.84}" lengthAdjust="spacingAndGlyphs">${escapeXml(cafeName)}</text>` +
+      `<text x="${x + width / 2}" y="${labelY + width * 0.14}" text-anchor="middle" fill="#3B2418" font-family="Arial, sans-serif" font-size="${width * 0.03}">Powered by Notch</text></svg>`
+  );
 };
 
 const sanitizeSchedule = (schedule) => {
@@ -145,13 +184,15 @@ export default function DashboardCafeProfilePage() {
   const coverFileRef = useRef(null);
 
   const scheduleRows = sanitizeSchedule(profileForm.openingHours.schedule);
+  const cafeSlug = cafe?.slug || "";
+  const cafeName = cafe?.name || "Cafe";
 
   const cafeInfoUrl = useMemo(() => {
-    if (!cafe?.slug) return "";
+    if (!cafeSlug) return "";
     if (typeof window !== "undefined")
-      return `${window.location.origin}/cafe/${cafe.slug}/info`;
-    return `/cafe/${cafe.slug}/info`;
-  }, [cafe?.slug]);
+      return `${window.location.origin}/c/${cafeSlug}`;
+    return `/c/${cafeSlug}`;
+  }, [cafeSlug]);
 
   const handleCopyUrl = useCallback(async () => {
     if (!cafeInfoUrl) return;
@@ -164,14 +205,125 @@ export default function DashboardCafeProfilePage() {
     }
   }, [cafeInfoUrl]);
 
-  const handleDownloadQr = useCallback(() => {
-    const img = document.getElementById("dashboard-cafe-qr-img");
-    if (!img || !img.src) return;
-    const link = document.createElement("a");
-    link.href = img.src;
-    link.download = `${cafe?.slug || "cafe"}-Notch-qr.png`;
-    link.click();
-  }, [cafe?.slug]);
+  const handleDownloadQr = useCallback(async () => {
+    if (!cafeInfoUrl) return;
+    try {
+      const qrDataUrl = await QRCode.toDataURL(cafeInfoUrl, {
+        width: 720,
+        margin: 2,
+        errorCorrectionLevel: "M",
+        color: { dark: "#1B120C", light: "#FFFFFF" },
+      });
+      const qrImage = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("Could not prepare the QR code."));
+        image.src = qrDataUrl;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = 840;
+      canvas.height = 1020;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Could not prepare the QR code image.");
+      context.fillStyle = "#FFFFFF";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(qrImage, 60, 60, 720, 720);
+      context.fillStyle = "#3B2418";
+      context.textAlign = "center";
+      context.font = "700 38px Arial, sans-serif";
+      context.fillText(cafeName, 420, 860, 760);
+      context.font = "24px Arial, sans-serif";
+      context.fillText("Powered by Notch", 420, 915);
+
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((result) => {
+          if (result) resolve(result);
+          else reject(new Error("Could not create the QR code image."));
+        }, "image/png");
+      });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${cafeSlug || "cafe"}-Notch-qr.png`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (error) {
+      toast.error(error.message || "Could not download the QR code.");
+    }
+  }, [cafeInfoUrl, cafeName, cafeSlug]);
+
+  const handleDownloadQrSvg = useCallback(async () => {
+    if (!cafeInfoUrl) return;
+    try {
+      const qrSvg = await QRCode.toString(cafeInfoUrl, {
+        type: "svg",
+        width: 720,
+        margin: 2,
+        errorCorrectionLevel: "M",
+        color: { dark: "#1B120C", light: "#FFFFFF" },
+      });
+      const svg = addCafeNameToQrSvg(qrSvg, cafeName);
+      const blobUrl = URL.createObjectURL(
+        new Blob([svg], { type: "image/svg+xml;charset=utf-8" })
+      );
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${cafeSlug || "cafe"}-Notch-qr.svg`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (error) {
+      toast.error(error.message || "Could not download the QR code.");
+    }
+  }, [cafeName, cafeSlug, cafeInfoUrl]);
+
+  const handlePrintQr = useCallback(async () => {
+    if (!cafeInfoUrl) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast.error("Allow pop-ups to print or save the QR code as PDF.");
+      return;
+    }
+
+    try {
+      const svg = await QRCode.toString(cafeInfoUrl, {
+        type: "svg",
+        width: 720,
+        margin: 2,
+        errorCorrectionLevel: "M",
+        color: { dark: "#1B120C", light: "#FFFFFF" },
+      });
+      const printDocument = printWindow.document;
+      printDocument.title = `${cafeName} QR Code`;
+      printDocument.body.replaceChildren();
+
+      const style = printDocument.createElement("style");
+      style.textContent =
+        "body{font-family:Arial,sans-serif;color:#3B2418;text-align:center;padding:40px}" +
+        "img{display:block;width:min(78vw,420px);height:auto;margin:20px auto 8px}" +
+        "h1{font-size:24px;margin:8px 0}" +
+        "@media print{body{padding:10mm}}";
+      const heading = printDocument.createElement("h1");
+      heading.textContent = cafeName;
+      const image = printDocument.createElement("img");
+      image.alt = `${cafeName} cafe QR code`;
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      const instruction = printDocument.createElement("p");
+      instruction.textContent = "Scan to open the cafe page and collect a stamp.";
+      printDocument.head.append(style);
+      printDocument.body.append(image, heading, instruction);
+      image.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+      image.onerror = () => {
+        printWindow.close();
+        toast.error("Could not prepare the QR code for printing.");
+      };
+    } catch (error) {
+      printWindow.close();
+      toast.error(error.message || "Could not prepare the QR code for printing.");
+    }
+  }, [cafeName, cafeInfoUrl]);
 
   const handleSave = async (e) => {
     e?.preventDefault();
@@ -435,6 +587,8 @@ export default function DashboardCafeProfilePage() {
             cafe={cafe}
             cafeInfoUrl={cafeInfoUrl}
             handleDownloadQr={handleDownloadQr}
+            handleDownloadQrSvg={handleDownloadQrSvg}
+            handlePrintQr={handlePrintQr}
             handleCopyUrl={handleCopyUrl}
             copiedUrl={copiedUrl}
           />

@@ -327,3 +327,13 @@ The goal is to create a complete Cafe Management Dashboard for Notch.
 A cafe owner should be able to log in, manage their cafe profile, manage customers and rewards, monitor loyalty activity, scan customer QR codes, and manage their employees from one centralized dashboard.
 
 Focus on building a polished, scalable foundation that we can connect to the final backend and permission system without redesigning everything later.
+
+## Static Cafe QR Stamping
+
+- The cafe QR uses the cafe's unique public slug at `/c/<slug>`. Opening the link only loads the public cafe profile; it must never award a stamp on GET.
+- An authenticated customer self-scan and a staff scan of the customer's personal QR both use the same server-side stamp rules and activity records.
+- Limit stamps to one per customer per cafe calendar day, using the cafe's configured `openingHours.timezone` (default `Africa/Cairo`). A successful stamp from either path blocks the other path for that day.
+- Do not award beyond the cafe's configured stamp target. Record each awarded stamp's source (`self_scan` or `cafe_manual`) and log scan outcomes for auditing.
+- The dashboard's printed QR must include the cafe name and support PNG/SVG download and print-to-PDF.
+- The atomic join-and-first-stamp operation uses MongoDB transactions; deploy against a replica set or MongoDB Atlas.
+- Before rollout, run `npm run migrate:stamp-sources` to mark pre-existing stamp activity as `cafe_manual` and ensure the new daily-stamp index.

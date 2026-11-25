@@ -61,7 +61,7 @@ async function seed() {
     activities.push({
       cafeId, type: "stamp", title: "Stamp added",
       customerName: `Test Customer ${c + 1}`, customerId: customerIds[c],
-      stampsDelta: 1, staffName: "Test Barista",
+      stampsDelta: 1, staffName: "Test Barista", source: "cafe_manual",
       createdAt: new Date(now - Math.random() * 30 * DAY),
     });
   }

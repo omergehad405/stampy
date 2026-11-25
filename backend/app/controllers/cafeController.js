@@ -6,6 +6,11 @@ const User = require("../models/User");
 const Redemption = require("../models/Redemption");
 const Activity = require("../models/Activity");
 const { Plan } = require("../models/Plan");
+const {
+  awardStamp: awardStampWithRules,
+  getCafeDayKey,
+  recordScanAttempt,
+} = require("../services/stampService");
 
 const CUSTOMER_PAGE_SIZE = 10;
 
@@ -229,6 +234,123 @@ const getCafeBySlug = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error fetching cafe profile.",
+    });
+  }
+};
+
+const getScanCafe = async (req, res) => {
+  try {
+    const slug = String(req.params.slugOrId || "").trim().toLowerCase();
+    const cafe = await Cafe.findOne({ slug })
+      .select(
+        "name slug tagline category establishedYear status isActive isVerified stampTarget coverImage coverImageAlt logoImage logoAlt accentColor about location openingHours contact website socialMedia menuPreview subscriptionPlanId subscriptionStatus subscriptionStart subscriptionExpiry createdAt"
+      );
+
+    if (
+      !cafe ||
+      !cafe.isActive ||
+      cafe.status !== "active" ||
+      (await isCafeSubscriptionExpired(cafe))
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: "This cafe is unavailable.",
+      });
+    }
+
+    const rewards = await Reward.find({
+      cafeId: cafe._id,
+      status: "active",
+    }).sort({ requiredStamps: 1 });
+
+    const cafeData = cafe.toJSON();
+    delete cafeData.subscriptionPlanId;
+    delete cafeData.subscriptionStatus;
+    delete cafeData.subscriptionStart;
+    delete cafeData.subscriptionExpiry;
+    delete cafeData.createdAt;
+    cafeData.rewards = rewards.map((reward) => ({
+      id: reward._id.toString(),
+      name: reward.title,
+      category: reward.category,
+      description: reward.description,
+      stampsRequired: reward.requiredStamps,
+      tag: reward.categoryTag || "",
+      iconType: "coffee",
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: { cafe: cafeData },
+    });
+  } catch (error) {
+    console.error("[Cafe Controller] getScanCafe error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching cafe profile.",
+    });
+  }
+};
+
+const selfScanCafe = async (req, res) => {
+  const cafeSlug = String(req.params.slugOrId || "").trim().toLowerCase();
+
+  try {
+    const cafe = await Cafe.findOne({ slug: cafeSlug });
+    if (
+      !cafe ||
+      !cafe.isActive ||
+      cafe.status !== "active" ||
+      (await isCafeSubscriptionExpired(cafe))
+    ) {
+      await recordScanAttempt({
+        cafeId: cafe?._id || null,
+        cafeSlug,
+        customerId: req.user?._id || null,
+        source: "self_scan",
+        result: "rejected",
+        code: "CAFE_UNAVAILABLE",
+      });
+      return res.status(404).json({
+        success: false,
+        result: "rejected",
+        code: "CAFE_UNAVAILABLE",
+        message: "This cafe is unavailable.",
+      });
+    }
+
+    const outcome = await awardStampWithRules({
+      cafeId: cafe._id,
+      cafeSlug: cafe.slug,
+      customerId: req.user._id,
+      source: "self_scan",
+      staffName: "Customer",
+      allowJoin: req.body?.join === true,
+      joinOnAward: req.body?.join === true,
+    });
+
+    return res.status(outcome.statusCode).json({
+      success: outcome.result === "awarded",
+      result: outcome.result,
+      code: outcome.code,
+      message: outcome.message,
+      data: outcome.data,
+    });
+  } catch (error) {
+    console.error("[Cafe Controller] selfScanCafe error:", error);
+    if (/Transaction numbers are only allowed|replica set|mongos/i.test(error.message)) {
+      return res.status(503).json({
+        success: false,
+        result: "rejected",
+        code: "MONGO_TRANSACTIONS_REQUIRED",
+        message: "Stamp awarding requires MongoDB transactions to be enabled.",
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      result: "rejected",
+      code: "SCAN_FAILED",
+      message: "Could not record this scan. Please try again.",
     });
   }
 };
@@ -1385,6 +1507,13 @@ const scanCustomer = async (req, res) => {
     }
 
     if (!customer) {
+      await recordScanAttempt({
+        cafeId: staffCafe._id,
+        cafeSlug: staffCafe.slug,
+        source: "cafe_manual",
+        result: "rejected",
+        code: "CUSTOMER_NOT_FOUND",
+      });
       return res.status(404).json({
         success: false,
         message: `No customer account found matching "${trimmedCode}".`,
@@ -1400,11 +1529,39 @@ const scanCustomer = async (req, res) => {
     const isJoined = Boolean(userMembership);
 
     // Check today's visit
-    const todayStr = new Date().toISOString().split("T")[0];
-    const lastVisitStr = userMembership?.lastVisitDate
-      ? new Date(userMembership.lastVisitDate).toISOString().split("T")[0]
-      : null;
-    const alreadyVisitedToday = lastVisitStr === todayStr;
+    const todayStr = getCafeDayKey(
+      new Date(),
+      staffCafe.openingHours?.timezone || "Africa/Cairo"
+    );
+    const alreadyVisitedToday = Boolean(
+      (userMembership?.lastVisitDate &&
+        getCafeDayKey(
+          new Date(userMembership.lastVisitDate),
+          staffCafe.openingHours?.timezone || "Africa/Cairo"
+        ) === todayStr) ||
+        (await Activity.exists({
+          cafeId: staffCafe._id,
+          customerId: customer._id,
+          type: "stamp",
+          stampDay: todayStr,
+        }))
+    );
+
+    const cardFull = Boolean(
+      userMembership &&
+        Number(userMembership.stamps || 0) >= Number(staffCafe.stampTarget || 10)
+    );
+
+    if (cardFull || alreadyVisitedToday) {
+      await recordScanAttempt({
+        cafeId: staffCafe._id,
+        cafeSlug: staffCafe.slug,
+        customerId: customer._id,
+        source: "cafe_manual",
+        result: cardFull ? "card_full" : "daily_limit",
+        code: cardFull ? "CARD_FULL" : `DAILY_LIMIT:${todayStr}`,
+      });
+    }
 
     const formattedJoinedDate = userMembership?.joinedAt
       ? new Date(userMembership.joinedAt).toLocaleDateString("en-US", {
@@ -1447,6 +1604,7 @@ const scanCustomer = async (req, res) => {
         lifetimeStamps: userMembership ? userMembership.lifetimeStamps || 0 : 0,
         lastVisitDate: userMembership?.lastVisitDate || null,
         alreadyVisitedToday,
+        cardFull,
       },
     });
   } catch (error) {
@@ -1466,18 +1624,15 @@ const scanCustomer = async (req, res) => {
 const awardStamp = async (req, res) => {
   try {
     const { customerId, stampsCount = 1, note = "" } = req.body;
-    if (!customerId) {
-      return res.status(400).json({
-        success: false,
-        message: "Customer ID is required to award stamps.",
-      });
-    }
-
-    const count = Math.max(1, Number(stampsCount) || 1);
-
-    // 1. Resolve staff's cafe
     const staffCafe = await resolveUserCafe(req.user, req.query.cafeId);
     if (!staffCafe) {
+      await recordScanAttempt({
+        cafeSlug: req.query.cafeId || "",
+        customerId: mongoose.isValidObjectId(customerId) ? customerId : null,
+        source: "cafe_manual",
+        result: "rejected",
+        code: "CAFE_UNAVAILABLE",
+      });
       return res.status(404).json({
         success: false,
         message: "No cafe associated with your staff account.",
@@ -1485,14 +1640,14 @@ const awardStamp = async (req, res) => {
     }
 
     if (await isCafeSubscriptionExpired(staffCafe)) {
-      return res.status(403).json({
-        success: false,
+      await recordScanAttempt({
+        cafeId: staffCafe._id,
+        cafeSlug: staffCafe.slug,
+        customerId: mongoose.isValidObjectId(customerId) ? customerId : null,
+        source: "cafe_manual",
+        result: "rejected",
         code: "SUBSCRIPTION_EXPIRED",
-        message: "Your subscription period has ended. Fulfilling reward redemptions is suspended until your plan is renewed or upgraded.",
       });
-    }
-
-    if (await isCafeSubscriptionExpired(staffCafe)) {
       return res.status(403).json({
         success: false,
         code: "SUBSCRIPTION_EXPIRED",
@@ -1500,117 +1655,36 @@ const awardStamp = async (req, res) => {
       });
     }
 
-    // 2. Find customer
-    const customer = await User.findById(customerId);
-    if (!customer) {
-      return res.status(404).json({
-        success: false,
-        message: "Customer not found.",
-      });
-    }
+    const outcome = await awardStampWithRules({
+      cafeId: staffCafe._id,
+      cafeSlug: staffCafe.slug,
+      customerId,
+      source: "cafe_manual",
+      staffName: req.user?.name || "Barista",
+      note,
+      stampsCount,
+      allowJoin: true,
+    });
 
-    const staffCafeIdStr = staffCafe._id.toString();
-    const stampTarget = staffCafe.stampTarget || 10;
-
-    if (!Array.isArray(customer.cafes)) customer.cafes = [];
-    if (!Array.isArray(staffCafe.customers)) staffCafe.customers = [];
-
-    // Find customer's membership in user.cafes
-    let userMemIndex = customer.cafes.findIndex(
-      (c) => c.cafeId && c.cafeId.toString() === staffCafeIdStr
-    );
-
-    let userMembership;
-    const now = new Date();
-
-    if (userMemIndex >= 0) {
-      userMembership = customer.cafes[userMemIndex];
-      userMembership.stamps = (userMembership.stamps || 0) + count;
-      userMembership.lifetimeStamps = (userMembership.lifetimeStamps || 0) + count;
-      userMembership.totalVisits = (userMembership.totalVisits || 0) + 1;
-      userMembership.lastVisitDate = now;
-    } else {
-      // Auto-enroll if barista chooses to award stamp
-      userMembership = {
-        cafeId: staffCafe._id,
-        joinedAt: now,
-        stamps: count,
-        lifetimeStamps: count,
-        totalVisits: 1,
-        rewardsRedeemedCount: 0,
-        lastVisitDate: now,
-      };
-      customer.cafes.push(userMembership);
-      customer.joinedCafes = customer.cafes.length;
-    }
-
-    customer.totalStamps = (customer.totalStamps || 0) + count;
-    await customer.save();
-
-    // Update cafe.customers array
-    let cafeCustIndex = staffCafe.customers.findIndex(
-      (c) => c.userId && c.userId.toString() === customer._id.toString()
-    );
-
-    if (cafeCustIndex >= 0) {
-      const cafeCust = staffCafe.customers[cafeCustIndex];
-      cafeCust.stamps = userMembership.stamps;
-      cafeCust.lifetimeStamps = userMembership.lifetimeStamps;
-      cafeCust.totalVisits = userMembership.totalVisits;
-      cafeCust.lastVisitDate = now;
-      cafeCust.status = "active";
-    } else {
-      staffCafe.customers.push({
-        userId: customer._id,
-        joinedAt: now,
-        stamps: userMembership.stamps,
-        lifetimeStamps: userMembership.lifetimeStamps,
-        totalVisits: 1,
-        rewardsRedeemedCount: 0,
-        lastVisitDate: now,
-        status: "active",
-      });
-      staffCafe.customerCount = staffCafe.customers.length;
-    }
-
-    staffCafe.totalStampsIssued = (staffCafe.totalStampsIssued || 0) + count;
-    await staffCafe.save();
-
-    const unlockedReward = userMembership.stamps >= stampTarget;
-
-    try {
-      await Activity.create({
-        cafeId: staffCafe._id,
-        type: "stamp",
-        title: "Stamp Issued (+1)",
-        customerName: customer.name,
-        customerId: customer._id,
-        stampsDelta: count,
-        staffName: req.user?.name || "Barista",
-        note: note || "Visit verified via Barista QR Scan",
-      });
-    } catch (actErr) {
-      console.warn("[awardStamp] Could not record activity:", actErr.message);
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: `Successfully awarded +${count} stamp(s) to ${customer.name}!`,
-      data: {
-        customerId: customer._id.toString(),
-        customerName: customer.name,
-        cafeId: staffCafe._id.toString(),
-        cafeName: staffCafe.name,
-        newStamps: userMembership.stamps,
-        stampTarget,
-        totalVisits: userMembership.totalVisits,
-        lifetimeStamps: userMembership.lifetimeStamps,
-        unlockedReward,
-        note,
-      },
+    return res.status(outcome.statusCode).json({
+      success: outcome.result === "awarded",
+      result: outcome.result,
+      code: outcome.code,
+      message: outcome.result === "awarded"
+        ? `Successfully awarded a stamp to ${outcome.data.customerName}!`
+        : outcome.message,
+      data: outcome.data,
     });
   } catch (error) {
     console.error("[Cafe Controller] awardStamp error:", error);
+    if (/Transaction numbers are only allowed|replica set|mongos/i.test(error.message)) {
+      return res.status(503).json({
+        success: false,
+        result: "rejected",
+        code: "MONGO_TRANSACTIONS_REQUIRED",
+        message: "Stamp awarding requires MongoDB transactions to be enabled.",
+      });
+    }
     return res.status(500).json({
       success: false,
       message: error.message || "Server error awarding stamp.",
@@ -2424,6 +2498,8 @@ const getCustomerActivities = async (req, res) => {
 module.exports = {
   getPublicCafes,
   getCafeBySlug,
+  getScanCafe,
+  selfScanCafe,
   getMyCafeProfile,
   updateMyCafeProfile,
   joinCafe,

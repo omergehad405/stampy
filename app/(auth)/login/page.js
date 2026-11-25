@@ -118,6 +118,15 @@ function UnifiedLoginContent() {
     setCustomerUser(user);
     await fetchCurrentUser();
 
+    const scanReturnTo = getSafeRedirect(
+      searchParams.get("next") || searchParams.get("redirect"),
+      ""
+    );
+    if (scanReturnTo.startsWith("/c/")) {
+      router.push(scanReturnTo);
+      return;
+    }
+
     // Check if there was a pending cafe to join
     if (typeof window !== "undefined") {
       const pendingJoinRaw = localStorage.getItem("Notch_pending_cafe_join");
