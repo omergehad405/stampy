@@ -53,7 +53,7 @@ const getAllCafes = async (req, res) => {
         id: obj._id.toString(),
         registrationDate: obj.createdAt
           ? new Date(obj.createdAt).toISOString().split("T")[0]
-          : new Date().toISOString().split("T")[0],
+          : "",
       };
     });
 

@@ -15,46 +15,38 @@ import { toast } from "react-toastify";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminBadge from "../components/AdminBadge";
 import { useAdminAuthStore } from "@/app/stores/useAdminAuthStore";
+import { apiChangePassword } from "@/app/lib/authApi";
 
 export default function AdminProfilePage() {
   const { currentAdmin, updateProfile } = useAdminAuthStore();
 
   const [profileForm, setProfileForm] = useState({
-    name: currentAdmin?.name || "Notch Admin",
-    email: currentAdmin?.email || "Stampy2026@gmail.com",
-    avatar:
-      currentAdmin?.avatar ||
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+    name: currentAdmin?.name || "",
+    email: currentAdmin?.email || "",
+    avatar: currentAdmin?.avatar || "",
   });
-
-  React.useEffect(() => {
-    if (currentAdmin) {
-      setProfileForm({
-        name: currentAdmin.name || "Notch Admin",
-        email: currentAdmin.email || "Stampy2026@gmail.com",
-        avatar:
-          currentAdmin.avatar ||
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-      });
-    }
-  }, [currentAdmin]);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
-    await updateProfile(profileForm);
-    toast.success("Admin profile updated successfully");
+    const result = await updateProfile(profileForm);
+    if (result.success) {
+      toast.success("Admin profile updated successfully");
+    } else {
+      toast.error(result.error || "Failed to update admin profile.");
+    }
   };
 
-  const handleChangePassword = (e) => {
+  const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
-      toast.error("Please fill all password fields");
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast.error("Please fill all password fields.");
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -66,8 +58,19 @@ export default function AdminProfilePage() {
       return;
     }
 
-    toast.success("Admin credentials updated successfully");
-    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setIsChangingPassword(true);
+    try {
+      await apiChangePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      toast.success("Password changed successfully.");
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error) {
+      toast.error(error.message || "Failed to change password.");
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   return (
@@ -84,21 +87,27 @@ export default function AdminProfilePage() {
         <div className="space-y-6 lg:col-span-1">
           <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-6 shadow-2xs text-center">
             <div className="relative mx-auto h-24 w-24">
-              <img
-                src={profileForm.avatar}
-                alt={profileForm.name}
-                className="h-24 w-24 rounded-full object-cover border-2 border-[#dacdb9] shadow-sm"
-              />
+              {profileForm.avatar ? (
+                <img
+                  src={profileForm.avatar}
+                  alt={profileForm.name}
+                  className="h-24 w-24 rounded-full object-cover border-2 border-[#dacdb9] shadow-sm"
+                />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#dacdb9] bg-[#f5ecdd] text-2xl font-bold text-(--mainColor)">
+                  {profileForm.name.slice(0, 1).toUpperCase() || "A"}
+                </div>
+              )}
               <span className="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-emerald-600 border-2 border-white flex items-center justify-center text-white" title="Super Admin Verified">
                 <LuShieldCheck className="h-3.5 w-3.5" />
               </span>
             </div>
 
             <h3 className="mt-4 font-bold text-base text-(--mainColor)">
-              {currentAdmin?.name || "Notch Admin"}
+              {currentAdmin?.name || "Admin"}
             </h3>
             <span className="text-xs text-(--mainColor)/60 block mt-0.5">
-              {currentAdmin?.email || "Stampy2026@gmail.com"}
+              {currentAdmin?.email || "—"}
             </span>
 
             <div className="mt-3 inline-block">
@@ -113,7 +122,7 @@ export default function AdminProfilePage() {
               <div className="flex items-center justify-between text-(--mainColor)/70">
                 <span>Member Since:</span>
                 <span className="font-semibold text-(--mainColor)">
-                  {currentAdmin?.joinedDate || "Jan 2024"}
+                  {currentAdmin?.joinedDate || "—"}
                 </span>
               </div>
               <div className="flex items-center justify-between text-(--mainColor)/70">
@@ -127,10 +136,10 @@ export default function AdminProfilePage() {
           <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 text-xs text-amber-900 space-y-2">
             <div className="flex items-center gap-2 font-bold">
               <LuShield className="h-4 w-4 text-amber-700" />
-              <span>Multi-Admin Architecture Ready</span>
+              <span>Account Security</span>
             </div>
             <p className="text-[11px] leading-relaxed text-amber-800">
-              The Notch architecture supports role-based access control (RBAC). Additional platform admin accounts can be provisioned via security scripts without disrupting existing cafe owners.
+              Profile changes and password updates are verified by the server. Successful administrator changes are recorded in the platform audit log.
             </p>
           </div>
         </div>
@@ -268,10 +277,11 @@ export default function AdminProfilePage() {
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
+                  disabled={isChangingPassword}
                   className="flex items-center gap-2 rounded-xl border border-[#dacdb9] bg-[#f5ecdd] px-4 py-2 font-bold text-(--mainColor) hover:bg-[#eee3d1] transition text-xs"
                 >
                   <LuKey className="h-3.5 w-3.5" />
-                  <span>Update Password</span>
+                  <span>{isChangingPassword ? "Updating..." : "Update Password"}</span>
                 </button>
               </div>
             </form>

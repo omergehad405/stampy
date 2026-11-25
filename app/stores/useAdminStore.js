@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { CAFES_CATALOG, registerCafeCatalogEntry } from "../(customer)/cafe/data/cafesCatalog";
+import { registerCafeCatalogEntry } from "../(customer)/cafe/data/cafesCatalog";
 import { useDashboardAuthStore } from "./useDashboardAuthStore";
 import {
   apiAdminGetCafes,
@@ -20,31 +20,13 @@ import {
   apiAdminAssignPlanToCafe,
   apiAdminDeletePlan,
   apiAdminGetAnnouncements,
+  apiAdminGetSettings,
+  apiAdminUpdateSettings,
   apiAdminCreateAnnouncement,
   apiAdminUpdateAnnouncement,
   apiAdminToggleAnnouncementPublish,
   apiAdminDeleteAnnouncement,
 } from "@/app/lib/adminApi";
-
-// ─── Subscription Plans (Loaded dynamically from MongoDB backend) ───────────
-
-export const SUBSCRIPTION_PLANS = [];
-
-// ─── Enriched Cafes (Loaded dynamically from MongoDB backend) ───────────────
-
-export const ADMIN_CAFES = [];
-
-// ─── Global Customers (Loaded dynamically from MongoDB backend) ────────────
-
-export const ADMIN_CUSTOMERS = [];
-
-// ─── Platform-wide Activities (Loaded dynamically from MongoDB backend) ────
-
-export const ADMIN_ACTIVITIES = [];
-
-// ─── Announcements (Loaded dynamically from MongoDB backend) ──────────────
-
-export const INITIAL_ANNOUNCEMENTS = [];
 
 // ─── Platform Settings ────────────────────────────────────────────────────
 
@@ -62,10 +44,6 @@ const INITIAL_SETTINGS = {
   maintenanceMode: false,
 };
 
-// ─── Audit Log (Loaded dynamically from MongoDB backend) ─────────────────
-
-const INITIAL_AUDIT_LOG = [];
-
 // ─── Zustand Store ────────────────────────────────────────────────────────
 
 export const useAdminStore = create((set, get) => ({
@@ -75,7 +53,6 @@ export const useAdminStore = create((set, get) => ({
   customers: [],
   isLoadingCustomers: false,
   customersLoaded: false,
-  activities: [],
   plans: [],
   availableFeatures: [],
   isLoadingPlans: false,
@@ -84,39 +61,8 @@ export const useAdminStore = create((set, get) => ({
   isLoadingAnnouncements: false,
   announcementsLoaded: false,
   settings: INITIAL_SETTINGS,
-  auditLog: [],
-
-  // ── Computed helpers ──────────────────────────────────────────────────
-
-  getTotalStats: () => {
-    const { cafes, customers, activities } = get();
-    const totalCafes = cafes.length;
-    const activeCafes = cafes.filter((c) => c.status === "active").length;
-    const pendingCafes = cafes.filter((c) => c.status === "pending").length;
-    const totalCustomers = customers.length;
-    const totalStampsIssued = activities
-      .filter((a) => a.type === "stamp")
-      .reduce((acc, a) => acc + (a.stampsDelta || 0), 0);
-    const totalRewardsRedeemed = activities.filter((a) => a.type === "redemption").length;
-    const now = new Date();
-    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const newCafesThisMonth = cafes.filter((c) =>
-      c.registrationDate && c.registrationDate.startsWith(thisMonth)
-    ).length;
-    const newCustomersThisMonth = customers.filter((c) =>
-      c.registeredDate && c.registeredDate.startsWith(thisMonth)
-    ).length;
-    return {
-      totalCafes,
-      activeCafes,
-      pendingCafes,
-      totalCustomers,
-      totalStampsIssued,
-      totalRewardsRedeemed,
-      newCafesThisMonth,
-      newCustomersThisMonth,
-    };
-  },
+  isLoadingSettings: false,
+  settingsLoaded: false,
 
   // ── Cafe Actions ──────────────────────────────────────────────────────
 
@@ -141,10 +87,7 @@ export const useAdminStore = create((set, get) => ({
     return { success: false };
   },
 
-  createCafe: async (
-    { name, email, password, phone, ownerName = "", subscriptionPlanId },
-    adminName = "Platform Admin"
-  ) => {
+  createCafe: async ({ name, email, password, phone, ownerName = "", subscriptionPlanId }) => {
     try {
       const res = await apiAdminCreateCafe({
         name,
@@ -157,16 +100,7 @@ export const useAdminStore = create((set, get) => ({
 
       if (res?.success && res?.data?.cafe) {
         const newCafe = res.data.cafe;
-        const { cafes, auditLog } = get();
-
-        const newAuditEntry = {
-          id: `audit-${Date.now()}`,
-          action: "CAFE_CREATED",
-          description: `New cafe '${newCafe.name}' registered by ${adminName}. Staff login: ${email}`,
-          adminName,
-          timestamp: new Date().toISOString(),
-          metadata: { cafeId: newCafe.id, email },
-        };
+        const { cafes } = get();
 
         try {
           registerCafeCatalogEntry(newCafe.slug, newCafe);
@@ -188,7 +122,6 @@ export const useAdminStore = create((set, get) => ({
 
         set({
           cafes: [newCafe, ...cafes.filter((c) => c.id !== newCafe.id)],
-          auditLog: [newAuditEntry, ...auditLog],
         });
 
         return { success: true, cafe: newCafe };
@@ -199,7 +132,7 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  updateCafeStatus: async (cafeId, newStatus, adminName = "Platform Admin") => {
+  updateCafeStatus: async (cafeId, newStatus) => {
     try {
       const res = await apiAdminUpdateCafeStatus(cafeId, newStatus);
       if (!res?.success) {
@@ -209,22 +142,11 @@ export const useAdminStore = create((set, get) => ({
       return { success: false, error: err.message || "Failed to update cafe status." };
     }
 
-    const { cafes, auditLog } = get();
-    const cafe = cafes.find((c) => c.id === cafeId);
-    const oldStatus = cafe ? cafe.status : "unknown";
-    const newAuditEntry = {
-      id: `audit-${Date.now()}`,
-      action: "CAFE_STATUS_CHANGED",
-      description: `Cafe '${cafe?.name || cafeId}' status changed from ${oldStatus} → ${newStatus}`,
-      adminName,
-      timestamp: new Date().toISOString(),
-      metadata: { cafeId, from: oldStatus, to: newStatus },
-    };
+    const { cafes } = get();
     set({
       cafes: cafes.map((c) =>
         c.id === cafeId ? { ...c, status: newStatus, isActive: newStatus === "active" } : c
       ),
-      auditLog: [newAuditEntry, ...auditLog],
     });
     return { success: true };
   },
@@ -239,18 +161,9 @@ export const useAdminStore = create((set, get) => ({
       return { success: false, error: err.message || "Failed to update cafe information." };
     }
 
-    const { cafes, auditLog } = get();
-    const newAuditEntry = {
-      id: `audit-${Date.now()}`,
-      action: "CAFE_INFO_UPDATED",
-      description: `Cafe info updated for ID ${cafeId}`,
-      adminName: "Platform Admin",
-      timestamp: new Date().toISOString(),
-      metadata: { cafeId },
-    };
+    const { cafes } = get();
     set({
       cafes: cafes.map((c) => (c.id === cafeId ? { ...c, ...updatedData } : c)),
-      auditLog: [newAuditEntry, ...auditLog],
     });
     return { success: true };
   },
@@ -262,19 +175,9 @@ export const useAdminStore = create((set, get) => ({
         return { success: false, error: res?.message || "Failed to delete cafe." };
       }
 
-      const { cafes, auditLog } = get();
-      const cafe = cafes.find((item) => item.id === cafeId || item._id === cafeId);
-      const newAuditEntry = {
-        id: `audit-${Date.now()}`,
-        action: "CAFE_DELETED",
-        description: `Cafe '${cafe?.name || cafeId}' and its records were deleted`,
-        adminName: "Platform Admin",
-        timestamp: new Date().toISOString(),
-        metadata: { cafeId },
-      };
+      const { cafes } = get();
       set({
         cafes: cafes.filter((item) => item.id !== cafeId && item._id !== cafeId),
-        auditLog: [newAuditEntry, ...auditLog],
       });
       return { success: true };
     } catch (err) {
@@ -293,20 +196,7 @@ export const useAdminStore = create((set, get) => ({
       return { success: false, error: err.message };
     }
 
-    const { cafes, plans, auditLog } = get();
-    const plan = plans.find((p) => p.id === planId || p._id === planId);
-    const cafe = cafes.find((c) => c.id === cafeId || c._id === cafeId);
-    const planName = plan ? plan.name : "Tier";
-    const cafeName = cafe ? cafe.name : "Cafe";
-
-    const newAuditEntry = {
-      id: `audit-${Date.now()}`,
-      action: "PLAN_ASSIGNED",
-      description: `Subscription plan '${planName}' assigned to '${cafeName}'`,
-      adminName: "Platform Admin",
-      timestamp: new Date().toISOString(),
-      metadata: { cafeId, planId },
-    };
+    const { cafes } = get();
     set({
       cafes: cafes.map((c) =>
         c.id === cafeId || c._id === cafeId
@@ -319,7 +209,6 @@ export const useAdminStore = create((set, get) => ({
           }
           : c
       ),
-      auditLog: [newAuditEntry, ...auditLog],
     });
     return { success: true };
   },
@@ -349,22 +238,15 @@ export const useAdminStore = create((set, get) => ({
 
   updateCustomerStatus: async (customerId, newStatus) => {
     try {
-      await apiAdminUpdateCustomerStatus(customerId, newStatus);
+      const res = await apiAdminUpdateCustomerStatus(customerId, newStatus);
+      if (!res?.success) {
+        return { success: false, error: res?.message || "Failed to update customer status." };
+      }
     } catch (err) {
-      console.warn("Failed to update customer status on server:", err.message);
+      return { success: false, error: err.message || "Failed to update customer status." };
     }
 
-    const { customers, auditLog } = get();
-    const customer = customers.find((c) => c.id === customerId);
-    const oldStatus = customer ? customer.status : "unknown";
-    const newAuditEntry = {
-      id: `audit-${Date.now()}`,
-      action: "CUSTOMER_STATUS_CHANGED",
-      description: `Customer '${customer?.name || customerId}' status changed from ${oldStatus} → ${newStatus}`,
-      adminName: "Platform Admin",
-      timestamp: new Date().toISOString(),
-      metadata: { customerId, from: oldStatus, to: newStatus },
-    };
+    const { customers } = get();
     set({
       customers: customers.map((c) =>
         c.id === customerId
@@ -375,7 +257,6 @@ export const useAdminStore = create((set, get) => ({
           }
           : c
       ),
-      auditLog: [newAuditEntry, ...auditLog],
     });
     return { success: true };
   },
@@ -387,23 +268,11 @@ export const useAdminStore = create((set, get) => ({
         return { success: false, error: res?.message || "Failed to delete customer." };
       }
 
-      const { customers, auditLog } = get();
-      const customer = customers.find(
-        (item) => item.id === customerId || item._id === customerId
-      );
-      const newAuditEntry = {
-        id: `audit-${Date.now()}`,
-        action: "CUSTOMER_DELETED",
-        description: `Customer '${customer?.name || customerId}' and their records were deleted`,
-        adminName: "Platform Admin",
-        timestamp: new Date().toISOString(),
-        metadata: { customerId },
-      };
+      const { customers } = get();
       set({
         customers: customers.filter(
           (item) => item.id !== customerId && item._id !== customerId
         ),
-        auditLog: [newAuditEntry, ...auditLog],
       });
       return { success: true };
     } catch (err) {
@@ -481,36 +350,19 @@ export const useAdminStore = create((set, get) => ({
         });
         return { success: true, plan: updated };
       }
+      return { success: false, error: res?.message || "Failed to toggle plan status." };
     } catch (err) {
-      console.warn("Failed to toggle plan status on server:", err.message);
+      return { success: false, error: err.message || "Failed to toggle plan status." };
     }
-
-    // Optimistic fallback
-    set({
-      plans: plans.map((p) =>
-        p.id === planId || p._id === planId ? { ...p, isActive: newActiveState } : p
-      ),
-    });
-    return { success: true };
   },
 
   deletePlan: async (planId) => {
     try {
       const res = await apiAdminDeletePlan(planId);
       if (res?.success) {
-        const { plans, auditLog } = get();
-        const deletedPlan = plans.find((p) => p.id === planId || p._id === planId);
-        const newAuditEntry = {
-          id: `audit-${Date.now()}`,
-          action: "PLAN_DELETED",
-          description: `Subscription plan '${deletedPlan?.name || planId}' was deleted`,
-          adminName: "Platform Admin",
-          timestamp: new Date().toISOString(),
-          metadata: { planId },
-        };
+        const { plans } = get();
         set({
           plans: plans.filter((p) => p.id !== planId && p._id !== planId),
-          auditLog: [newAuditEntry, ...auditLog],
         });
         return { success: true };
       }
@@ -609,24 +461,49 @@ export const useAdminStore = create((set, get) => ({
         });
         return { success: true, announcement: updated };
       }
+      return {
+        success: false,
+        error: res?.message || "Failed to toggle announcement publish status.",
+      };
     } catch (err) {
-      console.warn("Failed to toggle publish status on server:", err.message);
+      return {
+        success: false,
+        error: err.message || "Failed to toggle announcement publish status.",
+      };
     }
-
-    // Optimistic fallback
-    set({
-      announcements: announcements.map((a) =>
-        a.id === annId || a._id === annId ? { ...a, isPublished: newStatus } : a
-      ),
-    });
-    return { success: true };
   },
 
   // ── Settings ──────────────────────────────────────────────────────────
 
-  updateSettings: (newSettings) => {
-    const { settings } = get();
-    set({ settings: { ...settings, ...newSettings } });
-    return { success: true };
+  fetchSettings: async () => {
+    set({ isLoadingSettings: true });
+    try {
+      const res = await apiAdminGetSettings();
+      if (res?.success && res?.data?.settings) {
+        set({
+          settings: { ...INITIAL_SETTINGS, ...res.data.settings },
+          isLoadingSettings: false,
+          settingsLoaded: true,
+        });
+        return { success: true, settings: res.data.settings };
+      }
+      throw new Error(res?.message || "Platform settings were not returned.");
+    } catch (err) {
+      set({ isLoadingSettings: false });
+      return { success: false, error: err.message || "Failed to load platform settings." };
+    }
+  },
+
+  updateSettings: async (newSettings) => {
+    try {
+      const res = await apiAdminUpdateSettings(newSettings);
+      if (!res?.success || !res?.data?.settings) {
+        return { success: false, error: res?.message || "Failed to save platform settings." };
+      }
+      set({ settings: { ...INITIAL_SETTINGS, ...res.data.settings } });
+      return { success: true, settings: res.data.settings };
+    } catch (err) {
+      return { success: false, error: err.message || "Failed to save platform settings." };
+    }
   },
 }));

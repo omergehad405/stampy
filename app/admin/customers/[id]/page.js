@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 import {
   LuUsers,
@@ -22,19 +22,73 @@ import AdminPageHeader from "../../components/AdminPageHeader";
 import AdminBadge from "../../components/AdminBadge";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useAdminStore } from "@/app/stores/useAdminStore";
-import { CAFES_CATALOG } from "@/app/(customer)/cafe/data/cafesCatalog";
+import { apiAdminGetCustomer } from "@/app/lib/adminApi";
 
 export default function AdminCustomerDetailPage({ params }) {
   const unwrappedParams = use(params);
-  const { customers, activities, updateCustomerStatus } = useAdminStore();
+  const { updateCustomerStatus } = useAdminStore();
 
   const customerId = unwrappedParams.id;
-  const customer = customers.find((c) => c.id === customerId);
+  const [customerRequest, setCustomerRequest] = useState({
+    id: "",
+    customer: null,
+    activities: [],
+    isLoading: true,
+    error: "",
+  });
+
+  useEffect(() => {
+    let isCurrent = true;
+    apiAdminGetCustomer(customerId)
+      .then((response) => {
+        if (!response?.success || !response?.data?.customer) {
+          throw new Error(response?.message || "Customer details were not returned.");
+        }
+        if (isCurrent) {
+          setCustomerRequest({
+            id: customerId,
+            customer: response.data.customer,
+            activities: response.data.activities || [],
+            isLoading: false,
+            error: "",
+          });
+        }
+      })
+      .catch((error) => {
+        if (isCurrent) {
+          setCustomerRequest({
+            id: customerId,
+            customer: null,
+            activities: [],
+            isLoading: false,
+            error: error.message || "Failed to load customer details.",
+          });
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [customerId]);
+
+  const isLoading = customerRequest.id !== customerId || customerRequest.isLoading;
+  const customer = customerRequest.id === customerId ? customerRequest.customer : null;
+  const customerActivities =
+    customerRequest.id === customerId ? customerRequest.activities : [];
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     newStatus: "",
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-10 text-sm text-(--mainColor)/70">
+        <LuClock className="h-5 w-5 animate-spin" />
+        Loading customer details...
+      </div>
+    );
+  }
 
   if (!customer) {
     return (
@@ -48,16 +102,11 @@ export default function AdminCustomerDetailPage({ params }) {
         </Link>
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-800">
           <h3 className="font-bold">Customer Not Found</h3>
-          <p className="mt-1 text-xs">The requested customer ID does not exist.</p>
+          <p className="mt-1 text-xs">{customerRequest.error || "The requested customer could not be found."}</p>
         </div>
       </div>
     );
   }
-
-  // Filter activities for this customer
-  const customerActivities = activities.filter(
-    (a) => a.customerId === customer.id || a.customerName === customer.name
-  );
 
   const handleStatusToggle = () => {
     const targetStatus = customer.status === "active" ? "suspended" : "active";
@@ -67,9 +116,13 @@ export default function AdminCustomerDetailPage({ params }) {
     });
   };
 
-  const confirmStatusExecution = () => {
-    const res = updateCustomerStatus(customer.id, confirmModal.newStatus);
+  const confirmStatusExecution = async () => {
+    const res = await updateCustomerStatus(customer.id, confirmModal.newStatus);
     if (res.success) {
+      setCustomerRequest((current) => ({
+        ...current,
+        customer: { ...current.customer, status: confirmModal.newStatus },
+      }));
       toast.success(`Customer status changed to ${confirmModal.newStatus}`);
     } else {
       toast.error(res.error || "Update failed");
@@ -78,17 +131,7 @@ export default function AdminCustomerDetailPage({ params }) {
   };
 
   // Resolve joined cafes
-  const joinedCafeSlugs = Array.isArray(customer.joinedCafes) ? customer.joinedCafes : [];
-  const joinedCafesData = joinedCafeSlugs.map((slug) => {
-    const catalogItem = CAFES_CATALOG[slug];
-    return {
-      slug,
-      name: catalogItem?.name || slug,
-      category: catalogItem?.category || "Specialty Cafe",
-      logo: catalogItem?.logoImage,
-      stampTarget: catalogItem?.stampTarget || 10,
-    };
-  });
+  const joinedCafesData = Array.isArray(customer.memberships) ? customer.memberships : [];
 
   return (
     <div className="space-y-6">
@@ -151,7 +194,9 @@ export default function AdminCustomerDetailPage({ params }) {
         <div className="rounded-xl border border-[#ebdcc8] bg-[#f5ecdd] p-3 text-right">
           <span className="block text-[11px] text-(--mainColor)/60">Last In-Store Visit</span>
           <span className="text-xs font-bold text-(--mainColor)">
-            {customer.lastVisitDate || "No visit recorded"}
+            {customer.lastVisitDate
+              ? new Date(customer.lastVisitDate).toLocaleString()
+              : "No visit recorded"}
           </span>
         </div>
       </div>
@@ -161,7 +206,7 @@ export default function AdminCustomerDetailPage({ params }) {
         <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs text-center">
           <LuCoffee className="h-5 w-5 mx-auto text-(--mainColor)/70 mb-1" />
           <span className="block text-2xl font-bold text-(--mainColor)">
-            {joinedCafeSlugs.length}
+            {customer.joinedCafesCount || 0}
           </span>
           <span className="text-xs text-(--mainColor)/60">Joined Cafes</span>
         </div>
@@ -182,7 +227,7 @@ export default function AdminCustomerDetailPage({ params }) {
         <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs text-center">
           <LuClock className="h-5 w-5 mx-auto text-(--mainColor)/70 mb-1" />
           <span className="block text-2xl font-bold text-(--mainColor)">
-            {customer.totalVisits || 1}
+            {customer.totalVisits || 0}
           </span>
           <span className="text-xs text-(--mainColor)/60">Total Store Visits</span>
         </div>
@@ -196,7 +241,11 @@ export default function AdminCustomerDetailPage({ params }) {
             Participating Cafe Memberships
           </h3>
           <div className="mt-4 space-y-3">
-            {joinedCafesData.map((c) => (
+            {joinedCafesData.length === 0 ? (
+              <p className="py-4 text-center text-xs text-(--mainColor)/60">
+                This customer has not joined a cafe loyalty program.
+              </p>
+            ) : joinedCafesData.map((c) => (
               <div
                 key={c.slug}
                 className="flex items-center justify-between rounded-xl border border-[#ebdcc8] bg-[#f5ecdd] p-3.5"
@@ -204,21 +253,21 @@ export default function AdminCustomerDetailPage({ params }) {
                 <div className="flex items-center gap-3">
                   <img
                     src={
-                      c.logo ||
-                      "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80"
+                      c.logoImage ||
+                      "/logo.png"
                     }
                     alt={c.name}
                     className="h-10 w-10 rounded-lg object-cover border border-[#dacdb9]"
                   />
                   <div>
                     <span className="font-bold text-xs text-(--mainColor) block">{c.name}</span>
-                    <span className="text-[11px] text-(--mainColor)/60">{c.category}</span>
+                    <span className="text-[11px] text-(--mainColor)/60">{c.category || "Loyalty program"}</span>
                   </div>
                 </div>
 
                 <div className="text-right">
                   <span className="rounded-lg bg-(--mainColor) px-2.5 py-1 text-xs font-bold text-(--secondColor)">
-                    {customer.stamps || 0} / {c.stampTarget} Stamps
+                    {c.stamps} / {c.stampTarget} Stamps
                   </span>
                   <span className="block text-[10px] text-(--mainColor)/60 mt-1">
                     Card Progress
@@ -266,7 +315,7 @@ export default function AdminCustomerDetailPage({ params }) {
                     <div>
                       <span className="font-bold text-(--mainColor) block">{act.title}</span>
                       <span className="text-[11px] text-(--mainColor)/60">
-                        {act.cafeName || "Coffee House"} • {act.staffName || "Staff"}
+                        {act.cafeName || "—"} • {act.staffName || "—"}
                       </span>
                       {act.note && (
                         <p className="mt-0.5 text-[11px] text-(--mainColor)/70">{act.note}</p>

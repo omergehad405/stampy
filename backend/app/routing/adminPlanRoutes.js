@@ -10,11 +10,12 @@ const {
   deletePlan,
 } = require("../controllers/adminPlanController");
 const { protect, authorize } = require("../middlewares/authMiddleware");
+const adminAuditMiddleware = require("../middlewares/adminAuditMiddleware");
 
 const router = express.Router();
 
 // All routes require active admin authentication
-router.use(protect, authorize("admin"));
+router.use(protect, authorize("admin"), adminAuditMiddleware);
 
 router.get("/", getAllPlans);
 router.get("/features", getAvailableFeatures);

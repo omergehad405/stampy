@@ -92,6 +92,23 @@ export async function apiUpdateProfile(updates) {
   return data;
 }
 
+export async function apiChangePassword({ currentPassword, newPassword }) {
+  const response = await fetch(`${API_BASE}/api/auth/change-password`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    credentials: "include",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to change password.");
+  }
+  return data;
+}
+
 export async function apiLogout() {
   try {
     const response = await fetch(`${API_BASE}/api/auth/logout`, {

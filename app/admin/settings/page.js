@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   LuSettings,
   LuSave,
@@ -9,20 +9,46 @@ import {
   LuStore,
   LuCheck,
   LuSlidersHorizontal,
+  LuLoader,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import AdminPageHeader from "../components/AdminPageHeader";
 import { useAdminStore } from "@/app/stores/useAdminStore";
 
 export default function AdminSettingsPage() {
-  const { settings, updateSettings, plans } = useAdminStore();
+  const {
+    updateSettings,
+    fetchSettings,
+    isLoadingSettings,
+    plans,
+  } = useAdminStore();
 
-  const [formData, setFormData] = useState({ ...settings });
+  const [formData, setFormData] = useState(null);
+  const [settingsError, setSettingsError] = useState("");
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    let isCurrent = true;
+    fetchSettings().then((result) => {
+      if (!isCurrent) return;
+      if (result.success) {
+        setFormData({ ...result.settings });
+      } else {
+        setSettingsError(result.error || "Failed to load platform settings.");
+      }
+    });
+    return () => {
+      isCurrent = false;
+    };
+  }, [fetchSettings]);
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    updateSettings(formData);
-    toast.success("Platform settings saved successfully");
+    const result = await updateSettings(formData);
+    if (result.success) {
+      toast.success("Platform settings saved successfully");
+    } else {
+      toast.error(result.error || "Failed to save platform settings.");
+    }
   };
 
   return (
@@ -34,6 +60,33 @@ export default function AdminSettingsPage() {
         breadcrumbs={[{ label: "Settings" }]}
       />
 
+      {isLoadingSettings || (!formData && !settingsError) ? (
+        <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-12 text-sm text-(--mainColor)/70">
+          <LuLoader className="h-5 w-5 animate-spin" />
+          Loading platform settings...
+        </div>
+      ) : settingsError ? (
+        <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-800">
+          <p className="text-sm font-bold">Platform settings could not be loaded</p>
+          <p className="mt-1 text-xs">{settingsError}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setSettingsError("");
+              fetchSettings().then((result) => {
+                if (result.success) {
+                  setFormData({ ...result.settings });
+                } else {
+                  setSettingsError(result.error || "Failed to load platform settings.");
+                }
+              });
+            }}
+            className="mt-4 rounded-xl bg-rose-700 px-4 py-2 text-xs font-bold text-white hover:bg-rose-800"
+          >
+            Try again
+          </button>
+        </div>
+      ) : (
       <form onSubmit={handleSave} className="space-y-6">
         {/* General Platform Identity */}
         <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-6 shadow-2xs">
@@ -233,6 +286,7 @@ export default function AdminSettingsPage() {
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 }

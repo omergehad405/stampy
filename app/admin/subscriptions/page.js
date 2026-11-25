@@ -19,6 +19,7 @@ import AdminPageHeader from "../components/AdminPageHeader";
 import AdminBadge from "../components/AdminBadge";
 import ConfirmModal from "../components/ConfirmModal";
 import { useAdminStore } from "@/app/stores/useAdminStore";
+import { apiAdminGetAuditLog } from "@/app/lib/adminApi";
 
 const FEATURE_CONFIG = [
   {
@@ -78,13 +79,25 @@ export default function AdminSubscriptionsPage() {
     togglePlanStatus,
     assignPlanToCafe,
     deletePlan,
-    auditLog,
   } = useAdminStore();
+  const [auditEntries, setAuditEntries] = useState([]);
+  const [auditError, setAuditError] = useState("");
 
   useEffect(() => {
     fetchPlans();
     fetchCafes();
   }, [fetchPlans, fetchCafes]);
+
+  useEffect(() => {
+    apiAdminGetAuditLog()
+      .then((response) => {
+        if (!response?.success || !Array.isArray(response?.data?.auditLog)) {
+          throw new Error(response?.message || "Audit history was not returned.");
+        }
+        setAuditEntries(response.data.auditLog);
+      })
+      .catch((error) => setAuditError(error.message || "Failed to load audit history."));
+  }, []);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
@@ -380,6 +393,15 @@ export default function AdminSubscriptionsPage() {
     if (res?.success) {
       toast.success("Plan assigned to cafe successfully");
       setAssignModal({ isOpen: false, cafeId: "", planId: "", isSubmitting: false });
+      try {
+        const response = await apiAdminGetAuditLog();
+        if (response?.success && Array.isArray(response?.data?.auditLog)) {
+          setAuditEntries(response.data.auditLog);
+          setAuditError("");
+        }
+      } catch (error) {
+        setAuditError(error.message || "Failed to refresh plan assignment history.");
+      }
     } else {
       toast.error(res?.error || "Failed to assign plan to cafe");
     }
@@ -621,8 +643,10 @@ export default function AdminSubscriptionsPage() {
           Recent Plan Assignments & Audit History
         </h3>
         <div className="mt-4 divide-y divide-[#ebdcc8]">
-          {auditLog
-            .filter((item) => item.action === "PLAN_ASSIGNED")
+          {auditError ? (
+            <p role="alert" className="py-4 text-xs text-rose-700">{auditError}</p>
+          ) : auditEntries
+            .filter((item) => item.action === "assigned" && item.resource === "subscription plan")
             .map((item) => (
               <div key={item.id} className="py-3 flex items-center justify-between text-xs">
                 <div>
@@ -632,10 +656,16 @@ export default function AdminSubscriptionsPage() {
                   </span>
                 </div>
                 <span className="text-[11px] text-(--mainColor)/50">
-                  {new Date(item.timestamp).toLocaleDateString()}
+                  {new Date(item.timestamp).toLocaleString()}
                 </span>
               </div>
             ))}
+          {!auditError &&
+            auditEntries.filter((item) => item.action === "assigned" && item.resource === "subscription plan").length === 0 && (
+              <p className="py-4 text-center text-xs text-(--mainColor)/60">
+                No plan assignments have been recorded yet.
+              </p>
+            )}
         </div>
       </div>
 

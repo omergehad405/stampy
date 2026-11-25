@@ -597,6 +597,44 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (
+      typeof currentPassword !== "string" ||
+      typeof newPassword !== "string" ||
+      newPassword.length < 8
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide your current password and a new password of at least 8 characters.",
+      });
+    }
+
+    const user = await User.findById(req.user._id).select("+password");
+    if (!user || !(await user.matchPassword(currentPassword))) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect.",
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+  } catch (error) {
+    console.error("[Auth] Change password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to change password right now. Please try again.",
+    });
+  }
+};
+
 /**
  * @desc   Request password reset token and send email
  * @route  POST /api/auth/forgot-password
@@ -738,6 +776,7 @@ module.exports = {
   getMe,
   logout,
   updateProfile,
+  changePassword,
   getCustomerQrCode,
   generateCustomerQrCode,
   forgotPassword,

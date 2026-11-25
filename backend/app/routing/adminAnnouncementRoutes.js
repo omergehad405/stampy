@@ -8,11 +8,12 @@ const {
   deleteAnnouncement,
 } = require("../controllers/adminAnnouncementController");
 const { protect, authorize } = require("../middlewares/authMiddleware");
+const adminAuditMiddleware = require("../middlewares/adminAuditMiddleware");
 
 const router = express.Router();
 
 // Admin routes
-router.use(protect, authorize("admin"));
+router.use(protect, authorize("admin"), adminAuditMiddleware);
 
 router.get("/", getAllAnnouncements);
 router.post("/", createAnnouncement);

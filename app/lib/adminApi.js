@@ -129,6 +129,23 @@ export async function apiAdminGetCustomers() {
   return data;
 }
 
+export async function apiAdminGetCustomer(customerId) {
+  const response = await fetch(
+    `${API_BASE}/api/admin/customers/${encodeURIComponent(customerId)}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+      credentials: "include",
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch customer details.");
+  }
+  return data;
+}
+
 export async function apiAdminUpdateCustomerStatus(customerId, status) {
   const response = await fetch(`${API_BASE}/api/admin/customers/${customerId}/status`, {
     method: "PATCH",
@@ -173,6 +190,79 @@ export async function apiAdminGetAnalytics(range) {
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || "Failed to fetch analytics.");
+  }
+  return data;
+}
+
+export async function apiAdminGetOverview() {
+  const response = await fetch(`${API_BASE}/api/admin/data/overview`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch platform overview.");
+  }
+  return data;
+}
+
+export async function apiAdminGetActivities() {
+  const response = await fetch(`${API_BASE}/api/admin/data/activities`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch platform activity.");
+  }
+  return data;
+}
+
+export async function apiAdminGetAuditLog() {
+  const response = await fetch(`${API_BASE}/api/admin/data/audit-log`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch the platform audit log.");
+  }
+  return data;
+}
+
+export async function apiAdminGetSettings() {
+  const response = await fetch(`${API_BASE}/api/admin/settings`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch platform settings.");
+  }
+  return data;
+}
+
+export async function apiAdminUpdateSettings(settings) {
+  const response = await fetch(`${API_BASE}/api/admin/settings`, {
+    method: "PUT",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    credentials: "include",
+    body: JSON.stringify(settings),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to save platform settings.");
   }
   return data;
 }

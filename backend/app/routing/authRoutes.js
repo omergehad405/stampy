@@ -6,11 +6,13 @@ const {
   getMe,
   logout,
   updateProfile,
+  changePassword,
   getCustomerQrCode,
   forgotPassword,
   resetPassword,
 } = require("../controllers/authController");
 const { protect, authorize } = require("../middlewares/authMiddleware");
+const adminAuditMiddleware = require("../middlewares/adminAuditMiddleware");
 
 const router = express.Router();
 
@@ -34,8 +36,9 @@ router.post("/reset-password", authLimiter, resetPassword);
 
 // Protected endpoints
 router.get("/me", protect, getMe);
-router.put("/profile", protect, updateProfile);
-router.patch("/profile", protect, updateProfile);
+router.put("/profile", protect, adminAuditMiddleware, updateProfile);
+router.patch("/profile", protect, adminAuditMiddleware, updateProfile);
+router.post("/change-password", protect, adminAuditMiddleware, changePassword);
 router.post("/logout", protect, logout);
 
 // Customer-only QR Code endpoint

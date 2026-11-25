@@ -10,6 +10,43 @@ const mongoose = require("mongoose");
 const formatCustomerUser = (user) => {
   const obj = user.toJSON ? user.toJSON() : user;
   const idStr = obj._id ? obj._id.toString() : obj.id;
+  const memberships = Array.isArray(obj.cafes) ? obj.cafes : [];
+  const normalizedMemberships = memberships.map((membership) => {
+    const cafe =
+      membership.cafeId && typeof membership.cafeId === "object"
+        ? membership.cafeId
+        : null;
+    return {
+      cafeId: cafe?._id?.toString() || membership.cafeId?.toString() || "",
+      slug: cafe?.slug || "",
+      name: cafe?.name || "",
+      category: cafe?.category || "",
+      logoImage: cafe?.logoImage || "",
+      stampTarget: cafe?.stampTarget || 0,
+      stamps: membership.stamps || 0,
+      lifetimeStamps: membership.lifetimeStamps || 0,
+      totalVisits: membership.totalVisits || 0,
+      rewardsRedeemedCount: membership.rewardsRedeemedCount || 0,
+      lastVisitDate: membership.lastVisitDate || null,
+    };
+  });
+  const membershipLifetimeStamps = normalizedMemberships.reduce(
+    (total, membership) => total + membership.lifetimeStamps,
+    0
+  );
+  const membershipVisits = normalizedMemberships.reduce(
+    (total, membership) => total + membership.totalVisits,
+    0
+  );
+  const membershipRedemptions = normalizedMemberships.reduce(
+    (total, membership) => total + membership.rewardsRedeemedCount,
+    0
+  );
+  const totalRewardsRedeemed = membershipRedemptions || obj.redeemedRewards || 0;
+  const lastVisitDate = normalizedMemberships
+    .map((membership) => membership.lastVisitDate)
+    .filter(Boolean)
+    .sort((a, b) => new Date(b) - new Date(a))[0] || null;
 
   return {
     id: idStr,
@@ -25,18 +62,22 @@ const formatCustomerUser = (user) => {
     isActive: obj.isActive,
     registeredDate: obj.createdAt
       ? new Date(obj.createdAt).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
+      : "",
     createdAt: obj.createdAt,
     updatedAt: obj.updatedAt,
-    totalStamps: obj.totalStamps ?? 0,
-    totalLifetimeStamps: obj.totalStamps ?? 0,
-    lifetimeStamps: obj.totalStamps ?? 0,
-    stamps: obj.totalStamps ?? 0,
+    totalStamps: obj.totalStamps ?? membershipLifetimeStamps,
+    totalLifetimeStamps: membershipLifetimeStamps || obj.totalStamps || 0,
+    lifetimeStamps: membershipLifetimeStamps || obj.totalStamps || 0,
+    stamps: normalizedMemberships.reduce((total, membership) => total + membership.stamps, 0),
     availableRewards: obj.availableRewards ?? 0,
-    redeemedRewards: obj.redeemedRewards ?? 0,
-    joinedCafes: ["coffee-house"],
-    joinedCafesCount: typeof obj.joinedCafes === "number" ? obj.joinedCafes : 0,
-    totalVisits: obj.totalStamps ?? 0,
+    redeemedRewards: totalRewardsRedeemed,
+    rewardsRedeemedCount: totalRewardsRedeemed,
+    totalRewardsRedeemed,
+    joinedCafes: normalizedMemberships.map((membership) => membership.slug).filter(Boolean),
+    joinedCafesCount: normalizedMemberships.length,
+    memberships: normalizedMemberships,
+    totalVisits: membershipVisits,
+    lastVisitDate,
   };
 };
 
@@ -49,6 +90,7 @@ const getAllCustomers = async (req, res) => {
   try {
     const users = await User.find({ role: "user" })
       .select("-password")
+      .populate("cafes.cafeId", "name slug category logoImage stampTarget")
       .sort({ createdAt: -1 });
 
     const formattedCustomers = users.map(formatCustomerUser);
@@ -78,7 +120,9 @@ const getCustomerById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const user = await User.findOne({ _id: id, role: "user" }).select("-password");
+    const user = await User.findOne({ _id: id, role: "user" })
+      .select("-password")
+      .populate("cafes.cafeId", "name slug category logoImage stampTarget");
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -86,10 +130,35 @@ const getCustomerById = async (req, res) => {
       });
     }
 
+    const activities = await Activity.find({ customerId: user._id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .populate("cafeId", "name")
+      .lean();
+
     return res.status(200).json({
       success: true,
       data: {
         customer: formatCustomerUser(user),
+        activities: activities.map((activity) => ({
+          id: activity._id.toString(),
+          type: activity.type,
+          title: activity.title,
+          cafeName: activity.cafeId?.name || "",
+          staffName: activity.staffName || "",
+          note: activity.note || "",
+          stampsDelta: activity.stampsDelta || 0,
+          timestamp: activity.createdAt,
+          formattedDate: activity.createdAt
+            ? new Date(activity.createdAt).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })
+            : "",
+        })),
       },
     });
   } catch (error) {

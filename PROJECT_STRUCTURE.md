@@ -136,6 +136,8 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | `backend/app/routing/dashboardNotificationRoutes.js` | Plan-gated `/api/dashboard/notifications` campaign APIs plus the public email unsubscribe endpoint. |
 | `backend/app/routing/dashboardAnalyticsRoutes.js` | Authenticated, analytics-plan-gated `/api/dashboard/analytics` endpoint. |
 | `backend/app/routing/adminAnnouncementRoutes.js` | Routes for `/api/admin/announcements` (admin announcement creation & management). |
+| `backend/app/routing/adminDataRoutes.js` | Authenticated `/api/admin/data` overview, activity, and persisted audit-log endpoints. |
+| `backend/app/routing/adminSettingsRoutes.js` | Authenticated `/api/admin/settings` platform-settings read/write endpoints. |
 
 #### Database Scripts (`backend/scripts/`)
 | File | Purpose |
@@ -347,18 +349,18 @@ Notch is structured as a full-stack unified Node.js application combining **Next
 | File | Purpose |
 | :--- | :--- |
 | `app/admin/layout.js` | Shell layout for platform administrators: includes `AdminSidebar`, `AdminHeader`, and `AdminAuthGuard`. |
-| `app/admin/page.js` | Platform overview: total registered cafes, active customers, stamps issued platform-wide, and MRR. |
+| `app/admin/page.js` | Database-backed platform totals, six-month growth, leading cafes, recent transactions, and audit history. |
 | `app/admin/login/page.js` | Secure login portal for platform super-administrators. |
 | `app/admin/cafes/page.js` | Cafe directory: view all enrolled cafes, approval queues, subscription status, and suspension controls. |
 | `app/admin/cafes/[id]/page.js` | Deep-dive page into a specific cafe's operational statistics, staff list, and subscription plan. |
 | `app/admin/customers/page.js` | Platform-wide customer directory: lookup customers by email or member code. |
-| `app/admin/customers/[id]/page.js` | Individual customer account audit: enrolled cafes, total stamps, and fraud check flags. |
+| `app/admin/customers/[id]/page.js` | Individual customer account detail with database-backed memberships, visits, redemptions, and activity. |
 | `app/admin/subscriptions/page.js` | Subscription tier manager: configure plan pricing, customer limits, and billing terms. |
 | `app/admin/announcements/page.js` | Broadcast manager: create and publish announcements targeted to customers or cafe dashboards. |
-| `app/admin/rewards-activity/page.js` | Platform-wide audit feed of all reward redemptions and stamp transactions. |
+| `app/admin/rewards-activity/page.js` | Activity totals and the latest 500 database-backed platform stamp, join, and redemption events. |
 | `app/admin/analytics/page.js` | Detailed platform analytics charts: user growth, scan volume over time, and retention metrics. |
-| `app/admin/settings/page.js` | Global system settings: maintenance mode toggle, email SMTP settings, and security defaults. |
-| `app/admin/profile/page.js` | Admin account credentials and security preferences. |
+| `app/admin/settings/page.js` | Platform settings loaded from and saved to the database. |
+| `app/admin/profile/page.js` | Authenticated admin profile editing and server-verified password changes. |
 
 #### Admin Components (`app/admin/components/`)
 | File | Purpose |

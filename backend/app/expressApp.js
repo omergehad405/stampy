@@ -7,6 +7,8 @@ const adminCustomerRoutes = require("./routing/adminCustomerRoutes");
 const adminAnalyticsRoutes = require("./routing/adminAnalyticsRoutes");
 const adminPlanRoutes = require("./routing/adminPlanRoutes");
 const adminAnnouncementRoutes = require("./routing/adminAnnouncementRoutes");
+const adminDataRoutes = require("./routing/adminDataRoutes");
+const adminSettingsRoutes = require("./routing/adminSettingsRoutes");
 const announcementRoutes = require("./routing/announcementRoutes");
 const cafeRewardRoutes = require("./routing/cafeRewardRoutes");
 const cafeRoutes = require("./routing/cafeRoutes");
@@ -75,6 +77,8 @@ function createExpressApp() {
   app.use("/api/announcements", announcementRoutes);
   app.use("/api/admin/cafes", adminCafeRoutes);
   app.use("/api/admin/customers", adminCustomerRoutes);
+  app.use("/api/admin/data", adminDataRoutes);
+  app.use("/api/admin/settings", adminSettingsRoutes);
   app.use("/api/admin/analytics", adminAnalyticsRoutes);
   app.use("/api/admin/plans", adminPlanRoutes);
   app.use("/api/admin/announcements", adminAnnouncementRoutes);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   LuSearch,
@@ -13,13 +13,43 @@ import {
   LuChevronRight,
   LuArrowUpRight,
   LuCoffee,
+  LuLoader,
 } from "react-icons/lu";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminMetricCard from "../components/AdminMetricCard";
 import { useAdminStore } from "@/app/stores/useAdminStore";
+import { apiAdminGetActivities } from "@/app/lib/adminApi";
 
 export default function AdminRewardsActivityPage() {
-  const { activities, cafes } = useAdminStore();
+  const { cafes } = useAdminStore();
+  const [activities, setActivities] = useState([]);
+  const [activitySummary, setActivitySummary] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let isCurrent = true;
+    apiAdminGetActivities()
+      .then((response) => {
+        if (!response?.success || !response?.data) {
+          throw new Error(response?.message || "Platform activity was not returned.");
+        }
+        if (isCurrent) {
+          setActivities(response.data.activities || []);
+          setActivitySummary(response.data);
+        }
+      })
+      .catch((requestError) => {
+        if (isCurrent) setError(requestError.message || "Failed to load platform activity.");
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [cafeFilter, setCafeFilter] = useState("all");
@@ -72,24 +102,20 @@ export default function AdminRewardsActivityPage() {
   }, [activities, searchQuery, cafeFilter, typeFilter, dateFilter]);
 
   // Aggregate Stats
-  const totalStampsIssued = activities
-    .filter((a) => a.type === "stamp")
-    .reduce((acc, a) => acc + (a.stampsDelta || 0), 0);
-
-  const totalRedemptions = activities.filter((a) => a.type === "redemption").length;
-
-  const totalJoins = activities.filter((a) => a.type === "join").length;
+  const totalStampsIssued = activitySummary?.totalStampsIssued || 0;
+  const totalRedemptions = activitySummary?.totalRedemptions || 0;
+  const totalJoins = activitySummary?.totalJoins || 0;
 
   // Cafe Activity Breakdown
   const cafeActivityBreakdown = useMemo(() => {
     const map = {};
     activities.forEach((act) => {
-      const name = act.cafeName || "Coffee House";
+      const name = act.cafeName || "Cafe not available";
       if (!map[name]) {
         map[name] = { stamps: 0, redemptions: 0, joins: 0, total: 0 };
       }
       map[name].total += 1;
-      if (act.type === "stamp") map[name].stamps += act.stampsDelta || 1;
+      if (act.type === "stamp") map[name].stamps += act.stampsDelta || 0;
       if (act.type === "redemption") map[name].redemptions += 1;
       if (act.type === "join") map[name].joins += 1;
     });
@@ -108,16 +134,35 @@ export default function AdminRewardsActivityPage() {
       {/* Page Header */}
       <AdminPageHeader
         title="Rewards & Activity"
-        description="Comprehensive audit of all stamps rewarded, rewards redeemed, and loyalty transactions across Notch."
+        description="Review recorded platform loyalty activity. The table shows the latest 500 events; totals cover all time."
         breadcrumbs={[{ label: "Rewards & Activity" }]}
       />
 
       {/* Metric Cards */}
+      {isLoading ? (
+        <div className="flex items-center justify-center gap-2 rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-12 text-sm text-(--mainColor)/70">
+          <LuLoader className="h-5 w-5 animate-spin" />
+          Loading platform transactions...
+        </div>
+      ) : error ? (
+        <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-800">
+          <p className="text-sm font-bold">Platform activity could not be loaded</p>
+          <p className="mt-1 text-xs">{error}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-xl bg-rose-700 px-4 py-2 text-xs font-bold text-white hover:bg-rose-800"
+          >
+            Try again
+          </button>
+        </div>
+      ) : (
+      <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <AdminMetricCard
           title="Stamps Credited"
           value={totalStampsIssued}
-          change="+28 this week"
+          change="All time"
           changeType="positive"
           icon={LuStamp}
           subtitle="Net stamps granted to customers"
@@ -125,7 +170,7 @@ export default function AdminRewardsActivityPage() {
         <AdminMetricCard
           title="Rewards Claimed"
           value={totalRedemptions}
-          change="8.4% conversion"
+          change="Recorded"
           changeType="neutral"
           icon={LuGift}
           subtitle="Total verified reward vouchers"
@@ -133,15 +178,15 @@ export default function AdminRewardsActivityPage() {
         <AdminMetricCard
           title="Customer Joins"
           value={totalJoins}
-          change="+12 this month"
+          change="All time"
           changeType="positive"
           icon={LuStore}
           subtitle="New cafe program enrollments"
         />
         <AdminMetricCard
           title="Total Transactions"
-          value={activities.length}
-          change="Audit Logged"
+          value={(activitySummary?.totalEvents || 0).toLocaleString()}
+          change="All time"
           changeType="positive"
           icon={LuClock}
           subtitle="All platform loyalty events"
@@ -150,11 +195,18 @@ export default function AdminRewardsActivityPage() {
 
       {/* Activity by Cafe Summary Grid */}
       <div className="rounded-2xl border border-[#e3d7c0] bg-[#faf6ed] p-5 shadow-2xs">
-        <h3 className="font-bold text-sm text-(--mainColor) border-b border-[#ebdcc8] pb-3">
-          Activity Grouped by Cafe
-        </h3>
+        <div className="border-b border-[#ebdcc8] pb-3">
+          <h3 className="font-bold text-sm text-(--mainColor)">Activity Grouped by Cafe</h3>
+          <p className="mt-1 text-[11px] text-(--mainColor)/60">
+            Breakdown of the latest {activities.length.toLocaleString()} of {(activitySummary?.totalEvents || 0).toLocaleString()} events.
+          </p>
+        </div>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {cafeActivityBreakdown.map((item) => (
+          {cafeActivityBreakdown.length === 0 ? (
+            <p className="col-span-full py-4 text-center text-xs text-(--mainColor)/60">
+              No platform activity has been recorded yet.
+            </p>
+          ) : cafeActivityBreakdown.map((item) => (
             <div
               key={item.name}
               className="rounded-xl border border-[#ebdcc8] bg-[#f5ecdd] p-4 flex flex-col justify-between"
@@ -311,10 +363,10 @@ export default function AdminRewardsActivityPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5 font-medium text-(--mainColor)">
-                      {act.cafeName || "Coffee House"}
+                      {act.cafeName || "—"}
                     </td>
                     <td className="px-5 py-3.5 text-(--mainColor)/70">
-                      {act.staffName || "Staff"}
+                      {act.staffName || "—"}
                     </td>
                     <td className="px-5 py-3.5 text-(--mainColor)/60 max-w-[200px] truncate">
                       {act.note || "—"}
@@ -358,6 +410,8 @@ export default function AdminRewardsActivityPage() {
           </div>
         </div>
       </div>
-    </div>
+          </>
+          )}
+      </div>
   );
 }

@@ -22,13 +22,10 @@ export const useAdminAuthStore = create((set, get) => ({
           email: user.email,
           role: "Super Admin",
           roleKey: "SUPER_ADMIN",
-          avatar:
-            user.avatar ||
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+          avatar: user.avatar || "",
           joinedDate: user.createdAt
             ? new Date(user.createdAt).toISOString().split("T")[0]
-            : "2026-01-01",
-          lastActive: "Just now",
+            : "",
         };
         set({ currentAdmin: adminObj, isAuthenticated: true, loginError: null });
         return { success: true, admin: adminObj };
@@ -73,13 +70,10 @@ export const useAdminAuthStore = create((set, get) => ({
           email: user.email,
           role: "Super Admin",
           roleKey: "SUPER_ADMIN",
-          avatar:
-            user.avatar ||
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+          avatar: user.avatar || "",
           joinedDate: user.createdAt
             ? new Date(user.createdAt).toISOString().split("T")[0]
-            : "2026-01-01",
-          lastActive: "Just now",
+            : "",
         };
 
         set({
@@ -138,16 +132,10 @@ export const useAdminAuthStore = create((set, get) => ({
         }));
         return { success: true };
       }
+      return { success: false, error: res?.message || "Failed to update profile." };
     } catch (err) {
-      console.warn("Failed to update admin profile in MongoDB:", err);
+      return { success: false, error: err.message || "Failed to update profile." };
     }
-    // Fallback optimistic update
-    set((state) => ({
-      currentAdmin: state.currentAdmin
-        ? { ...state.currentAdmin, ...data }
-        : null,
-    }));
-    return { success: true };
   },
 
   clearError: () => set({ loginError: null }),
