@@ -1,22 +1,35 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const FALLBACK_MS = 7500; // max wait if video stalls
+const subscribeToMount = () => () => {};
+const getClientMountState = () => true;
+const getServerMountState = () => false;
+
+function markSplashComplete() {
+  document.documentElement.dataset.splashComplete = "true";
+  window.dispatchEvent(new Event("notch:splash-complete"));
+}
 
 export default function SplashScreen() {
   const [show, setShow] = useState(true); // always start visible
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeToMount,
+    getClientMountState,
+    getServerMountState
+  );
   const timerRef = useRef(null);
 
   useEffect(() => {
-    setMounted(true);
-
     // Skip for users who prefer reduced motion
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setShow(false);
-      return;
+      const frameId = window.requestAnimationFrame(() => {
+        markSplashComplete();
+        setShow(false);
+      });
+      return () => window.cancelAnimationFrame(frameId);
     }
 
     // Fallback: force-dismiss in case onEnded never fires
@@ -34,6 +47,7 @@ export default function SplashScreen() {
   if (!mounted) {
     return (
       <div
+        data-splash-screen
         style={{
           position: "fixed",
           inset: 0,
@@ -45,10 +59,11 @@ export default function SplashScreen() {
   }
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={markSplashComplete}>
       {show && (
         <motion.div
           key="splash"
+          data-splash-screen
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}

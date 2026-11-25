@@ -42,20 +42,33 @@ export default function DashboardOverviewPage() {
   }, [fetchCustomers, fetchActivities, fetchRewards, fetchCafeProfile]);
 
   useEffect(() => {
+    const refreshCustomers = () => {
+      if (document.visibilityState === "visible") fetchCustomers();
+    };
+    const intervalId = window.setInterval(refreshCustomers, 15000);
+    window.addEventListener("focus", refreshCustomers);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshCustomers);
+    };
+  }, [fetchCustomers]);
+
+  useEffect(() => {
     const timerId = window.setTimeout(() => setNow(new Date()), 0);
     return () => window.clearTimeout(timerId);
   }, []);
 
   // Calculate dynamic metrics
-  const totalCustomers = customers.length || cafe.customerCount || 0;
+  const totalCustomers = Math.max(customers.length, cafe.customerCount || 0);
   const activeCustomers = customers.filter((c) => c.status === "active").length;
-  const totalStampsIssued =
-    customers.length > 0
-      ? customers.reduce(
-          (acc, c) => acc + (c.lifetimeStamps || c.stamps || 0),
-          0,
-        )
-      : cafe.totalStampsIssued || 0;
+  const customerLifetimeStamps = customers.reduce(
+    (acc, customer) => acc + (customer.lifetimeStamps || customer.stamps || 0),
+    0,
+  );
+  const totalStampsIssued = Math.max(
+    cafe.totalStampsIssued || 0,
+    customerLifetimeStamps,
+  );
   const customerRewardsRedeemed = customers.reduce(
     (acc, c) => acc + (c.rewardsRedeemedCount || 0),
     0,

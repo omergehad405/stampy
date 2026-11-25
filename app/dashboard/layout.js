@@ -21,6 +21,19 @@ export default function DashboardLayout({ children }) {
     if (isAuthenticated) {
       fetchCafeProfile();
       fetchActivities();
+
+      const refreshDashboardData = () => {
+        if (document.visibilityState !== "visible") return;
+        fetchCafeProfile();
+        fetchActivities();
+      };
+      const intervalId = window.setInterval(refreshDashboardData, 15000);
+      window.addEventListener("focus", refreshDashboardData);
+
+      return () => {
+        window.clearInterval(intervalId);
+        window.removeEventListener("focus", refreshDashboardData);
+      };
     }
   }, [isAuthenticated, fetchCafeProfile, fetchActivities]);
 

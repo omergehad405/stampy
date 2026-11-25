@@ -24,16 +24,14 @@ import CafeQrCard from "./components/CafeQrCard";
 import QrScrollBadge from "./components/QrScrollBadge";
 import CafeQrModal from "./components/CafeQrModal";
 
-function showStampAwardToast(response, cafe, totalStamps) {
+function getStampAwardToastMessage(response, cafe, totalStamps) {
   const stampCount = response.data?.stamps ?? response.data?.newStamps;
   const stampTarget = response.data?.stampTarget ?? totalStamps;
   const cafeName = cafe?.name || "the cafe";
 
-  toast.success(
-    typeof stampCount === "number"
-      ? `🎉 +1 stamp gained! ${stampCount}/${stampTarget} stamps at ${cafeName}.`
-      : `🎉 +1 stamp gained at ${cafeName}!`
-  );
+  return typeof stampCount === "number"
+    ? `🎉 +1 stamp gained! ${stampCount}/${stampTarget} stamps at ${cafeName}.`
+    : `🎉 +1 stamp gained at ${cafeName}!`;
 }
 
 function DedicatedCafePageContent() {
@@ -64,15 +62,57 @@ function DedicatedCafePageContent() {
   const [scanError, setScanError] = useState("");
   const [scanNeedsJoin, setScanNeedsJoin] = useState(false);
   const [scanRetryCount, setScanRetryCount] = useState(0);
+  const [splashComplete, setSplashComplete] = useState(false);
   const qrSectionRef = useRef(null);
   const scanAttemptRef = useRef({ key: "", active: false });
   const selfScanAwardedStampsRef = useRef(null);
+  const splashCompleteRef = useRef(false);
+  const pendingStampAnimationRef = useRef([]);
+  const pendingStampToastRef = useRef("");
 
   // Active stamps tracking and celebration animation state
   const currentStamps = membership?.stamps ?? 0;
   const totalStamps = membership?.totalStamps ?? cafe?.stampTarget ?? 10;
   const prevStampsRef = useRef(null);
   const [animatingStamps, setAnimatingStamps] = useState([]); // array of slot numbers e.g. [3] or [3, 4]
+  const animationFrameRef = useRef(null);
+
+  useEffect(() => {
+    const handleSplashComplete = () => {
+      splashCompleteRef.current = true;
+      setSplashComplete(true);
+    };
+
+    if (
+      document.documentElement.dataset.splashComplete === "true" ||
+      !document.querySelector("[data-splash-screen]")
+    ) {
+      handleSplashComplete();
+      return;
+    }
+
+    window.addEventListener("notch:splash-complete", handleSplashComplete);
+    if (document.documentElement.dataset.splashComplete === "true") {
+      handleSplashComplete();
+    }
+
+    return () => {
+      window.removeEventListener("notch:splash-complete", handleSplashComplete);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!splashComplete) return;
+
+    if (pendingStampAnimationRef.current.length > 0) {
+      setAnimatingStamps(pendingStampAnimationRef.current);
+      pendingStampAnimationRef.current = [];
+    }
+    if (pendingStampToastRef.current) {
+      toast.success(pendingStampToastRef.current);
+      pendingStampToastRef.current = "";
+    }
+  }, [splashComplete]);
 
   useEffect(() => {
     if (!scanIntent || !slug || isLoading || !cafe || !getAuthToken()) return;
@@ -114,7 +154,12 @@ function DedicatedCafePageContent() {
           console.warn("[Cafe QR] Could not refresh customer membership:", refreshError);
         }
 
-        showStampAwardToast(response, cafe, totalStamps);
+        const toastMessage = getStampAwardToastMessage(response, cafe, totalStamps);
+        if (splashCompleteRef.current) {
+          toast.success(toastMessage);
+        } else {
+          pendingStampToastRef.current = toastMessage;
+        }
 
         try {
           await fetchCafeActivities(slug);
@@ -202,7 +247,16 @@ function DedicatedCafePageContent() {
       }
 
       // 3. Trigger realistic sequential stamp animation in the grid
-      setAnimatingStamps(newSlots);
+      if (splashComplete) {
+        animationFrameRef.current = window.requestAnimationFrame(() => {
+          setAnimatingStamps(newSlots);
+        });
+      } else {
+        pendingStampAnimationRef.current = [
+          ...pendingStampAnimationRef.current,
+          ...newSlots,
+        ];
+      }
 
       if (newSlots.length > 0) {
         if (
@@ -211,13 +265,24 @@ function DedicatedCafePageContent() {
         ) {
           selfScanAwardedStampsRef.current = null;
         } else {
-          toast.success(`🎉 +${newSlots.length} stamp awarded!`);
+          const toastMessage = `🎉 +${newSlots.length} stamp awarded!`;
+          if (splashComplete) {
+            toast.success(toastMessage);
+          } else {
+            pendingStampToastRef.current = toastMessage;
+          }
         }
       }
     }
 
     prevStampsRef.current = membership.stamps;
-  }, [isJoined, membership?.stamps, totalStamps]);
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isJoined, membership?.stamps, splashComplete, totalStamps]);
 
   const scrollToQr = () => {
     setIsBadgeHighlighted(true);
@@ -270,7 +335,12 @@ function DedicatedCafePageContent() {
           console.warn("[Cafe QR] Could not refresh customer membership:", refreshError);
         }
 
-        showStampAwardToast(response, cafe, totalStamps);
+        const toastMessage = getStampAwardToastMessage(response, cafe, totalStamps);
+        if (splashCompleteRef.current) {
+          toast.success(toastMessage);
+        } else {
+          pendingStampToastRef.current = toastMessage;
+        }
 
         try {
           await fetchCafeActivities(slug);

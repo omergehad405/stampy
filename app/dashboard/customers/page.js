@@ -103,6 +103,20 @@ export default function DashboardCustomersPage() {
     };
   }, [currentPage, debouncedSearch, statusFilter, sortBy, reloadKey, requestKey]);
 
+  useEffect(() => {
+    const refreshCustomers = () => {
+      if (document.visibilityState === "visible") {
+        setReloadKey((key) => key + 1);
+      }
+    };
+    const intervalId = window.setInterval(refreshCustomers, 15000);
+    window.addEventListener("focus", refreshCustomers);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshCustomers);
+    };
+  }, []);
+
   // Handle Manual Stamp Adjustment
   const handleAdjustStamps = (type) => {
     if (!selectedCustomer) return;

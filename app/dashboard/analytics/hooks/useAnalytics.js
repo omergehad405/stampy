@@ -18,23 +18,46 @@ export default function useAnalytics() {
 
   useEffect(() => {
     let active = true;
+    let requestInFlight = false;
 
-    apiGetDashboardAnalytics({ range, atRiskDays })
-      .then((response) => {
-        if (!active) return;
-        setResult({ key: requestKey, status: "loaded", data: response });
-      })
-      .catch((error) => {
-        if (!active) return;
-        if (error.status === 403) {
-          setResult({ key: requestKey, status: "locked", data: null });
-        } else {
-          setResult({ key: requestKey, status: "error", data: null });
+    const loadAnalytics = async () => {
+      if (requestInFlight) return;
+      requestInFlight = true;
+
+      try {
+        const response = await apiGetDashboardAnalytics({ range, atRiskDays });
+        if (active) {
+          setResult({ key: requestKey, status: "loaded", data: response });
         }
-      });
+      } catch (error) {
+        if (active) {
+          setResult((current) => {
+            if (error.status === 403) {
+              return { key: requestKey, status: "locked", data: null };
+            }
+            if (current.key === requestKey && current.status === "loaded") {
+              return current;
+            }
+            return { key: requestKey, status: "error", data: null };
+          });
+        }
+      } finally {
+        requestInFlight = false;
+      }
+    };
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") loadAnalytics();
+    };
+
+    loadAnalytics();
+    const intervalId = window.setInterval(refreshWhenVisible, 30000);
+    window.addEventListener("focus", refreshWhenVisible);
 
     return () => {
       active = false;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshWhenVisible);
     };
   }, [range, atRiskDays, requestKey]);
 
