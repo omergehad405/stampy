@@ -19,7 +19,6 @@ const adminSettingsSchema = new mongoose.Schema(
     allowPublicCafeRegistration: { type: Boolean, default: true },
     allowPublicCustomerRegistration: { type: Boolean, default: true },
     defaultStampTarget: { type: Number, default: 10, min: 1 },
-    defaultWelcomeBonus: { type: Boolean, default: true },
     defaultEnforceDailyVisit: { type: Boolean, default: true },
     defaultSubscriptionPlanId: { type: String, default: "plan-free", trim: true },
     maintenanceMode: { type: Boolean, default: false },

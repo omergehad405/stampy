@@ -322,7 +322,7 @@ export const useLoyaltyStore = create(
             const backendMem = res.data?.membership;
             const slug = res.data?.cafeSlug || cafeSlug;
 
-            const initialStamps = backendMem?.stamps ?? 1;
+            const initialStamps = backendMem?.stamps ?? 0;
             const newMembership = {
               cafeId: res.data?.cafeId || cafeId,
               cafeSlug: slug,
@@ -330,17 +330,17 @@ export const useLoyaltyStore = create(
               joinedAt: backendMem?.joinedAt || new Date().toISOString(),
               stamps: initialStamps,
               totalStamps: backendMem?.totalStamps || cafe?.stampTarget || 10,
-              totalVisits: backendMem?.totalVisits || 1,
-              lifetimeStamps: backendMem?.lifetimeStamps || initialStamps,
-              lastVisitDate: backendMem?.lastVisitDate || new Date().toISOString(),
+              totalVisits: backendMem?.totalVisits || 0,
+              lifetimeStamps: backendMem?.lifetimeStamps || 0,
+              lastVisitDate: backendMem?.lastVisitDate || null,
               history: [
                 {
                   id: `act-join-${Date.now()}`,
-                  type: "stamp",
-                  title: "Welcome Bonus (+1 Stamp)",
+                  type: "join",
+                  title: "Joined Loyalty Program",
                   date: "Just now",
                   description: `Joined ${res.data?.cafeName || cafe?.name || slug}`,
-                  stampsDelta: 1,
+                  stampsDelta: 0,
                 },
               ],
               redemptions: [],
@@ -366,16 +366,6 @@ export const useLoyaltyStore = create(
                 },
               };
             });
-
-            try {
-              useNotificationStore.getState().addNotification({
-                title: "Welcome Bonus Stamp!",
-                message: `You collected your 1st stamp for joining ${res.data?.cafeName || cafe?.name || slug}!`,
-                type: "stamp",
-              });
-            } catch (notifErr) {
-              console.warn("Could not dispatch welcome notification:", notifErr);
-            }
 
             return { success: true, membership: newMembership, cafeSlug: slug };
           }

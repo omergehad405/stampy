@@ -132,8 +132,7 @@ function UnifiedLoginContent() {
               toast.success(`🎉 You've joined ${pendingCafe.name || "the café"}! Your loyalty card is ready.`);
             }
             const cafeSlug = pendingCafe.slug || pendingCafe.cafeId;
-            sessionStorage.setItem(`Notch_welcome_stamp_${cafeSlug}`, "true");
-            router.push(`/cafe/${cafeSlug}?welcome=true`);
+            router.push(`/cafe/${cafeSlug}`);
             return;
           }
         } catch (err) {

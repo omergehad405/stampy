@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LuQrCode } from "react-icons/lu";
 import { toast } from "react-toastify";
 
@@ -26,7 +26,6 @@ import CafeQrModal from "./components/CafeQrModal";
 function DedicatedCafePageContent() {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const slug = params?.slug;
 
   const { cafe, isLoading } = useCafeData(slug);
@@ -71,20 +70,6 @@ function DedicatedCafePageContent() {
 
     return () => clearInterval(intervalId);
   }, [isJoined, fetchCurrentUser]);
-
-  // Detect welcome flag from signup auto-join or info page redirect
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hasWelcomeParam = searchParams?.get("welcome") === "true";
-      const hasSessionFlag =
-        sessionStorage.getItem(`Notch_welcome_stamp_${slug}`) === "true";
-
-      if (hasWelcomeParam || hasSessionFlag) {
-        setAnimatingStamps([1]);
-        sessionStorage.removeItem(`Notch_welcome_stamp_${slug}`);
-      }
-    }
-  }, [searchParams, slug]);
 
   // Detect when customer's stamps increase (e.g. barista scan awarded stamp)
   useEffect(() => {
@@ -149,7 +134,6 @@ function DedicatedCafePageContent() {
     try {
       const result = await joinCafe(cafe?.id || cafe?._id || slug);
       if (result.success) {
-        setAnimatingStamps([1]);
         toast.success(`🎉 Welcome to ${cafe?.name}! Your loyalty card is ready.`, {
           position: "top-right",
           autoClose: 3500,

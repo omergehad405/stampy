@@ -231,28 +231,6 @@ export default function AdminSettingsPage() {
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={formData.defaultWelcomeBonus}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      defaultWelcomeBonus: e.target.checked,
-                    })
-                  }
-                  className="mt-0.5 rounded text-(--mainColor)"
-                />
-                <div>
-                  <span className="font-bold text-(--mainColor) block">
-                    Grant Welcome Bonus Stamp
-                  </span>
-                  <span className="text-[11px] text-(--mainColor)/60">
-                    Automatically credit 1 stamp when a customer joins a new cafe program.
-                  </span>
-                </div>
-              </label>
-
-              <label className="flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
                   checked={formData.defaultEnforceDailyVisit}
                   onChange={(e) =>
                     setFormData({

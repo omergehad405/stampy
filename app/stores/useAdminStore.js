@@ -38,7 +38,6 @@ const INITIAL_SETTINGS = {
   allowPublicCafeRegistration: true,
   allowPublicCustomerRegistration: true,
   defaultStampTarget: 10,
-  defaultWelcomeBonus: true,
   defaultEnforceDailyVisit: true,
   defaultSubscriptionPlanId: "plan-free",
   maintenanceMode: false,

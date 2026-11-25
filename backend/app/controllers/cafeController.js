@@ -580,7 +580,6 @@ const joinCafe = async (req, res) => {
       (c) => c.userId && c.userId.toString() === user._id.toString()
     );
 
-    const initialStampIssued = existingUserIndex < 0 ? 1 : 0;
     let userMembership;
 
     if (existingUserIndex >= 0) {
@@ -590,15 +589,14 @@ const joinCafe = async (req, res) => {
       userMembership = {
         cafeId: cafe._id,
         joinedAt,
-        stamps: 1,
-        totalVisits: 1,
-        lifetimeStamps: 1,
+        stamps: 0,
+        totalVisits: 0,
+        lifetimeStamps: 0,
         rewardsRedeemedCount: 0,
-        lastVisitDate: joinedAt,
+        lastVisitDate: null,
       };
       user.cafes.push(userMembership);
       user.joinedCafes = user.cafes.length;
-      user.totalStamps = (user.totalStamps || 0) + 1;
       await user.save();
     }
 
@@ -615,20 +613,9 @@ const joinCafe = async (req, res) => {
         status: "active",
       });
       cafe.customerCount = cafe.customers.length;
-    } else if (initialStampIssued) {
-      const cafeCustomer = cafe.customers[existingCafeCustomerIndex];
-      cafeCustomer.stamps = userMembership.stamps;
-      cafeCustomer.totalVisits = userMembership.totalVisits;
-      cafeCustomer.lifetimeStamps = userMembership.lifetimeStamps;
-      cafeCustomer.lastVisitDate = userMembership.lastVisitDate;
-      cafeCustomer.status = "active";
     }
 
-    if (initialStampIssued) {
-      cafe.totalStampsIssued = (cafe.totalStampsIssued || 0) + initialStampIssued;
-    }
-
-    if (existingCafeCustomerIndex < 0 || initialStampIssued) {
+    if (existingCafeCustomerIndex < 0) {
       await cafe.save();
     }
 
@@ -639,11 +626,9 @@ const joinCafe = async (req, res) => {
         title: "New Member Enrolled",
         customerName: user.name,
         customerId: user._id,
-        stampsDelta: initialStampIssued,
+        stampsDelta: 0,
         staffName: "System",
-        note: initialStampIssued
-          ? "Customer enrolled and received an initial stamp"
-          : "Customer enrollment checked",
+        note: "Customer enrolled. No visit stamp awarded.",
       });
     } catch (actErr) {
       console.warn("[joinCafe] Could not record activity:", actErr.message);

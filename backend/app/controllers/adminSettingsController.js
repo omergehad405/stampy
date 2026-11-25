@@ -8,7 +8,6 @@ const SETTINGS_FIELDS = [
   "allowPublicCafeRegistration",
   "allowPublicCustomerRegistration",
   "defaultStampTarget",
-  "defaultWelcomeBonus",
   "defaultEnforceDailyVisit",
   "defaultSubscriptionPlanId",
   "maintenanceMode",
