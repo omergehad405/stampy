@@ -497,7 +497,7 @@ export default function DashboardCafeProfilePage() {
             <button
               onClick={handleReset}
               type="button"
-              className="flex items-center gap-1.5 rounded-xl border border-(--bgColor)/20 bg-(--bgColor)/10 px-3.5 py-2 text-xs font-semibold text-(--bgColor) hover:bg-(--bgColor)/20 transition cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-(--mainColor) bg-(--mainColor) px-3.5 py-2 text-xs font-semibold text-(--bgColor) transition cursor-pointer"
             >
               <LuRotateCcw className="h-3.5 w-3.5" />
               <span>Reset</span>

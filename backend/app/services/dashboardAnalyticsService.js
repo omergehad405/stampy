@@ -3,6 +3,8 @@ const Cafe = require("../models/Cafe");
 const Redemption = require("../models/Redemption");
 
 const CAIRO_TIMEZONE = "Africa/Cairo";
+// Older join-and-stamp pairs were written sequentially before stampAwardId existed.
+const LEGACY_STAMP_PAIR_WINDOW_MS = 5000;
 const configuredSampleSize = Number.parseInt(
   process.env.ANALYTICS_MIN_SAMPLE_SIZE || "10",
   10
@@ -81,6 +83,7 @@ const aggregateStampsIssued = async (cafeId, start, end) => {
           _id: "$customerId",
           firstActivityType: { $first: "$type" },
           firstActivityDate: { $first: "$createdAt" },
+          firstActivityStampAwardId: { $first: "$metadata.stampAwardId" },
           firstActivityStampsDelta: {
             $first: { $ifNull: ["$stampsDelta", 0] },
           },
@@ -92,6 +95,69 @@ const aggregateStampsIssued = async (cafeId, start, end) => {
           firstActivityType: "join",
           firstActivityDate: { $gte: start },
           firstActivityStampsDelta: { $lte: 0 },
+        },
+      },
+      {
+        $lookup: {
+          from: Activity.collection.name,
+          let: {
+            customerId: "$_id",
+            activityDate: "$firstActivityDate",
+            stampAwardId: "$firstActivityStampAwardId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$cafeId", cafeId] },
+                    { $eq: ["$customerId", "$$customerId"] },
+                    { $eq: ["$type", "stamp"] },
+                    { $gt: [{ $ifNull: ["$stampsDelta", 0] }, 0] },
+                    {
+                      $or: [
+                        {
+                          $and: [
+                            { $ne: ["$$stampAwardId", null] },
+                            {
+                              $eq: [
+                                "$metadata.stampAwardId",
+                                "$$stampAwardId",
+                              ],
+                            },
+                          ],
+                        },
+                        {
+                          $and: [
+                            { $gte: ["$createdAt", "$$activityDate"] },
+                            {
+                              $lte: [
+                                "$createdAt",
+                                {
+                                  $add: [
+                                    "$$activityDate",
+                                    LEGACY_STAMP_PAIR_WINDOW_MS,
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            { $limit: 1 },
+            { $project: { _id: 1 } },
+          ],
+          as: "pairedStampActivities",
+        },
+      },
+      {
+        $match: {
+          "pairedStampActivities.0": { $exists: false },
         },
       },
       { $count: "total" },

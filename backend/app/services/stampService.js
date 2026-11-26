@@ -185,6 +185,7 @@ const awardStamp = async ({
       }
 
       const createdMembership = !membership;
+      const stampAwardId = new mongoose.Types.ObjectId().toString();
       if (!membership) {
         customer.cafes.push({
           cafeId: cafe._id,
@@ -245,6 +246,7 @@ const awardStamp = async ({
             stampsDelta: 0,
             staffName: "System",
             note: "Customer joined through the cafe QR scan.",
+            metadata: { stampAwardId },
           }],
           { session }
         );
@@ -264,6 +266,7 @@ const awardStamp = async ({
             : "Visit verified via staff QR scan."),
           source,
           stampDay: dayKey,
+          metadata: { stampAwardId },
         }],
         { session }
       );
