@@ -293,7 +293,7 @@ const getMe = async (req, res) => {
     // Populate user's joined cafes with cafe details
     const populatedUser = await User.findById(user._id).populate({
       path: "cafes.cafeId",
-      select: "name slug tagline logoImage coverImage stampTarget status isActive category location rewards",
+      select: "name slug tagline logoImage coverImage stampTarget status isActive category location rewards openingHours",
     });
 
     // Fetch customer's real activities and redemptions to attach full history to joined cafes
@@ -301,6 +301,15 @@ const getMe = async (req, res) => {
       Activity.find({ customerId: user._id }).sort({ createdAt: -1 }),
       Redemption.find({ customerId: user._id }).sort({ createdAt: -1 }),
     ]);
+
+    const timezoneByCafeId = new Map(
+      (populatedUser?.cafes || [])
+        .filter((membership) => membership.cafeId)
+        .map((membership) => [
+          membership.cafeId._id.toString(),
+          membership.cafeId.openingHours?.timezone || "Africa/Cairo",
+        ])
+    );
 
     const activitiesByCafe = {};
     (userActivities || []).forEach((a) => {
@@ -316,6 +325,7 @@ const getMe = async (req, res) => {
         staffName: a.staffName || "Staff",
         date: a.createdAt
           ? new Date(a.createdAt).toLocaleDateString("en-US", {
+              timeZone: timezoneByCafeId.get(cid) || "Africa/Cairo",
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -344,6 +354,7 @@ const getMe = async (req, res) => {
           staffName: "Self",
           date: r.createdAt
             ? new Date(r.createdAt).toLocaleDateString("en-US", {
+                timeZone: timezoneByCafeId.get(cid) || "Africa/Cairo",
                 month: "short",
                 day: "numeric",
                 year: "numeric",
@@ -370,6 +381,7 @@ const getMe = async (req, res) => {
             stampsDelta: 0,
             staffName: "System",
             date: new Date(c.joinedAt).toLocaleDateString("en-US", {
+              timeZone: c.cafeId.openingHours?.timezone || "Africa/Cairo",
               month: "short",
               day: "numeric",
               year: "numeric",

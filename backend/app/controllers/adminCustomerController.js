@@ -133,7 +133,7 @@ const getCustomerById = async (req, res) => {
     const activities = await Activity.find({ customerId: user._id })
       .sort({ createdAt: -1 })
       .limit(50)
-      .populate("cafeId", "name")
+      .populate("cafeId", "name openingHours")
       .lean();
 
     return res.status(200).json({
@@ -151,6 +151,7 @@ const getCustomerById = async (req, res) => {
           timestamp: activity.createdAt,
           formattedDate: activity.createdAt
             ? new Date(activity.createdAt).toLocaleString("en-US", {
+                timeZone: activity.cafeId?.openingHours?.timezone || "Africa/Cairo",
                 month: "short",
                 day: "numeric",
                 year: "numeric",

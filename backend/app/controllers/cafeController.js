@@ -855,7 +855,7 @@ const getMyMemberships = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate({
       path: "cafes.cafeId",
-      select: "name slug tagline logoImage coverImage stampTarget status isActive category location rewards",
+      select: "name slug tagline logoImage coverImage stampTarget status isActive category location rewards openingHours",
     });
 
     if (!user) {
@@ -867,6 +867,15 @@ const getMyMemberships = async (req, res) => {
       Activity.find({ customerId: user._id }).sort({ createdAt: -1 }),
       Redemption.find({ customerId: user._id }).sort({ createdAt: -1 }),
     ]);
+
+    const timezoneByCafeId = new Map(
+      (user.cafes || [])
+        .filter((membership) => membership.cafeId)
+        .map((membership) => [
+          membership.cafeId._id.toString(),
+          membership.cafeId.openingHours?.timezone || "Africa/Cairo",
+        ])
+    );
 
     const activitiesByCafe = {};
     (userActivities || []).forEach((a) => {
@@ -882,6 +891,7 @@ const getMyMemberships = async (req, res) => {
         staffName: a.staffName || "Staff",
         date: a.createdAt
           ? new Date(a.createdAt).toLocaleDateString("en-US", {
+            timeZone: timezoneByCafeId.get(cid) || "Africa/Cairo",
             month: "short",
             day: "numeric",
             year: "numeric",
@@ -910,6 +920,7 @@ const getMyMemberships = async (req, res) => {
           staffName: "Self",
           date: r.createdAt
             ? new Date(r.createdAt).toLocaleDateString("en-US", {
+              timeZone: timezoneByCafeId.get(cid) || "Africa/Cairo",
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -936,6 +947,7 @@ const getMyMemberships = async (req, res) => {
             stampsDelta: 0,
             staffName: "System",
             date: new Date(c.joinedAt).toLocaleDateString("en-US", {
+              timeZone: c.cafeId.openingHours?.timezone || "Africa/Cairo",
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -1438,6 +1450,7 @@ const scanCustomer = async (req, res) => {
             branch: redemption.branch,
             createdAt: redemption.createdAt,
             formattedDate: new Date(redemption.createdAt).toLocaleDateString("en-US", {
+              timeZone: staffCafe.openingHours?.timezone || "Africa/Cairo",
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -1446,6 +1459,7 @@ const scanCustomer = async (req, res) => {
             }),
             expiresAt: redemption.expiresAt
               ? new Date(redemption.expiresAt).toLocaleDateString("en-US", {
+                timeZone: staffCafe.openingHours?.timezone || "Africa/Cairo",
                 month: "short",
                 day: "numeric",
                 year: "numeric",
@@ -1453,6 +1467,7 @@ const scanCustomer = async (req, res) => {
               : null,
             usedAt: redemption.usedAt
               ? new Date(redemption.usedAt).toLocaleDateString("en-US", {
+                timeZone: staffCafe.openingHours?.timezone || "Africa/Cairo",
                 month: "short",
                 day: "numeric",
                 year: "numeric",
@@ -1565,12 +1580,14 @@ const scanCustomer = async (req, res) => {
 
     const formattedJoinedDate = userMembership?.joinedAt
       ? new Date(userMembership.joinedAt).toLocaleDateString("en-US", {
+        timeZone: staffCafe.openingHours?.timezone || "Africa/Cairo",
         month: "short",
         day: "numeric",
         year: "numeric",
       })
       : customer.createdAt
         ? new Date(customer.createdAt).toLocaleDateString("en-US", {
+          timeZone: staffCafe.openingHours?.timezone || "Africa/Cairo",
           month: "short",
           day: "numeric",
           year: "numeric",
@@ -1842,12 +1859,14 @@ const redeemReward = async (req, res) => {
           status: redemption.status,
           branch: redemption.branch,
           expiresAt: new Date(redemption.expiresAt).toLocaleDateString("en-US", {
+            timeZone: cafe.openingHours?.timezone || "Africa/Cairo",
             month: "short",
             day: "numeric",
             year: "numeric",
           }),
           createdAt: redemption.createdAt,
           formattedDate: new Date(redemption.createdAt).toLocaleDateString("en-US", {
+            timeZone: cafe.openingHours?.timezone || "Africa/Cairo",
             month: "short",
             day: "numeric",
             year: "numeric",
@@ -1889,7 +1908,9 @@ const getMyRedemptions = async (req, res) => {
       }
     }
 
-    const redemptions = await Redemption.find(filter).sort({ createdAt: -1 });
+    const redemptions = await Redemption.find(filter)
+      .populate("cafeId", "openingHours")
+      .sort({ createdAt: -1 });
 
     const formatted = redemptions.map((r) => ({
       id: r._id.toString(),
@@ -1901,6 +1922,7 @@ const getMyRedemptions = async (req, res) => {
       branch: r.branch,
       expiresAt: r.expiresAt
         ? new Date(r.expiresAt).toLocaleDateString("en-US", {
+          timeZone: r.cafeId?.openingHours?.timezone || "Africa/Cairo",
           month: "short",
           day: "numeric",
           year: "numeric",
@@ -1908,12 +1930,14 @@ const getMyRedemptions = async (req, res) => {
         : null,
       createdAt: r.createdAt,
       formattedDate: new Date(r.createdAt).toLocaleDateString("en-US", {
+        timeZone: r.cafeId?.openingHours?.timezone || "Africa/Cairo",
         month: "short",
         day: "numeric",
         year: "numeric",
       }),
       usedAt: r.usedAt
         ? new Date(r.usedAt).toLocaleDateString("en-US", {
+          timeZone: r.cafeId?.openingHours?.timezone || "Africa/Cairo",
           month: "short",
           day: "numeric",
           year: "numeric",
@@ -1983,10 +2007,14 @@ const fulfillRewardRedemption = async (req, res) => {
     }
 
     if (redemption.status === "used") {
+      const fulfilledAt = redemption.usedAt
+        ? new Date(redemption.usedAt).toLocaleDateString("en-US", {
+            timeZone: staffCafe.openingHours?.timezone || "Africa/Cairo",
+          })
+        : "previously";
       return res.status(400).json({
         success: false,
-        message: `This reward voucher was already fulfilled on ${redemption.usedAt ? new Date(redemption.usedAt).toLocaleDateString() : "previously"
-          }.`,
+        message: `This reward voucher was already fulfilled on ${fulfilledAt}.`,
       });
     }
 
@@ -2067,6 +2095,7 @@ const getCafeActivities = async (req, res) => {
       });
     }
 
+    const timezone = staffCafe.openingHours?.timezone || "Africa/Cairo";
     const activities = await Activity.find({ cafeId: staffCafe._id })
       .sort({ createdAt: -1 })
       .limit(100);
@@ -2074,7 +2103,17 @@ const getCafeActivities = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        activities: activities.map((a) => a.toJSON()),
+        activities: activities.map((activity) => ({
+          ...activity.toJSON(),
+          formattedDate: new Date(activity.createdAt).toLocaleDateString("en-US", {
+            timeZone: timezone,
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        })),
       },
     });
   } catch (error) {
@@ -2409,6 +2448,7 @@ const getCustomerActivities = async (req, res) => {
         staffName: a.staffName || "Staff",
         date: a.createdAt
           ? new Date(a.createdAt).toLocaleDateString("en-US", {
+            timeZone: cafe.openingHours?.timezone || "Africa/Cairo",
             month: "short",
             day: "numeric",
             year: "numeric",
@@ -2438,6 +2478,7 @@ const getCustomerActivities = async (req, res) => {
           staffName: "Self",
           date: r.createdAt
             ? new Date(r.createdAt).toLocaleDateString("en-US", {
+              timeZone: cafe.openingHours?.timezone || "Africa/Cairo",
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -2464,6 +2505,7 @@ const getCustomerActivities = async (req, res) => {
           stampsDelta: 0,
           staffName: "System",
           date: new Date(membership.joinedAt).toLocaleDateString("en-US", {
+            timeZone: cafe.openingHours?.timezone || "Africa/Cairo",
             month: "short",
             day: "numeric",
             year: "numeric",

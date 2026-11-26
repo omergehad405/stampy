@@ -187,6 +187,7 @@ const getAdminOverview = async (req, res) => {
       timestamp: activity.createdAt,
       formattedDate: activity.createdAt
         ? new Date(activity.createdAt).toLocaleString("en-US", {
+            timeZone: TIMEZONE,
             month: "short",
             day: "numeric",
             hour: "numeric",
@@ -278,6 +279,7 @@ const getAdminActivities = async (req, res) => {
           timestamp: activity.createdAt,
           formattedDate: activity.createdAt
             ? new Date(activity.createdAt).toLocaleString("en-US", {
+                timeZone: TIMEZONE,
                 month: "short",
                 day: "numeric",
                 year: "numeric",

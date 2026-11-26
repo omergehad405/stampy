@@ -66,6 +66,7 @@ activitySchema.set("toJSON", {
     ret.id = ret._id.toString();
     ret.formattedDate = ret.createdAt
       ? new Date(ret.createdAt).toLocaleDateString("en-US", {
+          timeZone: "Africa/Cairo",
           month: "short",
           day: "numeric",
           year: "numeric",
