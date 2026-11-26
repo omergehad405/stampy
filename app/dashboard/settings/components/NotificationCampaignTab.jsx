@@ -10,7 +10,10 @@ import {
   apiSendNotificationCampaign,
 } from "@/app/lib/dashboardApi";
 
-export default function NotificationCampaignTab({ initialSubject = "" }) {
+export default function NotificationCampaignTab({
+  initialSubject = "",
+  refreshKey = 0,
+}) {
   const { cafe, hasFeature } = useDashboardStore();
   const subscriptionStatus = cafe?.subscriptionStatus || "active";
   const planAllowsFeature =
@@ -64,7 +67,7 @@ export default function NotificationCampaignTab({ initialSubject = "" }) {
     if (!planAllowsFeature || apiLocked) return undefined;
     const timeoutId = setTimeout(loadData, 0);
     return () => clearTimeout(timeoutId);
-  }, [planAllowsFeature, apiLocked, loadData]);
+  }, [planAllowsFeature, apiLocked, loadData, refreshKey]);
 
   useEffect(() => {
     if (!activeCampaignId) return undefined;

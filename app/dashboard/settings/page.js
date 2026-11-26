@@ -2,8 +2,11 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { toast } from "react-toastify";
 import { LuBell, LuShield, LuUser } from "react-icons/lu";
 import DashboardPageHeader from "../components/DashboardPageHeader";
+import { useDashboardAuthStore } from "@/app/stores/useDashboardAuthStore";
+import { useDashboardStore } from "@/app/stores/useDashboardStore";
 import AccountSettingsTab from "./components/AccountSettingsTab";
 import SecuritySettingsTab from "./components/SecuritySettingsTab";
 import NotificationCampaignTab from "./components/NotificationCampaignTab";
@@ -28,12 +31,34 @@ export default function DashboardSettingsPage() {
 
 function DashboardSettingsContent() {
   const searchParams = useSearchParams();
+  const { checkAuth } = useDashboardAuthStore();
+  const { fetchCafeProfile, isLoadingCafe } = useDashboardStore();
   const requestedTab = searchParams.get("tab");
   const initialTab = TABS.some((tab) => tab.key === requestedTab)
     ? requestedTab
     : "account";
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const initialSubject = searchParams.get("subject") || "";
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const [session, profile] = await Promise.all([
+        checkAuth(),
+        fetchCafeProfile(),
+      ]);
+      setRefreshKey((key) => key + 1);
+      if (session.success && profile.success) {
+        toast.success("Settings refreshed.");
+      } else {
+        toast.error(profile.error || "Unable to refresh all settings.");
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -41,6 +66,8 @@ function DashboardSettingsContent() {
         title="Settings & Preferences"
         description="Manage your staff profile, security, and notification settings."
         breadcrumbs={[{ label: "Settings" }]}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing || isLoadingCafe}
       />
 
       <div
@@ -77,7 +104,10 @@ function DashboardSettingsContent() {
       </div>
       {activeTab === "notifications" && (
         <div aria-label="Notifications">
-          <NotificationCampaignTab initialSubject={initialSubject} />
+          <NotificationCampaignTab
+            initialSubject={initialSubject}
+            refreshKey={refreshKey}
+          />
         </div>
       )}
     </div>

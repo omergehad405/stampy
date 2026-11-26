@@ -59,6 +59,7 @@ export default function DashboardUsersPage() {
   const [editingStaff, setEditingStaff] = useState(null);
   const [deletingStaff, setDeletingStaff] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Form State
@@ -75,6 +76,20 @@ export default function DashboardUsersPage() {
   useEffect(() => {
     fetchStaff();
   }, [fetchStaff]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await fetchStaff();
+      if (!result.success) {
+        toast.error(result.error || "Unable to refresh staff members.");
+      }
+    } catch (error) {
+      toast.error(error.message || "Unable to refresh staff members.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleOpenAddModal = () => {
     setEditingStaff(null);
@@ -165,6 +180,8 @@ export default function DashboardUsersPage() {
         title="Users & Employees"
         description="Manage cafe team members, baristas, and dashboard access credentials."
         breadcrumbs={[{ label: "Users & Staff" }]}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
         actions={
           isOwner && isFeatureAllowed ? (
             <button

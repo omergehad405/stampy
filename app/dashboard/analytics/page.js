@@ -41,6 +41,8 @@ export default function DashboardAnalyticsPage() {
       <DashboardPageHeader
         title="Cafe Analytics"
         description={`Track visits, customer retention, and rewards performance for ${cafe.name || "your cafe"}.`}
+        onRefresh={retry}
+        isRefreshing={isLoading}
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

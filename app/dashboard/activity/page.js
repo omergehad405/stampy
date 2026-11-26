@@ -30,6 +30,15 @@ export default function DashboardActivityPage() {
 
   const isFeatureAllowed = hasFeature ? hasFeature("activity_history") : true;
 
+  const handleRefresh = async () => {
+    const result = await fetchActivities();
+    if (!result.success) {
+      toast.error(result.error || "Unable to refresh activity history.");
+    } else {
+      toast.success("Activity history refreshed.");
+    }
+  };
+
   // Extract unique staff names from activity log
   const uniqueStaff = useMemo(() => {
     const set = new Set(activities.map((a) => a.staffName).filter(Boolean));
@@ -85,6 +94,8 @@ export default function DashboardActivityPage() {
         title="Activity & Transaction Log"
         description="Comprehensive audit trail of stamps credited, rewards redeemed, and customer visits at your counters."
         breadcrumbs={[{ label: "Activity History" }]}
+        onRefresh={handleRefresh}
+        isRefreshing={isLoadingActivities}
         actions={
           isFeatureAllowed ? (
             <button

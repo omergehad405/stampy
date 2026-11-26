@@ -42,18 +42,6 @@ export default function DashboardOverviewPage() {
   }, [fetchCustomers, fetchActivities, fetchRewards, fetchCafeProfile]);
 
   useEffect(() => {
-    const refreshCustomers = () => {
-      if (document.visibilityState === "visible") fetchCustomers();
-    };
-    const intervalId = window.setInterval(refreshCustomers, 15000);
-    window.addEventListener("focus", refreshCustomers);
-    return () => {
-      window.clearInterval(intervalId);
-      window.removeEventListener("focus", refreshCustomers);
-    };
-  }, [fetchCustomers]);
-
-  useEffect(() => {
     const timerId = window.setTimeout(() => setNow(new Date()), 0);
     return () => window.clearTimeout(timerId);
   }, []);

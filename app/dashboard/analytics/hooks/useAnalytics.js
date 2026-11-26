@@ -18,12 +18,8 @@ export default function useAnalytics() {
 
   useEffect(() => {
     let active = true;
-    let requestInFlight = false;
 
     const loadAnalytics = async () => {
-      if (requestInFlight) return;
-      requestInFlight = true;
-
       try {
         const response = await apiGetDashboardAnalytics({ range, atRiskDays });
         if (active) {
@@ -41,23 +37,13 @@ export default function useAnalytics() {
             return { key: requestKey, status: "error", data: null };
           });
         }
-      } finally {
-        requestInFlight = false;
       }
     };
 
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === "visible") loadAnalytics();
-    };
-
     loadAnalytics();
-    const intervalId = window.setInterval(refreshWhenVisible, 30000);
-    window.addEventListener("focus", refreshWhenVisible);
 
     return () => {
       active = false;
-      window.clearInterval(intervalId);
-      window.removeEventListener("focus", refreshWhenVisible);
     };
   }, [range, atRiskDays, requestKey]);
 

@@ -645,12 +645,15 @@ export const useDashboardStore = create((set, get) => ({
             canManageRewards: s.roleKey !== "barista",
           })),
         });
+        return { success: true, staff: staffList };
       }
+      return { success: false, error: "Could not load staff members." };
     } catch (e) {
       console.warn(
         "[Dashboard Store] Could not fetch server staff list:",
         e.message,
       );
+      return { success: false, error: e.message };
     }
   },
 

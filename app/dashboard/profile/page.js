@@ -170,7 +170,13 @@ const buildProfileForm = (cafe) => ({
 });
 
 export default function DashboardCafeProfilePage() {
-  const { cafe, updateCafeProfile, hasFeature } = useDashboardStore();
+  const {
+    cafe,
+    updateCafeProfile,
+    fetchCafeProfile,
+    isLoadingCafe,
+    hasFeature,
+  } = useDashboardStore();
 
   const [activeTab, setActiveTab] = useState("basic");
   const [isSaving, setIsSaving] = useState(false);
@@ -358,6 +364,17 @@ export default function DashboardCafeProfilePage() {
     toast.info("Changes reset to saved values.");
   };
 
+  const handleRefresh = async () => {
+    const result = await fetchCafeProfile();
+    if (result.success) {
+      setProfileForm(buildProfileForm(result.cafe));
+      setNewHighlight("");
+      toast.success("Cafe profile refreshed.");
+    } else {
+      toast.error(result.error || "Unable to refresh cafe profile.");
+    }
+  };
+
   const addHighlight = () => {
     if (!newHighlight.trim()) return;
     setProfileForm((prev) => ({
@@ -473,6 +490,8 @@ export default function DashboardCafeProfilePage() {
         title="Cafe Profile Management"
         description="Edit the public information, opening hours, story, and digital menu shown to customers on the Notch app."
         breadcrumbs={[{ label: "Cafe Profile" }]}
+        onRefresh={handleRefresh}
+        isRefreshing={isLoadingCafe}
         actions={
           <>
             <button

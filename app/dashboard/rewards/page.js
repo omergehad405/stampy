@@ -13,7 +13,6 @@ import {
   LuTriangleAlert,
   LuLoader,
   LuCheckCircle2,
-  LuRefreshCw,
 } from "react-icons/lu";
 import { toast } from "react-toastify";
 import DashboardPageHeader from "../components/DashboardPageHeader";
@@ -210,6 +209,8 @@ export default function DashboardRewardsPage() {
         title="Loyalty Rewards Catalog"
         description="Configure free drinks, artisan treats, and milestone discounts customers can redeem with stamps."
         breadcrumbs={[{ label: "Rewards" }]}
+        onRefresh={() => fetchRewards()}
+        isRefreshing={isLoadingRewards}
         actions={
           <div className="flex items-center gap-2">
             {limits && (
@@ -224,15 +225,6 @@ export default function DashboardRewardsPage() {
                   : `Tier: ${rewards.length}/${limits.maxRewards} Active`}
               </span>
             )}
-            <button
-              onClick={() => fetchRewards()}
-              disabled={isLoadingRewards}
-              className="flex items-center gap-1.5 rounded-xl border border-(--mainColor)/20 bg-(--bgColor)/10 px-3 py-2 text-xs font-semibold text-(--mainColor) hover:bg-(--bgColor)/20 disabled:opacity-50 cursor-pointer"
-              title="Refresh rewards"
-            >
-              <LuRefreshCw className={`h-3.5 w-3.5 ${isLoadingRewards ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
             <button
               onClick={openCreateModal}
               className="flex items-center gap-2 rounded-xl bg-(--secondColor) px-4 py-2 text-xs font-bold text-[#3B2418] shadow-xs hover:opacity-95 cursor-pointer"

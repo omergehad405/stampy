@@ -2,13 +2,15 @@
 
 import React from "react";
 import Link from "next/link";
-import { LuChevronRight } from "react-icons/lu";
+import { LuChevronRight, LuRefreshCw } from "react-icons/lu";
 
 export default function DashboardPageHeader({
   title,
   description,
   breadcrumbs = [],
   actions,
+  onRefresh,
+  isRefreshing = false,
 }) {
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -44,7 +46,25 @@ export default function DashboardPageHeader({
         )}
       </div>
 
-      {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
+      {(actions || onRefresh) && (
+        <div className="flex flex-wrap items-center gap-2.5">
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              aria-label="Refresh page data"
+              className="flex items-center gap-1.5 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3 py-2 text-xs font-semibold text-(--mainColor) transition hover:bg-(--mainColor)/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--secondColor) disabled:cursor-wait disabled:opacity-60"
+            >
+              <LuRefreshCw
+                className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              <span>Refresh</span>
+            </button>
+          )}
+          {actions}
+        </div>
+      )}
     </div>
   );
 }
