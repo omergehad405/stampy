@@ -12,6 +12,7 @@ import {
   LuSparkles,
 } from "react-icons/lu";
 import QRCodeImage from "@/app/components/ui/QRCodeImage";
+import { useLoyaltyStore } from "@/app/stores/useLoyaltyStore";
 
 // Scannable QR Code for reward redemption
 function RedemptionQRCodeGraphic({ code, className = "w-44 h-44" }) {
@@ -30,9 +31,64 @@ function RedemptionQRCodeGraphic({ code, className = "w-44 h-44" }) {
 export default function RedemptionQrModal({
   isOpen,
   redemption,
+  cafeSlug,
   onClose,
 }) {
   const [copied, setCopied] = useState(false);
+  const [redemptionUpdate, setRedemptionUpdate] = useState(null);
+  const currentRedemption =
+    redemptionUpdate?.id === redemption?.id
+      ? { ...redemption, ...redemptionUpdate }
+      : redemption;
+  const redemptionId = currentRedemption?.id;
+  const redemptionCode = currentRedemption?.code;
+  const redemptionStatus = currentRedemption?.status;
+  const fetchCafeRedemptions = useLoyaltyStore(
+    (state) => state.fetchCafeRedemptions
+  );
+
+  useEffect(() => {
+    if (
+      !isOpen ||
+      !redemptionId ||
+      redemptionStatus !== "pending" ||
+      !cafeSlug
+    ) {
+      return;
+    }
+
+    let isActive = true;
+    const refreshRedemption = async () => {
+      const result = await fetchCafeRedemptions(cafeSlug);
+      const latestRedemption = result.redemptions?.find(
+        (item) =>
+          item.id === redemptionId ||
+          item.code === redemptionCode
+      );
+
+      if (isActive && latestRedemption) {
+        setRedemptionUpdate((current) =>
+          current?.id === latestRedemption.id &&
+          current?.status === latestRedemption.status
+            ? current
+            : latestRedemption
+        );
+      }
+    };
+
+    const intervalId = window.setInterval(refreshRedemption, 2500);
+    return () => {
+      isActive = false;
+      window.clearInterval(intervalId);
+    };
+  }, [
+    cafeSlug,
+    redemptionCode,
+    redemptionId,
+    redemptionStatus,
+    fetchCafeRedemptions,
+    isOpen,
+  ]);
 
   // Close on Escape key & lock scroll
   useEffect(() => {
@@ -51,19 +107,21 @@ export default function RedemptionQrModal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || !redemption) return null;
+  if (!isOpen || !currentRedemption) return null;
+
+  const activeRedemption = currentRedemption;
 
   const handleCopy = () => {
-    if (redemption?.code) {
-      navigator.clipboard?.writeText(redemption.code);
+    if (activeRedemption?.code) {
+      navigator.clipboard?.writeText(activeRedemption.code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const isUsed = redemption.status === "used";
-  const isExpired = redemption.status === "expired";
-  const isPending = redemption.status === "pending";
+  const isUsed = activeRedemption.status === "used";
+  const isExpired = activeRedemption.status === "expired";
+  const isPending = activeRedemption.status === "pending";
 
   return (
     <AnimatePresence>
@@ -116,7 +174,7 @@ export default function RedemptionQrModal({
           </span>
 
           <h3 id="qr-modal-title" className="text-xl sm:text-2xl font-bold mt-1 text-(--bgColor)">
-            {redemption.rewardName}
+            {activeRedemption.rewardName}
           </h3>
 
           {/* Status Badge */}
@@ -149,14 +207,14 @@ export default function RedemptionQrModal({
               }`}
           >
             <RedemptionQRCodeGraphic
-              code={redemption.code}
+              code={activeRedemption.code}
               className="w-full h-full text-[#3B2418]"
             />
           </div>
 
           {/* Unique Redemption Code with Copy Action */}
           <div className="flex items-center gap-2 bg-(--bgColor)/15 border border-(--bgColor)/20 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-mono font-bold text-(--bgColor)">
-            <span>{redemption.code}</span>
+            <span>{activeRedemption.code}</span>
             <button
               type="button"
               onClick={handleCopy}

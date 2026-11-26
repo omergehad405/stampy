@@ -166,6 +166,7 @@ function DedicatedCafeRewardsContent() {
       <RedemptionQrModal
         isOpen={Boolean(activeQrRedemption)}
         redemption={activeQrRedemption}
+        cafeSlug={slug}
         onClose={() => setActiveQrRedemption(null)}
       />
     </div>

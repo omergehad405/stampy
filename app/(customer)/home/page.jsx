@@ -260,6 +260,7 @@ export default function HomePage() {
       <RedemptionQrModal
         isOpen={Boolean(activeQrRedemption)}
         redemption={activeQrRedemption}
+        cafeSlug={activeQrCafeSlug}
         onClose={() => {
           setActiveQrRedemption(null);
           setActiveQrCafeSlug(null);

@@ -32,7 +32,7 @@ function getServerTime() {
  * Calculates whether the cafe is currently open, and returns formatted status.
  * Safely handles missing or irregular schedule data.
  */
-function computeOpenStatus(schedule, timestamp) {
+function computeOpenStatus(schedule, timestamp, timezone = "Africa/Cairo") {
   if (!schedule || !Array.isArray(schedule) || schedule.length === 0 || !timestamp) {
     return {
       isOpenNow: null,
@@ -43,20 +43,16 @@ function computeOpenStatus(schedule, timestamp) {
     };
   }
 
-  const dateObj = new Date(timestamp);
-  const daysOfWeek = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-
-  const currentDayName = daysOfWeek[dateObj.getDay()];
-  const currentHours = dateObj.getHours();
-  const currentMinutes = dateObj.getMinutes();
+  const dateParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(timestamp));
+  const currentDayName = dateParts.find((part) => part.type === "weekday").value;
+  const currentHours = Number(dateParts.find((part) => part.type === "hour").value);
+  const currentMinutes = Number(dateParts.find((part) => part.type === "minute").value);
   const currentTimeNumber = currentHours * 60 + currentMinutes;
 
   const today = schedule.find(
@@ -192,11 +188,12 @@ export function useCafeData(slugOrCafe = null) {
   // Safely subscribe to client time with a stable snapshot
   const clientTime = useSyncExternalStore(subscribeTime, getClientTime, getServerTime);
   const schedule = cafe?.openingHours?.schedule;
+  const timezone = cafe?.openingHours?.timezone || "Africa/Cairo";
 
   const operatingStatus = useMemo(() => {
     if (!clientTime || !schedule) return null;
-    return computeOpenStatus(schedule, clientTime);
-  }, [clientTime, schedule]);
+    return computeOpenStatus(schedule, clientTime, timezone);
+  }, [clientTime, schedule, timezone]);
 
   return {
     cafe,

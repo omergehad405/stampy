@@ -9,7 +9,15 @@ import CustomerQrModal from "./CustomerQrModal";
 import { useNotificationStore } from "@/app/stores/useNotificationStore";
 
 function getGreeting() {
-  const hour = new Date().getHours();
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Africa/Cairo",
+      hour: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === "hour").value
+  );
   if (hour < 12) return "Good Morning";
   if (hour < 18) return "Good Afternoon";
   return "Good Evening";
