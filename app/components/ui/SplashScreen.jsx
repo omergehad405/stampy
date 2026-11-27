@@ -9,12 +9,28 @@ const getClientMountState = () => true;
 const getServerMountState = () => false;
 
 function markSplashComplete() {
-  document.documentElement.dataset.splashComplete = "true";
-  window.dispatchEvent(new Event("notch:splash-complete"));
+  if (typeof document !== "undefined") {
+    document.documentElement.dataset.splashComplete = "true";
+  }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("notch:splash-complete"));
+  }
+}
+
+function isAuthPath() {
+  if (typeof window === "undefined") return false;
+  const p = window.location.pathname;
+  return (
+    p.includes("login") ||
+    p.includes("signup") ||
+    p.includes("register") ||
+    p.includes("forgot-password") ||
+    p.includes("reset-password")
+  );
 }
 
 export default function SplashScreen() {
-  const [show, setShow] = useState(true); // always start visible
+  const [show, setShow] = useState(true);
   const mounted = useSyncExternalStore(
     subscribeToMount,
     getClientMountState,
@@ -23,6 +39,12 @@ export default function SplashScreen() {
   const timerRef = useRef(null);
 
   useEffect(() => {
+    if (isAuthPath()) {
+      markSplashComplete();
+      setShow(false);
+      return;
+    }
+
     // Skip for users who prefer reduced motion
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       const frameId = window.requestAnimationFrame(() => {
@@ -40,6 +62,11 @@ export default function SplashScreen() {
   function dismiss() {
     window.clearTimeout(timerRef.current);
     setShow(false);
+  }
+
+  // On client, if on an auth route, don't render splash
+  if (mounted && isAuthPath()) {
+    return null;
   }
 
   // On SSR / before mount: render a plain static div so the page appears blocked
@@ -60,7 +87,7 @@ export default function SplashScreen() {
 
   return (
     <AnimatePresence onExitComplete={markSplashComplete}>
-      {show && (
+      {show && !isAuthPath() && (
         <motion.div
           key="splash"
           data-splash-screen
@@ -100,7 +127,6 @@ export default function SplashScreen() {
               zIndex: 1,
             }}
           />
-
         </motion.div>
       )}
     </AnimatePresence>

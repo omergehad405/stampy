@@ -4,8 +4,31 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { BRAND, FOOTER_LINKS } from "../content";
+import { MotionReveal } from "./MotionPrimitives";
+import { useMarketingLanguage, I18N_CONTENT } from "../i18n";
 
 export default function MarketingFooter() {
+  const { language } = useMarketingLanguage();
+  const t = I18N_CONTENT[language] || I18N_CONTENT.en;
+
+  const productLinks = [
+    { label: t.footer.links.features, href: "/features" },
+    { label: t.footer.links.howItWorks, href: "/how-it-works" },
+    { label: t.footer.links.pricing, href: "/pricing" },
+    { label: t.footer.links.cafeDashboard, href: "/dashboard" },
+  ];
+
+  const communityLinks = [
+    { label: t.footer.links.about, href: "/about" },
+    { label: t.footer.links.applyCafe, href: "/contact" },
+    { label: t.footer.links.customerLogin, href: "/login?as=customer" },
+  ];
+
+  const legalLinks = [
+    { label: t.footer.links.privacy, href: "/privacy" },
+    { label: t.footer.links.terms, href: "/terms" },
+  ];
+
   return (
     <footer className="relative mt-20 border-t border-(--mainColor)/15 bg-(--mainColor)/5 text-(--mainColor) transition-colors">
       {/* Visual Perforation Motif (Punch card dotted line) */}
@@ -15,7 +38,7 @@ export default function MarketingFooter() {
         <span className="h-4 w-4 rounded-full bg-(--bgColor) border border-(--mainColor)/15 -me-2" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 pt-14 pb-12 sm:px-6 lg:px-8">
+      <MotionReveal className="mx-auto max-w-7xl px-4 pt-14 pb-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-5 lg:gap-12">
           {/* Brand Info & Mission */}
           <div className="md:col-span-2 space-y-4">
@@ -35,7 +58,7 @@ export default function MarketingFooter() {
             </Link>
 
             <p className="max-w-sm text-xs sm:text-sm leading-relaxed text-(--mainColor)/75">
-              {BRAND.description}
+              {t.footer.description}
             </p>
 
             {FOOTER_LINKS.socials.length > 0 && (
@@ -59,10 +82,10 @@ export default function MarketingFooter() {
           {/* Column: Product */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-(--mainColor)">
-              Platform
+              {t.footer.platformTitle}
             </h3>
             <ul className="space-y-2 text-xs sm:text-sm">
-              {FOOTER_LINKS.product.map((item) => (
+              {productLinks.map((item) => (
                 <li key={item.label}>
                   <Link
                     href={item.href}
@@ -78,10 +101,10 @@ export default function MarketingFooter() {
           {/* Column: Community & Cafe Owners */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-(--mainColor)">
-              Community
+              {t.footer.communityTitle}
             </h3>
             <ul className="space-y-2 text-xs sm:text-sm">
-              {FOOTER_LINKS.community.map((item) => (
+              {communityLinks.map((item) => (
                 <li key={item.label}>
                   <Link
                     href={item.href}
@@ -97,10 +120,10 @@ export default function MarketingFooter() {
           {/* Column: Legal & Trust */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-(--mainColor)">
-              Legal & Safety
+              {t.footer.legalTitle}
             </h3>
             <ul className="space-y-2 text-xs sm:text-sm">
-              {FOOTER_LINKS.legal.map((item) => (
+              {legalLinks.map((item) => (
                 <li key={item.label}>
                   <Link
                     href={item.href}
@@ -117,10 +140,11 @@ export default function MarketingFooter() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-(--mainColor)/10 pt-6 text-xs text-(--mainColor)/60 sm:flex-row">
           <p>
-            &copy; {BRAND.copyrightYear} {BRAND.name}. All rights reserved. Built for independent cafes.
+            &copy; {BRAND.copyrightYear} {BRAND.name}. {t.common.allRightsReserved}{" "}
+            {t.footer.builtForCafes}
           </p>
         </div>
-      </div>
+      </MotionReveal>
     </footer>
   );
 }

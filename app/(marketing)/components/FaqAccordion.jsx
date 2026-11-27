@@ -3,10 +3,13 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuChevronDown } from "react-icons/lu";
-import { FAQ_ITEMS } from "../content";
+import { useMarketingLanguage, I18N_CONTENT } from "../i18n";
 
 export default function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState(0);
+  const { language } = useMarketingLanguage();
+  const t = I18N_CONTENT[language] || I18N_CONTENT.en;
+  const items = t.home?.faq?.items || [];
 
   const toggle = (idx) => {
     setOpenIndex(openIndex === idx ? -1 : idx);
@@ -14,7 +17,7 @@ export default function FaqAccordion() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-3">
-      {FAQ_ITEMS.map((item, idx) => {
+      {items.map((item, idx) => {
         const isOpen = openIndex === idx;
         const headingId = `faq-heading-${idx}`;
         const panelId = `faq-panel-${idx}`;

@@ -74,6 +74,7 @@ export default function ThemeToggle({ className }) {
   return (
     <button
       type="button"
+      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       onClick={toggleThemeWithCircularReveal}
       className={

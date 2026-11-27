@@ -2,13 +2,19 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { LuMail, LuCircleCheck, LuArrowRight } from "react-icons/lu";
+import { LuMail, LuCircleCheck, LuArrowRight, LuArrowLeft } from "react-icons/lu";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import { CONTACT_PAGE_CONTENT } from "../content";
 import { API_BASE } from "@/app/lib/apiClient";
+import { useMarketingLanguage, I18N_CONTENT } from "../i18n";
 
 function ContactFormInner() {
-  const { form } = CONTACT_PAGE_CONTENT;
+  const { language } = useMarketingLanguage();
+  const t = I18N_CONTENT[language] || I18N_CONTENT.en;
+  const form = t.contactPage.form;
+  const isRtl = language === "ar";
+  const ArrowIcon = isRtl ? LuArrowLeft : LuArrowRight;
+
   const searchParams = useSearchParams();
   const planParam = searchParams.get("plan");
 
@@ -34,8 +40,7 @@ function ContactFormInner() {
           );
         }
       })
-      .catch(() => {})
-      .finally(() => {});
+      .catch(() => {});
     return () => { isCancelled = true; };
   }, []);
 
@@ -62,7 +67,11 @@ function ContactFormInner() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.cafeName.trim() || !formData.email.trim() || !formData.ownerName.trim()) {
-      toast.error("Please fill in your cafe name, owner name, and email.");
+      toast.error(
+        isRtl
+          ? "يرجى ملء اسم الكافيه واسم المالك والبريد الإلكتروني."
+          : "Please fill in your cafe name, owner name, and email."
+      );
       return;
     }
 
@@ -71,9 +80,7 @@ function ContactFormInner() {
     try {
       const res = await fetch(`${API_BASE}/api/contact`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -87,7 +94,12 @@ function ContactFormInner() {
       toast.success(data.message || form.successTitle);
     } catch (err) {
       console.error("[Contact form submission]:", err);
-      toast.error(err.message || "Failed to dispatch message. Please try again or email us directly.");
+      toast.error(
+        err.message ||
+          (isRtl
+            ? "فشل إرسال النموذج. يرجى المحاولة مجدداً أو مراسلتنا مباشرة."
+            : "Failed to dispatch message. Please try again or email us directly.")
+      );
     } finally {
       setLoading(false);
     }
@@ -95,40 +107,57 @@ function ContactFormInner() {
 
   return (
     <div className="rounded-3xl border border-(--mainColor)/15 bg-(--bgColor) p-6 sm:p-10 shadow-sm">
-      {submitted ? (
-        <div className="py-12 text-center space-y-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600">
-            <LuCircleCheck className="h-8 w-8" />
-          </div>
-          <h2 className="text-2xl font-extrabold text-(--mainColor)">
-            {form.successTitle}
-          </h2>
-          <p className="mx-auto max-w-md text-xs sm:text-sm text-(--mainColor)/75 leading-relaxed">
-            {form.successMessage}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSubmitted(false);
-              setFormData({
-                cafeName: "",
-                ownerName: "",
-                email: "",
-                phone: "",
-                city: "",
-                plan: "Growth",
-                message: "",
-                website: "",
-              });
-            }}
-            className="mt-4 rounded-xl border border-(--mainColor)/20 px-5 py-2.5 text-xs font-bold text-(--mainColor) hover:bg-(--mainColor)/5 cursor-pointer"
+      <AnimatePresence mode="wait">
+        {submitted ? (
+          <motion.div
+            key="submitted"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.25 }}
+            className="py-12 text-center space-y-4"
           >
-            Submit another inquiry
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {/* Honeypot field hidden from real humans */}
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600">
+              <LuCircleCheck className="h-8 w-8" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-(--mainColor)">
+              {form.successTitle}
+            </h2>
+            <p className="mx-auto max-w-md text-xs sm:text-sm text-(--mainColor)/75 leading-relaxed">
+              {form.successMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSubmitted(false);
+                setFormData({
+                  cafeName: "",
+                  ownerName: "",
+                  email: "",
+                  phone: "",
+                  city: "",
+                  plan: "Growth",
+                  message: "",
+                  website: "",
+                });
+              }}
+              className="mt-4 rounded-xl border border-(--mainColor)/20 px-5 py-2.5 text-xs font-bold text-(--mainColor) hover:bg-(--mainColor)/5 cursor-pointer transition"
+            >
+              {form.submitAnother}
+            </button>
+          </motion.div>
+        ) : (
+          <motion.form
+            key="form"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            noValidate
+          >
+          {/* Honeypot */}
           <div className="hidden" aria-hidden="true">
             <label htmlFor="website">Website</label>
             <input
@@ -156,11 +185,11 @@ function ContactFormInner() {
                 value={formData.cafeName}
                 onChange={handleChange}
                 placeholder={form.cafeNamePlaceholder}
-                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
+                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
             </div>
 
-            {/* Owner / Manager Name */}
+            {/* Owner Name */}
             <div>
               <label htmlFor="ownerName" className="block text-xs font-bold text-(--mainColor) mb-1.5">
                 {form.ownerNameLabel} *
@@ -173,7 +202,7 @@ function ContactFormInner() {
                 value={formData.ownerName}
                 onChange={handleChange}
                 placeholder={form.ownerNamePlaceholder}
-                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
+                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
             </div>
           </div>
@@ -192,7 +221,7 @@ function ContactFormInner() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder={form.emailPlaceholder}
-                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
+                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
             </div>
 
@@ -208,7 +237,7 @@ function ContactFormInner() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder={form.phonePlaceholder}
-                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
+                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
             </div>
           </div>
@@ -226,11 +255,11 @@ function ContactFormInner() {
                 value={formData.city}
                 onChange={handleChange}
                 placeholder={form.cityPlaceholder}
-                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
+                className="w-full h-11 rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 px-3.5 text-sm text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
               />
             </div>
 
-            {/* Interested Plan Tier */}
+            {/* Plan */}
             <div>
               <label htmlFor="plan" className="block text-xs font-bold text-(--mainColor) mb-1.5">
                 {form.planLabel}
@@ -263,29 +292,30 @@ function ContactFormInner() {
               value={formData.message}
               onChange={handleChange}
               placeholder={form.messagePlaceholder}
-              className="w-full rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 p-3.5 text-sm text-(--mainColor) placeholder:(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
+              className="w-full rounded-xl border border-(--mainColor)/20 bg-(--mainColor)/5 p-3.5 text-sm text-(--mainColor) placeholder:text-(--mainColor)/40 outline-none transition focus:border-(--secondColor) focus:ring-2 focus:ring-(--secondColor)/40"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-(--mainColor) text-sm font-bold text-(--bgColor) shadow-sm transition hover:opacity-90 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-(--secondColor) text-sm font-extrabold text-[#271307] shadow-sm transition hover:opacity-90 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? (
               <span className="flex items-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--bgColor)/30 border-t-(--bgColor)" />
-                <span>Submitting application...</span>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#271307]/30 border-t-[#271307]" />
+                <span>{form.submitting}</span>
               </span>
             ) : (
               <>
                 <span>{form.submitBtn}</span>
-                <LuArrowRight className="h-4 w-4" />
+                <ArrowIcon className="h-4 w-4" />
               </>
             )}
           </button>
-        </form>
-      )}
+          </motion.form>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

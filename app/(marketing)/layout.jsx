@@ -1,6 +1,7 @@
 import MarketingHeader from "./components/MarketingHeader";
 import MarketingFooter from "./components/MarketingFooter";
 import MarketingAgentTools from "./components/MarketingAgentTools";
+import { MarketingMotionProvider } from "./components/MotionPrimitives";
 
 const SITE_URL = "https://notchloyalty.com";
 const OG_IMAGE = `${SITE_URL}/og-image.png`;
@@ -74,11 +75,13 @@ export const metadata = {
 
 export default function MarketingLayout({ children }) {
   return (
-    <div className="-mb-32 md:-mb-28 min-h-screen flex flex-col justify-between bg-(--bgColor) text-(--mainColor) transition-colors">
-      <MarketingHeader />
-      <div className="flex-1">{children}</div>
-      <MarketingFooter />
-      <MarketingAgentTools />
-    </div>
+    <MarketingMotionProvider>
+      <div className="-mb-32 md:-mb-28 min-h-screen flex flex-col justify-between bg-(--bgColor) text-(--mainColor) transition-colors">
+        <MarketingHeader />
+        <div className="flex-1">{children}</div>
+        <MarketingFooter />
+        <MarketingAgentTools />
+      </div>
+    </MarketingMotionProvider>
   );
 }
