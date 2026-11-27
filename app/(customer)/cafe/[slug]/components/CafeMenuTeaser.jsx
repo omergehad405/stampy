@@ -38,10 +38,6 @@ export default function CafeMenuTeaser({ menuPreview }) {
             Digital Menu
           </h2>
         </div>
-
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-(--secondColor) text-[#3b2418]">
-          Coming Soon
-        </span>
       </div>
 
       <p className="text-xs sm:text-sm text-(--bgColor)/80 max-w-xl">

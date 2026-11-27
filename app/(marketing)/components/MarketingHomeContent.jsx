@@ -216,11 +216,6 @@ export default function MarketingHomeContent() {
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-(--secondColor) text-[#3B2418]">
                       <Icon className="h-5 w-5" />
                     </div>
-                    {item.comingSoon && (
-                      <span className="rounded-full bg-(--secondColor)/30 px-2.5 py-0.5 text-[10px] font-bold text-(--mainColor)">
-                        {language === "ar" ? "قريباً" : "Coming Soon"}
-                      </span>
-                    )}
                   </div>
                   <h3 className="text-base font-bold text-(--mainColor)">
                     {item.title}
