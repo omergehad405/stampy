@@ -69,10 +69,12 @@ export default function CafeHeader({ cafe, operatingStatus }) {
       <div className="relative w-full h-44 sm:h-56 md:h-64 lg:h-72 rounded-3xl overflow-hidden bg-(--mainColor)/10 shadow-sm border border-(--mainColor)/10">
         {coverImage && !imageError ? (
           <Image
+            key={coverImage}
             src={coverImage}
             alt={coverImageAlt || `${name} cover`}
             fill
             priority
+            unoptimized
             sizes="(max-width: 768px) 100vw, 1100px"
             className="object-cover transition-transform duration-700 hover:scale-105"
             onError={() => setImageError(true)}
@@ -112,9 +114,11 @@ export default function CafeHeader({ cafe, operatingStatus }) {
             <div className="relative w-22 h-22 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl border-4 border-(--bgColor) shadow-lg bg-(--bgColor) overflow-hidden shrink-0 flex items-center justify-center">
               {logoImage && !logoError ? (
                 <Image
+                  key={logoImage}
                   src={logoImage}
                   alt={logoAlt || `${name} logo`}
                   fill
+                  unoptimized
                   sizes="(max-width: 640px) 96px, 120px"
                   className="object-cover"
                   onError={() => setLogoError(true)}

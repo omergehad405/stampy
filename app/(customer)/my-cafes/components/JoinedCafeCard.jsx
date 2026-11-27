@@ -28,6 +28,7 @@ export default function JoinedCafeCard({ cafe, onLeave }) {
                 src={cafe.logoImage}
                 alt={cafe.name}
                 fill
+                unoptimized
                 sizes="64px"
                 className="object-cover"
               />

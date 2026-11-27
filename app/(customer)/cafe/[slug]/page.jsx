@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { LuQrCode } from "react-icons/lu";
 import { toast } from "react-toastify";
@@ -23,6 +23,9 @@ import RecentActivity from "./components/RecentActivity";
 import CafeQrCard from "./components/CafeQrCard";
 import QrScrollBadge from "./components/QrScrollBadge";
 import CafeQrModal from "./components/CafeQrModal";
+import CafeSkeleton from "./components/CafeSkeleton";
+
+const emptySubscribe = () => () => {};
 
 function getStampAwardToastMessage(response, cafe, totalStamps) {
   const stampCount = response.data?.stamps ?? response.data?.newStamps;
@@ -113,6 +116,17 @@ function DedicatedCafePageContent() {
       pendingStampToastRef.current = "";
     }
   }, [splashComplete]);
+
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const hasAuthToken = isClient ? Boolean(getAuthToken()) : false;
+
+  // If the customer is not logged in, redirect directly to /cafe/[slug]/info
+  useEffect(() => {
+    if (!slug) return;
+    if (!getAuthToken()) {
+      router.replace(`/cafe/${encodeURIComponent(slug)}/info`);
+    }
+  }, [isAuthenticated, router, slug]);
 
   useEffect(() => {
     if (!scanIntent || !slug || isLoading || !cafe || !getAuthToken()) return;
@@ -399,6 +413,10 @@ function DedicatedCafePageContent() {
       )}
     </div>
   ) : null;
+
+  if (!isClient || !hasAuthToken) {
+    return <CafeSkeleton />;
+  }
 
   if (!cafe) {
     return <CafeNotFound />;

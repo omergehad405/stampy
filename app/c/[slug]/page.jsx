@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import CafeSkeleton from "@/app/(customer)/cafe/[slug]/components/CafeSkeleton";
+import { getAuthToken } from "@/app/lib/apiClient";
 
 function LegacyCafeScanPageContent() {
   const { slug } = useParams();
@@ -12,6 +13,10 @@ function LegacyCafeScanPageContent() {
 
   useEffect(() => {
     if (!slug) return;
+    if (!getAuthToken()) {
+      router.replace(`/cafe/${encodeURIComponent(slug)}/info`);
+      return;
+    }
     const query = new URLSearchParams({ scan: "1" });
     if (joinIntent) query.set("join", "1");
     router.replace(`/cafe/${encodeURIComponent(slug)}?${query.toString()}`);

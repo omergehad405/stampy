@@ -164,6 +164,7 @@ export default function DiscoverCafesSection({ onJoinCafe }) {
                         src={cafe.coverImage}
                         alt={cafe.coverImageAlt || cafe.name}
                         fill
+                        unoptimized
                         sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -183,6 +184,7 @@ export default function DiscoverCafesSection({ onJoinCafe }) {
                               src={cafe.logoImage}
                               alt={cafe.name}
                               fill
+                              unoptimized
                               sizes="44px"
                               className="object-cover rounded-lg"
                             />

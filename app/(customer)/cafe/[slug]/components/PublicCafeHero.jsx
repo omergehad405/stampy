@@ -10,10 +10,12 @@ export default function PublicCafeHero({ cafe, isJoining, onJoin }) {
       <div className="relative h-48 sm:h-64 lg:h-72 w-full">
         {cafe.coverImage && (
           <Image
+            key={cafe.coverImage}
             src={cafe.coverImage}
             alt={cafe.name}
             fill
             priority
+            unoptimized
             sizes="(max-width: 1024px) 100vw, 1024px"
             className="object-cover opacity-45"
           />
@@ -25,9 +27,11 @@ export default function PublicCafeHero({ cafe, isJoining, onJoin }) {
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-white/20 border-2 border-(--bgColor)/30 shrink-0 shadow-md">
               {cafe.logoImage ? (
                 <Image
+                  key={cafe.logoImage}
                   src={cafe.logoImage}
                   alt={cafe.name}
                   fill
+                  unoptimized
                   sizes="64px"
                   className="object-cover"
                 />
@@ -48,9 +52,7 @@ export default function PublicCafeHero({ cafe, isJoining, onJoin }) {
               <p className="text-xs sm:text-sm opacity-80 flex items-center gap-1 mt-0.5">
                 <LuMapPin className="w-3.5 h-3.5" />
                 <span>{cafe.location?.district || cafe.location?.city}</span>
-                <span>•</span>
-                <span>{cafe.stampTarget}-Stamp Loyalty Program</span>
-              </p>
+                </p>
             </div>
           </div>
 

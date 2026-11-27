@@ -98,6 +98,7 @@ export default function ActiveLoyaltyCards({ joinedCafes }) {
                           src={cafe.logoImage}
                           alt={cafe.name}
                           fill
+                          unoptimized
                           sizes="52px"
                           className="object-cover"
                         />
